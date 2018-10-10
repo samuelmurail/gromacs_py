@@ -19,7 +19,7 @@ see the [INSTALL.md](./INSTALL.md) file for details.
 
 ## Tutorial:
 
-Here is an example of a short simulation of the SH3 domain of phsopholipase C$\gamma$1.  
+Here is an example of a short simulation of the SH3 domain of phsopholipase Cγ1.  
 Seven successive steps are used:
 
 1. Topologie creation using `create_top.py`.
