@@ -59,6 +59,10 @@ templates_path = ['_templates']
 source_suffix = ['.rst', '.md']
 #source_suffix = '.rst'
 
+# To deal with MD relative links:
+m2r_parse_relative_links = True
+
+
 # The master toctree document.
 master_doc = 'index'
 
