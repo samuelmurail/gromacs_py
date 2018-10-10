@@ -7,18 +7,13 @@ Welcome to gromacs_py's documentation!
 =======================================
 
 
-Gromacs_py
-=======================================
-
-Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software. Gromacs_py can build topologie based on a pdb file, create the simulation system (box, add water and ions) and run minimisation, equilibration and production run.  
-One of the main objective of the gromacs_py wrapper is to automatize routine operations for MD simulation of multiple systems. 
+.. mdinclude:: ../../README.md
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-   readme
    install
    gmx_sys
    gmx_top
