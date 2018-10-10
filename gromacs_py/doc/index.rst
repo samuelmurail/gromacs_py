@@ -11,8 +11,8 @@ Welcome to gromacs_py's documentation!
 
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+   :maxdepth: 2
+   :caption: Table of Contents:
 
    install
    gmx_sys
@@ -21,7 +21,7 @@ Welcome to gromacs_py's documentation!
    script
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
