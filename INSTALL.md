@@ -1,7 +1,7 @@
 
 ## Getting Started
 
-Get the gromacs_py from [github](https://gitlab.rpbs.univ-paris-diderot.fr).
+Get the gromacs_py from [github](https://github.com/samuelmurail/gromacs_py).
 
 ```bash
 	git clone git@gitlab.rpbs.univ-paris-diderot.fr:murail/gromacs_py.git

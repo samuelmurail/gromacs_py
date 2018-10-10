@@ -1,52 +1,20 @@
-# Gromacs_lib
+# Gromacs_py
 
-Gromacs_lib is a python library allowing a simplified use of the gromacs MD simulation software. Gromacs_lib can build topologie based on a pdb file, create the simulation system (box, add water and ions) and run minimisation, equilibration and production run.
+Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software. Gromacs_py can build topologie based on a pdb file, create the simulation system (box, add water and ions) and run minimisation, equilibration and production run.
 
-## Getting Started
-Get the gromacs_py from the [RPBS](https://gitlab.rpbs.univ-paris-diderot.fr) gitlab.
+## Quick install
+
+Get the gromacs_py from [github](https://gitlab.rpbs.univ-paris-diderot.fr).
+
 ```bash
-git clone https://github.com/samuelmurail/gromacs_py.git
+	git clone git@gitlab.rpbs.univ-paris-diderot.fr:murail/gromacs_py.git
+	./setup.py install
 ```
 
 
-### Prerequisites
+see the [INSTALL.md](INSTALL.md) file for details
 
-1.  python librairies:  
-   - sys, os, shutil, glob, argparse, subprocess
-
-2.  [pdb2pqr](http://www.poissonboltzmann.org/):
-```bash
-git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
-cd apbs-pdb2pqr/pdb2pqr/
-python scons/scons.py install
-```
-3.  [Gromacs](http://www.gromacs.org/)
-
-4.  [VMD](http://www.ks.uiuc.edu/Research/vmd/)  
-   - Only used to insert peptide/ligands is the simulation box.
-
-5.  [Pymol](https://pymol.org/2/)  
-   - Pymol is only used for *de novo* peptide creation.
-
-
-### Installing
-
-Explain how to setup gromacs lib **TO DO**
-```
-Give the example
-```
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-```bash
-cd gromacs_py/test
-test_gromacs5.py
-test_pdb.py
-test_cyclic_peptide.py
-```
-
-## Usage: **TO DO** 
+## Usage:
 #### basic:
 1.  create_top.py
 2.  solvate_ions.py
@@ -66,14 +34,10 @@ test_cyclic_peptide.py
 
 ## Authors
 
-* **Samuel Murail** - Université Paris Diderot, [MTi lab](http://www.mti.univ-paris-diderot.fr/) 
+* **Samuel Murail** - [Université Paris Diderot](https://www.univ-paris-diderot.fr), [MTi lab](http://www.mti.univ-paris-diderot.fr/) 
 
-**TO DO** See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/samuelmurail/gromacs_py/contributors) who participated in this project.
 
 ## License
 
-**TO DO** This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-**TO DO**
+This project is licensed under the GNU General Public License v2.0 - see the [LICENSE](LICENSE) file for details.
