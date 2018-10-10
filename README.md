@@ -1,4 +1,5 @@
-https://zenodo.org/badge/DOI/10.5281/zenodo.1455734.svg
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1455734.svg)](https://zenodo.org/record/1455734)
+
 # Gromacs_py
 
 Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software. Gromacs_py can build topologie based on a pdb file, create the simulation system (box, add water and ions) and run minimisation, equilibration and production run.  
