@@ -8,7 +8,7 @@ One of the main objective of the gromacs_py wrapper is to automatize routine ope
 
 ## Quick install
 
-Get gromacs_py library from [github](https://gitlab.rpbs.univ-paris-diderot.fr).
+Get gromacs_py library from [github](https://github.com/samuelmurail/gromacs_py).
 
 ```bash
 git clone git@gitlab.rpbs.univ-paris-diderot.fr:murail/gromacs_py.git
