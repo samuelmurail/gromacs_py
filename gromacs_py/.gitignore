@@ -1,0 +1,10 @@
+# Test output:
+test/output/**
+
+# Doc build:
+doc/_build
+doc/_build/**
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
