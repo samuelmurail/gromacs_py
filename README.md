@@ -1,10 +1,12 @@
 # Gromacs_py
 
-Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software. Gromacs_py can build topologie based on a pdb file, create the simulation system (box, add water and ions) and run minimisation, equilibration and production run.
+Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software. Gromacs_py can build topologie based on a pdb file, create the simulation system (box, add water and ions) and run minimisation, equilibration and production run.  
+One of the main objective of the gromacs_py wrapper is to automatize routine operations for MD simulation of multiple systems. 
+
 
 ## Quick install
 
-Get the gromacs_py from [github](https://gitlab.rpbs.univ-paris-diderot.fr).
+Get gromacs_py library from [github](https://gitlab.rpbs.univ-paris-diderot.fr).
 
 ```bash
 	git clone git@gitlab.rpbs.univ-paris-diderot.fr:murail/gromacs_py.git
@@ -15,16 +17,16 @@ see the [INSTALL.md](INSTALL.md) file for details.
 
 ## Tutorial:
 
-Here is an example of a short simulation of the SH3 domain of phsopholipase C$\gamma$1.
+Here is an example of a short simulation of the SH3 domain of phsopholipase C$\gamma$1.  
 Seven successive steps are used:
 
-1. Topologie creation.
-2. Minimisation of the structure
-3. Solvation of the system
-4. Minimisation of the system
-5. Equilibration of the system
-6. Production run
-7. Extesnion of the production run
+1. Topologie creation using `create_top.py`.
+2. Minimisation of the structure using `minimize_pdb.py`.
+3. Solvation of the system using `solvate_ions.py`.
+4. Minimisation of the system using `minimize_pdb.py`.
+5. Equilibration of the system using `equi_3_step.py`.
+6. Production run using `production.py`.
+7. Extension of the production run using `extend.py`.
 
 ```bash
 # Create topologie 
