@@ -18,13 +18,13 @@ see the [INSTALL.md](INSTALL.md) file for details.
 Here is an example of a short simulation of the SH3 domain of phsopholipase C$\gamma$1.
 Seven successive steps are used:
 
-	1. Topologie creation.
-	2. Minimisation of the structure
-	3. Solvation of the system
-	4. Minimisation of the system
-	5. Equilibration of the system
-	6. Production run
-	7. Extesnion of the production run
+1. Topologie creation.
+2. Minimisation of the structure
+3. Solvation of the system
+4. Minimisation of the system
+5. Equilibration of the system
+6. Production run
+7. Extesnion of the production run
 
 ```bash
 # Create topologie 
