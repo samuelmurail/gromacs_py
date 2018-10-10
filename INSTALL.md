@@ -4,8 +4,8 @@
 Get the gromacs_py from [github](https://github.com/samuelmurail/gromacs_py).
 
 ```bash
-	git clone git@gitlab.rpbs.univ-paris-diderot.fr:murail/gromacs_py.git
-	./setup.py install
+git clone git@gitlab.rpbs.univ-paris-diderot.fr:murail/gromacs_py.git
+./setup.py install
 ```
 
 
@@ -38,14 +38,14 @@ Need to add path of gmx, pdb2pqr.py, vmd and pymol to the environment variable `
 Add in your ~/.bashrc :
 
 ```bash
-	# Add gromacs 'gmx' path:
-	export PATH='*path_to_gromacs*/bin/':$PATH
-	# Add VMD 'vmd_MACOSXX86' or 'vmd' path:
-	export PATH='/Applications/VMD\ 1.9.3.app/Contents/vmd/':$PATH
-	# Add PyMol 'pymol' path:
-	export PATH='/Applications/PyMOL.app/Contents/bin/':$PATH
-	# Add pdb2pqr 'pdb2pqr.py' path:
-	export PATH='*path_to_apbs-pdb2pqr/pdb2pqr/':$PATH
+# Add gromacs 'gmx' path:
+export PATH='*path_to_gromacs*/bin/':$PATH
+# Add VMD 'vmd_MACOSXX86' or 'vmd' path:
+export PATH='/Applications/VMD\ 1.9.3.app/Contents/vmd/':$PATH
+# Add PyMol 'pymol' path:
+export PATH='/Applications/PyMOL.app/Contents/bin/':$PATH
+# Add pdb2pqr 'pdb2pqr.py' path:
+export PATH='*path_to_apbs-pdb2pqr/pdb2pqr/':$PATH
 ```
 
 
@@ -54,11 +54,11 @@ Add in your ~/.bashrc :
 Need sphinx install with m2r module.
 
 ```bash
-	$ cd doc
-	$ # For html documentation:
-	$ sphinx-build -b html . _build
-	$ # For pdf documentation:
-	$ sphinx-build -M latexpdf . _build/
+cd gromacs_py/doc
+# For html documentation:
+sphinx-build -b html . _build
+# For pdf documentation:
+sphinx-build -M latexpdf . _build/
 ```
 
 ## Test installation
@@ -66,10 +66,10 @@ Need sphinx install with m2r module.
 Launch test with [doctest](https://docs.python.org/3/library/doctest.html), will check that module’s docstrings are up-to-date by verifying that all interactive examples still work as documented.
 
 ```bash
-	$ ./test_gromacs_py.py
-	tools.pdb_manip:	 TestResults(failed=0, attempted=88)
-	tools.pdb2pqr:  	 TestResults(failed=0, attempted=11)
-	gromacs.gmx5:    	 TestResults(failed=0, attempted=52)
+$ ./test_gromacs_py.py
+tools.pdb_manip:	 TestResults(failed=0, attempted=88)
+tools.pdb2pqr:  	 TestResults(failed=0, attempted=11)
+gromacs.gmx5:    	 TestResults(failed=0, attempted=52)
 ```
 
 
