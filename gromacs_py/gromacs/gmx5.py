@@ -3004,8 +3004,7 @@ class gmx_sys(object):
     def get_simulation_time(self):
         """ In a case of a simulation restart simulation, one would like to know how much simulation time 
         has already been computed to reach a certain amount of time in the restart simulation.
-        The command will check the cpt file using ``gmx check -f file.cpt`` .
-
+        The command will check the cpt file using ``gmx check -f file.cpt``.
 
         **Object requirement(s):**
 
@@ -3019,7 +3018,7 @@ class gmx_sys(object):
         :rtype: float
 
         .. note::
-            This function has to be launched in the simulation folder.
+            This function has to be launched in the simulation folder.  
 
         """
 
