@@ -1,3 +1,6 @@
 # gromacs_py build:
 build
 build/**
+
+dist
+dist/**
