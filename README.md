@@ -11,7 +11,7 @@ One of the main objective of the gromacs_py wrapper is to automatize routine ope
 Get gromacs_py library from [github](https://github.com/samuelmurail/gromacs_py).
 
 ```bash
-git clone git@gitlab.rpbs.univ-paris-diderot.fr:murail/gromacs_py.git
+git clone https://github.com/samuelmurail/gromacs_py.git
 ./setup.py install
 ```
 see the [INSTALL.md](./INSTALL.md) file for details.

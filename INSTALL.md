@@ -4,7 +4,7 @@
 Get the gromacs_py from [github](https://github.com/samuelmurail/gromacs_py).
 
 ```bash
-git clone git@gitlab.rpbs.univ-paris-diderot.fr:murail/gromacs_py.git
+git clone https://github.com/samuelmurail/gromacs_py.git
 ./setup.py install
 ```
 
