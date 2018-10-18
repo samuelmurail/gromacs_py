@@ -2321,10 +2321,25 @@ class gmx_sys(object):
         # Concat the two pdb sys_pdb and mol_pdb
         concat_sys = new_name+"_pre_mix.pdb"
         # Get a compact pdb for the sys pdb
-        self.convert_trj(traj = False)
+        
+        # TODO :
+        # ADD a self tpr creation if self.tpr is missing
+
+        #self.convert_trj(traj = False)
         gmx_sys.concat_coor(self.coor_file, mol_gromacs.coor_file, pdb_out = concat_sys)
     
+        # Do the molecule insertion with the pdb_manip module:
+    
+        sys_pdb = pdb_manip.coor()
+        sys_pdb.read_pdb(concat_sys)
+
+        sys_pdb.insert_mol(pdb_out = new_name+".pdb", out_folder = "./",
+            mol_chain = "Y", mol_length = mol_length+1, check_file_out = check_file_out)
+        #def insert_mol(self, pdb_out, out_folder, mol_chain, mol_length, check_file_out = True):
+
+
         # Do the molecule insertion with a vmd script:
+        """
         import tools.vmd as vmd
         vmd.insert_mol(pdb_in = concat_sys, pdb_out = new_name+".pdb", out_folder = "./",
             mol_chain = "Y", mol_length = mol_length+1, check_file_out = check_file_out)
@@ -2367,6 +2382,7 @@ class gmx_sys(object):
 
         os.chdir(start_dir) 
         return()
+        """
 
     @staticmethod
     def concat_coor(*coor_in_files, pdb_out):

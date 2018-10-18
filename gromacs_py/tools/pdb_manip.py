@@ -267,7 +267,7 @@ class coor(object):
         return(seq_dict)
 
     def get_aa_num(self):
-        """Get the amino acid number a coor object.
+        """Get the amino acid number of a coor object.
         
         :return: Number of residues
         :rtype: int
@@ -289,6 +289,7 @@ class coor(object):
         CA_index_list = self.get_index_selection( {"name" : ["CA"]} )
 
         return( len(CA_index_list) )
+
 
 
     def change_pdb_field(self, change_dict):
@@ -430,14 +431,14 @@ class coor(object):
     
         return( index_list )
     
-    def get_uniq_res_selection(self, selec_dict):
+    def get_attribute_selection(self, selec_dict={}, attribute = 'uniq_resid'):
         """Select atom of a coor object based on the change_dict dictionnary.
-        Return the list of unique residue of selected atoms.
+        Return the list of unique atrtribute of the selected atoms.
         
         :param selec_dict: select ditionnay eg. {"chain" : ["A","G"]}
         :type selec_dict: dict 
 
-        :return: list of unique residue
+        :return: list of atom index
         :rtype: list of int
 
         :Example:
@@ -446,29 +447,30 @@ class coor(object):
         >>> prot_coor = pdb_manip.coor()
         >>> prot_coor.read_pdb('../test/input/1y0m.pdb')
         Succeed to read file ../test/input/1y0m.pdb ,  648 atoms found
-        >>> prot_coor.get_uniq_res_selection({'res_num' : [826,827]})
+        >>> prot_coor.get_attribute_selection({'res_num' : [826,827]}, attribute='uniq_resid')
         [35, 36]
 
-        .. note::
-            Unique residues are assigned sequentialy (0, 1, 2 ...) when reading the pdb file. As res_num field is extracted from the pdb file field.
-
         """  
-
-        uniq_res_list = []
+    
+        attr_list = []
     
         for atom_num, atom in self.atom_dict.items():
             selected = True
+            #print("atom_num:",atom_num,"atom:",atom)
             for selection in selec_dict.keys():
                 #print("select",selection, selec_dict[selection],".")
+                #print("selection=",selection)
+                #print("atom:",atom)
                 #print("atom",atom[selection],".")
                 if  atom[selection] not in selec_dict[selection]:
                     selected = False
                     break
             if selected:
                 #print(atom)
-                uniq_res_list.append(self.atom_dict[atom_num]["uniq_resid"])
+                attr_list.append(atom[attribute])
     
-        return( list(set(uniq_res_list)) )
+        return( list(set(attr_list)) )
+
 
     def del_atom_index(self, index_list):
         """Delete atoms of a coor object defined by their ``index``.
@@ -610,9 +612,9 @@ class coor(object):
         # FIND HISTIDINE res 
     
         # HSD:
-        hsd_uniq_res = self.get_uniq_res_selection({"res_name" : ["HIS"], "name" : ["HD1"]})
+        hsd_uniq_res = self.get_attribute_selection({"res_name" : ["HIS"], "name" : ["HD1"]}, attribute = 'uniq_resid')
         # HSE:
-        hse_uniq_res = self.get_uniq_res_selection({"res_name" : ["HIS"], "name" : ["HE2"]})
+        hse_uniq_res = self.get_attribute_selection({"res_name" : ["HIS"], "name" : ["HE2"]}, attribute = 'uniq_resid')
         # HSP: find res in common with both hsd and hse
         hsp_uniq_res = [res for res in hsd_uniq_res if res in hse_uniq_res]
         # remove HSP res from HSE HSD list
@@ -724,8 +726,18 @@ class coor(object):
         # Select prot atoms :
         prot_CA = self.select_part_dict(selec_dict = {'name' : ['CA']})  
         water_O = self.select_part_dict(selec_dict = {'res_name' : ['SOL'], 'name':['OW']})  
-        
-        print(len(prot_CA.atom_dict), len(water_O.atom_dict)) 
+        insert = self.select_part_dict(selec_dict = {'chain' : ['Y']})          
+        insert_ACE_C = self.select_part_dict(selec_dict = {'chain' : ['Y'], 'name' : ['C'], 'res_name' : ['ACE']})          
+
+        print(len(prot_CA.atom_dict), len(water_O.atom_dict), len(insert.atom_dict)) 
+
+        #print(insert.atom_dict)
+
+        mol_num = len(insert_ACE_C.atom_dict)
+        res_insert_list = insert.get_attribute_selection()
+        mol_len = int(len(res_insert_list)/mol_num)
+
+        print("Insert {} mol of {:d} residues each".format(mol_num, mol_len))
 
         return(pdb_out)
 
@@ -756,7 +768,11 @@ class coor(object):
 
         distance = ( (atom_1['x']-atom_2['x'])**2 + (atom_1['y']-atom_2['y'])**2 + (atom_1['z']-atom_2['z'])**2 ) ** 0.5
         return(distance)
-    
+
+    @staticmethod
+    def dist_under(atom_dict_1, atom_dict_2, cutoff = 10):
+        for i in atom_dict_1:
+            print(i)
     
     @staticmethod
     def concat_pdb(*pdb_in_files, pdb_out):

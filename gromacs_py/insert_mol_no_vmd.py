@@ -14,6 +14,7 @@ import os
 parser = argparse.ArgumentParser(description="Minimize a pdb structure")
 parser.add_argument('-fsys', action="store", dest="f_sys", help='Input PDB file of the system')
 parser.add_argument('-psys', action="store", dest="p_sys", help='Topologie in gromacs format .top of the system')
+parser.add_argument('-ssys', action="store", dest="s_sys", help='TPR in gromacs format .tpr of the system')
 parser.add_argument('-fmol', action="store", dest="f_mol", help='Input PDB file of the molecule to insert')
 parser.add_argument('-pmol', action="store", dest="p_mol", help='Topologie in gromacs format .top of the molecule to insert')
 parser.add_argument('-nmol', action="store", dest="num_mol", help='Number of molecule to insert', type=int, default=20)
@@ -26,8 +27,17 @@ args = parser.parse_args()
 
 #print("Min steps :\t",args.min_steps,"\nEqui HA time :",args.HA_time,"ns\nEqui CA time :",args.CA_time,"ns\nEqui CA_LOW time :",args.CA_LOW_time,"ns")
 
-sys_min = gmx.insert_mol_sys_no_vmd(sys_pdb = args.f_sys, sys_top = args.p_sys, mol_pdb = args.f_mol, mol_top = args.p_mol,
-	mol_num = args.num_mol, mol_length = 3, out_folder = args.o, sys_name = args.name)
+sys_raw = gmx.gmx_sys(name = args.name, coor_file = args.f_sys, top_file = args.p_sys, tpr = args.s_sys)
+mol_gmx = gmx.gmx_sys(name = "mol", coor_file = args.f_mol, top_file = args.p_mol)
+
+sys_raw.display()
+mol_gmx.display()
+
+sys_raw.insert_mol_sys_no_vmd(mol_gromacs=mol_gmx, mol_num=args.num_mol, new_name=args.name, out_folder=args.o, check_file_out = True)
+#	mol_num = args.num_mol, mol_length = 3, out_folder = args.o, sys_name = args.name)
+
+#insert_mol_sys(self, mol_gromacs, mol_num, new_name, out_folder, check_file_out = True):
+        
 
 ### TO DO ####
 print("\n\nInsertion was sucessfull \n\tSystem directory :\t"+args.o+"\n\tsystem coor file:\t"+args.o+"/"+args.name+"_neutral.pdb\n\tsystem top file:\t"+args.o+"/"+args.name+".top")
