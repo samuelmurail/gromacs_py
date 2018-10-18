@@ -683,6 +683,53 @@ class coor(object):
         return(self)
       
     
+    def insert_mol(self, pdb_out, out_folder, mol_chain, mol_length, check_file_out = True):
+        """
+        Insert molecules defined by chain ID ``mol_chain`` in a water solvant.
+    
+        :param pdb_in: path of input pdb file
+        :type pdb_in: str
+    
+        :param pdb_out: name of output pdb file
+        :type pdb_out: str
+    
+        :param out_folder: path of the ouput directory
+        :type out_folder: str
+    
+        :param mol_chain: chain ID of the molecule to be inserted, 
+        :type mol_chain: str
+    
+        :param mol_length: number of residue of individual molecule to be inserted
+        :type mol_length: int
+    
+        :param check_file_out: flag to check or not if file has already been created.
+            If the file is present then the command break.
+        :type check_file_out: bool, optional, default=True
+    
+        .. warning::
+            The ``pdb_in`` file must contain alredy a concatenated system with a ligand (chain: ``mol_chain``) and a solvated system.
+        """
+
+        # Create the out_folder:
+        pdb_out = out_folder+"/"+pdb_out
+        osCommand.create_dir(out_folder)
+    
+        print("\n\nInsert mol in system")
+    
+        # Check if output files exist: 
+        if check_file_out and os.path.isfile(pdb_out) :
+            print("Insert Mol", pdb_out, "already exist")
+            return(None)
+    
+        # Select prot atoms :
+        prot_CA = self.select_part_dict(selec_dict = {'name' : ['CA']})  
+        water_O = self.select_part_dict(selec_dict = {'res_name' : ['SOL'], 'name':['OW']})  
+        
+        print(len(prot_CA.atom_dict), len(water_O.atom_dict)) 
+
+        return(pdb_out)
+
+
     @staticmethod
     def atom_dist(atom_1, atom_2):
         """Compute the distance between 2 atoms.

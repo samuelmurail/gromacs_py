@@ -2232,6 +2232,142 @@ class gmx_sys(object):
         os.chdir(start_dir) 
         return()
 
+    
+    def insert_mol_sys_no_vmd(self, mol_gromacs, mol_num, new_name, out_folder, check_file_out = True):
+        """Insert a new molecule in a system:
+
+        Insert structure and topologie of ``mol_num`` copy of ``mol_gromacs`` molecule, in the system with 6 successive steps:
+
+        1. Copy the molecule ``mol_num`` time
+        2. Change the chain ID of mol_gromacs to "Y", this step is necessary for vmd to recognize the inserted mol.
+        3. Concat the two structure
+        4. Insert the molecule in the solvant with a vmd script
+        5. Update the topologie with the molecule and new water number
+        6. If the charge is not null add ions to neutralize the system
+
+       
+        :param mol_gromacs: molecule object to be inserted
+        :type mol_gromacs: gmx_sys object
+
+        :param mol_num: molecule number to be inserted
+        :type mol_num: int
+
+        :param new_name: generic name of the system
+        :type new_name: str
+
+        :param out_folder: path of the output file folder  
+        :type out_folder: str
+
+        :param check_file_out: flag to check or not if file has already been created.
+            If the file is present then the command break.
+        :type check_file_out: bool, optional, default=True
+
+        **Object requirement(s):**
+
+            * self.coor_file 
+            * self.top_file 
+
+        **Object field(s) changed:**
+
+            * self.coor_file 
+            * self.top_file 
+
+        :Example:
+
+        #>>> import gromacs.gmx5 as gmx
+        #>>> prot = gmx.gmx_sys(name = '5vav', coor_file = '5vav.pdb')
+        #>>>
+        #>>> #Basic usage :
+        #>>> prot.create_box()
+        #>>> prot.solvate_box()
+
+        .. note:: 
+            VMD need to be installed to run the peptide creation
+
+        """  
+    
+        # Check if output files exist: 
+        if check_file_out and osCommand.check_file_and_create_path(out_folder+"/"+new_name+".top"):
+            print("insert_mol_sys not launched",out_folder+"/"+new_name+".top","already exist")
+            if osCommand.check_file_and_create_path(out_folder+"/"+new_name+"_neutral.pdb"):
+                self.coor_file = out_folder+"/"+new_name+"_neutral.pdb"
+                self.top_file  = out_folder+"/"+new_name+".top"
+                return()
+            elif osCommand.check_file_and_create_path(out_folder+"/"+new_name+".pdb"):
+                self.coor_file =out_folder+"/"+new_name+".pdb"
+                self.top_file = out_folder+"/"+new_name+".top"
+                return()
+            else:
+                print('Error top file exist but not coor file')
+                raise IOError('coor file not found')
+    
+        # Create and got to the out dir:
+        start_dir = os.path.abspath(".")
+        osCommand.create_or_go_dir(out_folder)
+    
+        # Copy the mol using genconf:
+        # Add random rotation ?
+        if mol_num != 1:
+            mol_gromacs.copy_box(nbox = [mol_num, 1, 1], check_file_out = check_file_out, rot = "yes")
+    
+        # Before doing the concat, Change the chain of mol_pdb to "Y", this step is necessary for vmd to reognize the inserted mol
+        mol_coor = pdb_manip.coor()
+        mol_coor.read_pdb(mol_gromacs.coor_file)
+        mol_coor.change_pdb_field({"chain":"Y"})
+        mol_coor.write_pdb(mol_gromacs.coor_file)
+        mol_length = int(mol_coor.get_aa_num()/mol_num)
+        print("AA num:",mol_length)
+    
+        # Concat the two pdb sys_pdb and mol_pdb
+        concat_sys = new_name+"_pre_mix.pdb"
+        # Get a compact pdb for the sys pdb
+        self.convert_trj(traj = False)
+        gmx_sys.concat_coor(self.coor_file, mol_gromacs.coor_file, pdb_out = concat_sys)
+    
+        # Do the molecule insertion with a vmd script:
+        import tools.vmd as vmd
+        vmd.insert_mol(pdb_in = concat_sys, pdb_out = new_name+".pdb", out_folder = "./",
+            mol_chain = "Y", mol_length = mol_length+1, check_file_out = check_file_out)
+    
+        self.coor_file = new_name+".pdb"
+
+        # Insert the peptide top in the prot_sys top
+        # Copy itp and posre files of mol_top to the new location
+        top_mol = top_sys(mol_gromacs.top_file)
+        top_mol.change_mol_name("Protein", "Peptide")
+        top_mol.copy_dependancies("./")
+        #top_mol.display()
+        # Get the new location of the peptide itp file:
+        pep_itp = os.path.basename(top_mol.get_include_no_posre_file_list()[0])
+        print("Include:",pep_itp)
+    
+        # Get the system topologie:
+        sys_topologie = top_sys(self.top_file)
+        #sys_topologie.display()
+        # Add the peptide in the sys topologie and update the water num:
+        sys_topologie.add_mol(mol_name = "Peptide", mol_itp_file = pep_itp, mol_num = mol_num)
+    
+        # Get the new water num after peptide insertion:
+        sys_dict = pdb_manip.coor()
+        sys_dict.read_pdb(pdb_in = self.coor_file)
+        water_res = sys_dict.get_uniq_res_selection({"res_name":["SOL"]})
+        print("Water num:",len(water_res))
+        sys_topologie.change_mol_num(mol_name = "SOL", mol_num = len(water_res))
+        # save the top:
+        sys_topologie.write_file(new_name+".top")
+    
+        self.top_file = new_name+".top"
+
+        charge = sys_topologie.charge()
+        print("CHARGE:",charge)
+        if charge != 0:
+            if not os.path.isfile(new_name+"_neutral.pdb"):
+                print("Should neutralize the system")
+                self.add_ions(out_folder = ".", name = new_name+"_neutral", ion_C = 0)
+
+        os.chdir(start_dir) 
+        return()
+
     @staticmethod
     def concat_coor(*coor_in_files, pdb_out):
         """Concat a list of coordinates file in one:
