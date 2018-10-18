@@ -2334,7 +2334,7 @@ class gmx_sys(object):
         sys_pdb.read_pdb(concat_sys)
 
         sys_pdb.insert_mol(pdb_out = new_name+".pdb", out_folder = "./",
-            mol_chain = "Y", mol_length = mol_length+1, check_file_out = check_file_out)
+            mol_chain = "Y", check_file_out = check_file_out)
         #def insert_mol(self, pdb_out, out_folder, mol_chain, mol_length, check_file_out = True):
 
 

@@ -685,7 +685,7 @@ class coor(object):
         return(self)
       
     
-    def insert_mol(self, pdb_out, out_folder, mol_chain, mol_length, check_file_out = True):
+    def insert_mol(self, pdb_out, out_folder, mol_chain, check_file_out = True):
         """
         Insert molecules defined by chain ID ``mol_chain`` in a water solvant.
     
@@ -715,6 +715,13 @@ class coor(object):
         # Create the out_folder:
         pdb_out = out_folder+"/"+pdb_out
         osCommand.create_dir(out_folder)
+
+        # Parameters for molecule insertion:
+        cutoff_water_clash = 1.0
+        cutoff_prot_off = 7.0
+        cutoff_mol_off = 9.0
+        cutoff_prot_in = 10.0
+
     
         print("\n\nInsert mol in system")
     
@@ -725,20 +732,23 @@ class coor(object):
     
         # Select prot atoms :
         prot_CA = self.select_part_dict(selec_dict = {'name' : ['CA']})  
-        water_O = self.select_part_dict(selec_dict = {'res_name' : ['SOL'], 'name':['OW']})  
-        insert = self.select_part_dict(selec_dict = {'chain' : ['Y']})          
+        water = self.select_part_dict(selec_dict = {'res_name' : ['SOL']})  
+        insert = self.select_part_dict(selec_dict = {'chain' : [mol_chain]})          
         insert_ACE_C = self.select_part_dict(selec_dict = {'chain' : ['Y'], 'name' : ['C'], 'res_name' : ['ACE']})          
 
-        print(len(prot_CA.atom_dict), len(water_O.atom_dict), len(insert.atom_dict)) 
-
-        #print(insert.atom_dict)
+        print(len(prot_CA.atom_dict), len(water.atom_dict), len(insert.atom_dict)) 
 
         mol_num = len(insert_ACE_C.atom_dict)
         res_insert_list = insert.get_attribute_selection()
         mol_len = int(len(res_insert_list)/mol_num)
-
         print("Insert {} mol of {:d} residues each".format(mol_num, mol_len))
+        print(res_insert_list)
+        for i in range(mol_num):
+            print('insert mol {}'.format(i))
 
+        water_to_del = coor.dist_under_index(water, insert, cutoff = cutoff_water_clash)
+        print(len(water_to_del))
+        self.del_atom_index(index_list = water_to_del)
         return(pdb_out)
 
 
@@ -770,10 +780,19 @@ class coor(object):
         return(distance)
 
     @staticmethod
-    def dist_under(atom_dict_1, atom_dict_2, cutoff = 10):
-        for i in atom_dict_1:
-            print(i)
-    
+    def dist_under_index(atom_sel_1, atom_sel_2, cutoff = 10):
+
+        index_list = []
+
+        for key_i, atom_i in atom_sel_1.atom_dict.items():
+            for key_j, atom_j in atom_sel_2.atom_dict.items():
+                if coor.atom_dist(atom_i,atom_j) < cutoff:
+                    index_list.append(key_j)
+                #print("atom_j:",atom_j)
+                #print(coor.atom_dist(atom_i,atom_j))
+        
+        return(index_list)
+
     @staticmethod
     def concat_pdb(*pdb_in_files, pdb_out):
         """Concat a list of pdb files in one.
