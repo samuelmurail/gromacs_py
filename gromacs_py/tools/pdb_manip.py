@@ -10,16 +10,19 @@ import  os
 # Needed for doctest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import tools.osCommand as osCommand
-
+import numpy as np
 
 class coor(object):
     """ Topologie base on coordinates like pdb or gro.
 
-    The coor object containt only a dictionnary of atoms indexed on the atom num.
+    The coor object containt a dictionnary of atoms indexed on the atom num and the crystal packing info.
 
 
     :param atom_dict: dictionnary of atom
     :type atom_dict: dict
+
+    :param crystal_pack: crystal packing
+    :type crystal_pack: str
 
     **Atom dictionnary parameters**
     
@@ -81,6 +84,7 @@ class coor(object):
     """
     def __init__(self):
         self.atom_dict = dict()
+        self.crystal_pack = None
 
     def read_pdb(self, pdb_in, pqr_format = False):
         """Read a pdb file and return atom informations as a dictionnary indexed on the atom num.
@@ -108,6 +112,8 @@ class coor(object):
     
         with open(pdb_in) as pdbfile:
             for line in pdbfile:
+                if line[:6] == "CRYST1":
+                    self.crystal_pack = line
                 if line[:4] == 'ATOM' or line[:6] == "HETATM":
     
                     field       = line[:6].strip()
@@ -175,7 +181,8 @@ class coor(object):
         """  
     
         filout = open(pdb_out, 'w')
-        
+        if self.crystal_pack != None:
+            filout.write(self.crystal_pack)
         for atom_num, atom in sorted(self.atom_dict.items()):
             #print(pdb_dict[atom_num]["name"])
             filout.write("{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}\n".format(
@@ -431,7 +438,7 @@ class coor(object):
     
         return( index_list )
     
-    def get_attribute_selection(self, selec_dict={}, attribute = 'uniq_resid'):
+    def get_attribute_selection(self, selec_dict={}, attribute = 'uniq_resid', index_list = None):
         """Select atom of a coor object based on the change_dict dictionnary.
         Return the list of unique atrtribute of the selected atoms.
         
@@ -453,8 +460,12 @@ class coor(object):
         """  
     
         attr_list = []
+
+        if index_list == None:
+            index_list = self.atom_dict.keys()
     
-        for atom_num, atom in self.atom_dict.items():
+        for atom_num  in index_list:
+            atom = self.atom_dict[atom_num]
             selected = True
             #print("atom_num:",atom_num,"atom:",atom)
             for selection in selec_dict.keys():
@@ -495,6 +506,7 @@ class coor(object):
         """  
 
         for index in index_list:
+            #print(index, self.atom_dict[index])
             del self.atom_dict[index]
 
         return(self)
@@ -717,10 +729,10 @@ class coor(object):
         osCommand.create_dir(out_folder)
 
         # Parameters for molecule insertion:
-        cutoff_water_clash = 1.0
-        cutoff_prot_off = 7.0
+        cutoff_water_clash = 1.2
+        cutoff_prot_off = 12.0
         cutoff_mol_off = 9.0
-        cutoff_prot_in = 10.0
+        cutoff_prot_in = 15.0
 
     
         print("\n\nInsert mol in system")
@@ -731,25 +743,165 @@ class coor(object):
             return(None)
     
         # Select prot atoms :
-        prot_CA = self.select_part_dict(selec_dict = {'name' : ['CA']})  
+        prot_insert_CA = self.select_part_dict(selec_dict = {'name' : ['CA']})  
         water = self.select_part_dict(selec_dict = {'res_name' : ['SOL']})  
+        water_O = self.select_part_dict(selec_dict = {'res_name' : ['SOL'], 'name':['OW']})  
         insert = self.select_part_dict(selec_dict = {'chain' : [mol_chain]})          
-        insert_ACE_C = self.select_part_dict(selec_dict = {'chain' : ['Y'], 'name' : ['C'], 'res_name' : ['ACE']})          
+        insert_ACE_C = self.select_part_dict(selec_dict = {'chain' : [mol_chain], 'name' : ['C'], 'res_name' : ['ACE']})          
 
-        print(len(prot_CA.atom_dict), len(water.atom_dict), len(insert.atom_dict)) 
+        print(len(prot_insert_CA.atom_dict), len(water.atom_dict), len(insert.atom_dict)) 
 
         mol_num = len(insert_ACE_C.atom_dict)
         res_insert_list = insert.get_attribute_selection()
         mol_len = int(len(res_insert_list)/mol_num)
+
         print("Insert {} mol of {:d} residues each".format(mol_num, mol_len))
         print(res_insert_list)
         for i in range(mol_num):
-            print('insert mol {}'.format(i))
 
-        water_to_del = coor.dist_under_index(water, insert, cutoff = cutoff_water_clash)
-        print(len(water_to_del))
-        self.del_atom_index(index_list = water_to_del)
-        return(pdb_out)
+            water_good_index = water_O.get_index_dist_between(prot_insert_CA,
+                cutoff_max = cutoff_prot_in,
+                cutoff_min = cutoff_prot_off)
+
+            print('insert mol {}, water mol {}'.format(i, len(water_good_index)))
+            insert_unique = self.select_part_dict(
+                selec_dict = {'chain' : [mol_chain],
+                'uniq_resid' : res_insert_list[ (mol_len *i):(mol_len*(i+1)) ] })          
+            com_insert = insert_unique.center_of_mass()
+
+            trans_vector = [self.atom_dict[water_good_index[0]]['x']-com_insert[0],
+                self.atom_dict[water_good_index[0]]['y']-com_insert[1],
+                self.atom_dict[water_good_index[0]]['z']-com_insert[2]]
+
+            insert_unique.translate(trans_vector)
+
+
+        # Delete water residues in which at leat one atom is close enough to peptides
+        water_to_del_index = water.get_index_dist_between(insert, cutoff_max = cutoff_water_clash)
+        #print(water_to_del_index)
+        water_res_to_del = water.get_attribute_selection(selec_dict={},
+            attribute = 'uniq_resid',
+            index_list=water_to_del_index)
+        water_to_del_index = water.get_index_selection(selec_dict = {'uniq_resid':water_res_to_del})
+        print(len(water_to_del_index))
+        self.del_atom_index(index_list = water_to_del_index)
+
+        self.write_pdb(pdb_out)
+        return(self)
+
+    def translate(self, vector):
+
+        for atom_num, atom in self.atom_dict.items():
+            atom['x'] += vector[0]
+            atom['y'] += vector[1]
+            atom['z'] += vector[2]
+
+        return
+
+    def center_of_mass(self, selec_dict={}):
+        """ Compute the center of mass of a selection
+        Avoid using it with 2 letters atom name like NA Cl ... 
+        """
+        index_list = []
+    
+        com_array = np.zeros(3)
+        mass_tot = 0
+
+        atom_mass_dict = {'H':1, 'C':6, 'N':7, 'O':8, 'P':15, 'S':16}
+
+        for atom_num, atom in self.atom_dict.items():
+            selected = True
+            #print("atom_num:",atom_num,"atom:",atom)
+            for selection in selec_dict.keys():
+                #print("select",selection, selec_dict[selection],".")
+                #print("selection=",selection)
+                #print("atom:",atom)
+                #print("atom",atom[selection],".")
+                if  atom[selection] not in selec_dict[selection]:
+                    selected = False
+                    break
+            if selected:
+                #print(atom)
+                coor_array = np.array([atom['x'], atom['y'], atom['z']])
+                if atom['name'][0] in atom_mass_dict:
+                    mass = atom_mass_dict[atom['name'][0]]
+                    com_array += coor_array * mass
+                    mass_tot += mass
+
+                
+    
+        return( com_array/mass_tot )
+    
+
+
+    def get_index_dist_between(self, atom_sel_2, cutoff_min = 0, cutoff_max = 10):
+        """ Check is distance between atoms of self.atom_dict is under cutoff 
+        with the atoms of group 1.
+        Then return list of index of atoms of self.coor under ctuoff ditance. 
+
+        :param atom_sel_1: atom dictionnary
+        :type atom_sel_1: dict
+
+        :param atom_sel_2: atom dictionnary
+        :type atom_sel_2: dict
+        """
+
+        index_list = []
+
+        for key_i, atom_i in self.atom_dict.items():
+            #print(key_i)
+            select = True
+            min_dist = float('inf')
+
+            for key_j, atom_j in atom_sel_2.atom_dict.items():
+                dist = coor.atom_dist(atom_i,atom_j)
+                if dist < min_dist:
+                    min_dist = dist
+                if  dist < cutoff_min :
+                    select = False
+                    #print(dist)
+                    break
+
+            if min_dist > cutoff_max:
+                select = False
+            if select:
+                index_list.append(key_i)
+        return(list(set(index_list)))
+
+
+    def dist_under_index(self, atom_sel_2, cutoff = 10):
+        """ Check is distance between atoms of self.coor is under cutoff with 
+        atoms of group 1.
+        Then return list of index of atoms of self.coor under ctuoff ditance. 
+
+        :param atom_sel_1: atom dictionnary
+        :type atom_sel_1: dict
+
+        :param atom_sel_2: atom dictionnary
+        :type atom_sel_2: dict
+        """
+
+        index_list = []
+
+        for key_i, atom_i in self.atom_dict.items():
+            for key_j, atom_j in atom_sel_2.atom_dict.items():
+                if coor.atom_dist(atom_i,atom_j) < cutoff:
+                    index_list.append(key_i)
+                    break
+                #print("atom_j:",atom_j)
+                #print(coor.atom_dist(atom_i,atom_j))
+        
+        return(list(set(index_list)))
+
+    def update_dict_by(self, new_coor):
+        """ Update atom_dict by the one of the new_coor 
+        """
+
+        for key, atom in new_coor.atom_dict.items():
+            self.atom_dict[key] = atom
+
+        return
+
 
 
     @staticmethod
@@ -779,19 +931,6 @@ class coor(object):
         distance = ( (atom_1['x']-atom_2['x'])**2 + (atom_1['y']-atom_2['y'])**2 + (atom_1['z']-atom_2['z'])**2 ) ** 0.5
         return(distance)
 
-    @staticmethod
-    def dist_under_index(atom_sel_1, atom_sel_2, cutoff = 10):
-
-        index_list = []
-
-        for key_i, atom_i in atom_sel_1.atom_dict.items():
-            for key_j, atom_j in atom_sel_2.atom_dict.items():
-                if coor.atom_dist(atom_i,atom_j) < cutoff:
-                    index_list.append(key_j)
-                #print("atom_j:",atom_j)
-                #print(coor.atom_dist(atom_i,atom_j))
-        
-        return(index_list)
 
     @staticmethod
     def concat_pdb(*pdb_in_files, pdb_out):

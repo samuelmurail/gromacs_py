@@ -2105,7 +2105,6 @@ class gmx_sys(object):
         1. Copy the molecule ``mol_num`` time
         2. Change the chain ID of mol_gromacs to "Y", this step is necessary for vmd to recognize the inserted mol.
         3. Concat the two structure
-        4. Insert the molecule in the solvant with a vmd script
         5. Update the topologie with the molecule and new water number
         6. If the charge is not null add ions to neutralize the system
 
@@ -2138,15 +2137,8 @@ class gmx_sys(object):
 
         :Example:
 
-        #>>> import gromacs.gmx5 as gmx
-        #>>> prot = gmx.gmx_sys(name = '5vav', coor_file = '5vav.pdb')
-        #>>>
-        #>>> #Basic usage :
-        #>>> prot.create_box()
-        #>>> prot.solvate_box()
-
         .. note:: 
-            VMD need to be installed to run the peptide creation
+            VMD don't need anymore to be installed to run the peptide creation
 
         """  
     
@@ -2185,6 +2177,7 @@ class gmx_sys(object):
         # Concat the two pdb sys_pdb and mol_pdb
         concat_sys = new_name+"_pre_mix.pdb"
         # Get a compact pdb for the sys pdb
+        self.add_tpr
         self.convert_trj(traj = False)
         gmx_sys.concat_coor(self.coor_file, mol_gromacs.coor_file, pdb_out = concat_sys)
     
@@ -2282,7 +2275,7 @@ class gmx_sys(object):
         #>>> prot.solvate_box()
 
         .. note:: 
-            VMD need to be installed to run the peptide creation
+            VMD don't need anymore to be installed to run the peptide creation
 
         """  
     
@@ -2324,28 +2317,23 @@ class gmx_sys(object):
         
         # TODO :
         # ADD a self tpr creation if self.tpr is missing
-
-        #self.convert_trj(traj = False)
+        self.sim_name = "tmp"
+        mini_template_mdp = GROMACS_MOD_DIRNAME+"/template/mini.mdp"
+        self.add_mdp(mdp_template = mini_template_mdp, mdp_options={})
+        self.add_tpr( name = "tmp")
+        self.convert_trj(traj = False)
         gmx_sys.concat_coor(self.coor_file, mol_gromacs.coor_file, pdb_out = concat_sys)
     
+
         # Do the molecule insertion with the pdb_manip module:
     
         sys_pdb = pdb_manip.coor()
         sys_pdb.read_pdb(concat_sys)
 
-        sys_pdb.insert_mol(pdb_out = new_name+".pdb", out_folder = "./",
-            mol_chain = "Y", check_file_out = check_file_out)
-        #def insert_mol(self, pdb_out, out_folder, mol_chain, mol_length, check_file_out = True):
-
-
-        # Do the molecule insertion with a vmd script:
-        """
-        import tools.vmd as vmd
-        vmd.insert_mol(pdb_in = concat_sys, pdb_out = new_name+".pdb", out_folder = "./",
-            mol_chain = "Y", mol_length = mol_length+1, check_file_out = check_file_out)
-    
+        sys_pdb.insert_mol(pdb_out=new_name+".pdb", out_folder=".", mol_chain = "Y", check_file_out = check_file_out)
+        
         self.coor_file = new_name+".pdb"
-
+        self.display()
         # Insert the peptide top in the prot_sys top
         # Copy itp and posre files of mol_top to the new location
         top_mol = top_sys(mol_gromacs.top_file)
@@ -2365,7 +2353,8 @@ class gmx_sys(object):
         # Get the new water num after peptide insertion:
         sys_dict = pdb_manip.coor()
         sys_dict.read_pdb(pdb_in = self.coor_file)
-        water_res = sys_dict.get_uniq_res_selection({"res_name":["SOL"]})
+        water_res = sys_dict.get_attribute_selection(selec_dict={"res_name":["SOL"]},
+            attribute = 'uniq_resid')
         print("Water num:",len(water_res))
         sys_topologie.change_mol_num(mol_name = "SOL", mol_num = len(water_res))
         # save the top:
@@ -2381,8 +2370,8 @@ class gmx_sys(object):
                 self.add_ions(out_folder = ".", name = new_name+"_neutral", ion_C = 0)
 
         os.chdir(start_dir) 
+        self.display()
         return()
-        """
 
     @staticmethod
     def concat_coor(*coor_in_files, pdb_out):
@@ -2409,14 +2398,15 @@ class gmx_sys(object):
             if (coor_in[-3:]) == "pdb":
                 pdb_in_files.append(coor_in)
             elif (coor_in[-3:]) == "gro":
-                tmp_gromacs = gmx_sys(coor_file = coor_in, tpr = corr_in)
-                tmp_gromacs.convert_trj(name = coor_in[:-3], traj = False, pbc='none')
+                tmp_gromacs = gmx_sys(coor_file = coor_in, tpr = coor_in)
+                tmp_gromacs.convert_trj(traj = False, pbc='none')
                 #coor_out = coor_in[:-3]+"pdb"
                 #convert_trj(coor_in, coor_out, coor_in, ur = "compact", pbc = "none", select = "System")
-                pdb_in_files.append(coor_in[:-3]+"pdb")
+                #pdb_in_files.append(coor_in[:-3]+"pdb")
+                pdb_in_files.append(tmp_gromacs.coor_file)
             else:
                 raise RuntimeError('Cannot concat the file, should be gro or pdb format')
-    
+        print("CONCAT:", pdb_in_files)
         return( pdb_manip.coor.concat_pdb(*pdb_in_files, pdb_out = pdb_out))
 
 
