@@ -700,10 +700,12 @@ class coor(object):
     def insert_mol(self, pdb_out, out_folder, mol_chain, check_file_out = True):
         """
         Insert molecules defined by chain ID ``mol_chain`` in a water solvant.
-    
-        :param pdb_in: path of input pdb file
-        :type pdb_in: str
-    
+        Check which water molecules are within ``cutoff_prot_off=12.0`` Å 
+        and ``cutoff_prot_in=15.0`` Å of protein and peptide C alpha atoms.
+        Move the molecules to be inserted at the position of water molecules.
+        Then delete all water molecules within ``cutoff_water_clash=1.2`` Å of
+        the inserted molecule atoms.
+        
         :param pdb_out: name of output pdb file
         :type pdb_out: str
     
@@ -712,16 +714,13 @@ class coor(object):
     
         :param mol_chain: chain ID of the molecule to be inserted, 
         :type mol_chain: str
-    
-        :param mol_length: number of residue of individual molecule to be inserted
-        :type mol_length: int
-    
+        
         :param check_file_out: flag to check or not if file has already been created.
             If the file is present then the command break.
         :type check_file_out: bool, optional, default=True
     
         .. warning::
-            The ``pdb_in`` file must contain alredy a concatenated system with a ligand (chain: ``mol_chain``) and a solvated system.
+            self.atom_dict file must contain alredy a concatenated system with a ligand (chain: ``mol_chain``) and a solvated system.
         """
 
         # Create the out_folder:
@@ -731,7 +730,6 @@ class coor(object):
         # Parameters for molecule insertion:
         cutoff_water_clash = 1.2
         cutoff_prot_off = 12.0
-        cutoff_mol_off = 9.0
         cutoff_prot_in = 15.0
 
     
@@ -742,21 +740,19 @@ class coor(object):
             print("Insert Mol", pdb_out, "already exist")
             return(None)
     
-        # Select prot atoms :
+        # Select protein, water and molecule atoms :
         prot_insert_CA = self.select_part_dict(selec_dict = {'name' : ['CA']})  
         water = self.select_part_dict(selec_dict = {'res_name' : ['SOL']})  
         water_O = self.select_part_dict(selec_dict = {'res_name' : ['SOL'], 'name':['OW']})  
         insert = self.select_part_dict(selec_dict = {'chain' : [mol_chain]})          
         insert_ACE_C = self.select_part_dict(selec_dict = {'chain' : [mol_chain], 'name' : ['C'], 'res_name' : ['ACE']})          
 
-        print(len(prot_insert_CA.atom_dict), len(water.atom_dict), len(insert.atom_dict)) 
-
         mol_num = len(insert_ACE_C.atom_dict)
         res_insert_list = insert.get_attribute_selection()
         mol_len = int(len(res_insert_list)/mol_num)
 
         print("Insert {} mol of {:d} residues each".format(mol_num, mol_len))
-        print(res_insert_list)
+        # Insert one molecule at a time:
         for i in range(mol_num):
 
             water_good_index = water_O.get_index_dist_between(prot_insert_CA,
@@ -764,7 +760,7 @@ class coor(object):
                 cutoff_min = cutoff_prot_off)
 
             print('insert mol {}, water mol {}'.format(i, len(water_good_index)))
-            insert_unique = self.select_part_dict(
+            insert_unique = insert.select_part_dict(
                 selec_dict = {'chain' : [mol_chain],
                 'uniq_resid' : res_insert_list[ (mol_len *i):(mol_len*(i+1)) ] })          
             com_insert = insert_unique.center_of_mass()
@@ -777,19 +773,25 @@ class coor(object):
 
 
         # Delete water residues in which at leat one atom is close enough to peptides
+        print("Get water to delete index ")
         water_to_del_index = water.get_index_dist_between(insert, cutoff_max = cutoff_water_clash)
-        #print(water_to_del_index)
         water_res_to_del = water.get_attribute_selection(selec_dict={},
             attribute = 'uniq_resid',
             index_list=water_to_del_index)
         water_to_del_index = water.get_index_selection(selec_dict = {'uniq_resid':water_res_to_del})
-        print(len(water_to_del_index))
+        print("Delete {} water atoms".format(len(water_to_del_index)))
         self.del_atom_index(index_list = water_to_del_index)
 
         self.write_pdb(pdb_out)
         return(self)
 
     def translate(self, vector):
+        """ Translate all atoms of a coor object by a given ``vector``
+        
+        :param vector: 3d translation vector
+        :type vector: list
+    
+        """
 
         for atom_num, atom in self.atom_dict.items():
             atom['x'] += vector[0]
@@ -800,7 +802,7 @@ class coor(object):
 
     def center_of_mass(self, selec_dict={}):
         """ Compute the center of mass of a selection
-        Avoid using it with 2 letters atom name like NA Cl ... 
+        Avoid using atoms with 2 letters atom name like NA Cl ... 
         """
         index_list = []
     
@@ -832,7 +834,6 @@ class coor(object):
     
         return( com_array/mass_tot )
     
-
 
     def get_index_dist_between(self, atom_sel_2, cutoff_min = 0, cutoff_max = 10):
         """ Check is distance between atoms of self.atom_dict is under cutoff 
@@ -892,16 +893,6 @@ class coor(object):
                 #print(coor.atom_dist(atom_i,atom_j))
         
         return(list(set(index_list)))
-
-    def update_dict_by(self, new_coor):
-        """ Update atom_dict by the one of the new_coor 
-        """
-
-        for key, atom in new_coor.atom_dict.items():
-            self.atom_dict[key] = atom
-
-        return
-
 
 
     @staticmethod
