@@ -53,15 +53,9 @@ class coor(object):
     :param insert_res: atom number
     :type insert_res: str
  
-    :param x: atom number
-    :type x: float
- 
-    :param y: atom number
-    :type y: float
- 
-    :param z: atom number
-    :type z: float
- 
+    :param xyz: coordinate
+    :type x: numpy array
+  
     :param occ: occupation
     :type occ: float
  
@@ -124,7 +118,7 @@ class coor(object):
                     chain       = line[21]
                     res_num     = int(line[22:26])
                     insert_res  = line[26:27]
-                    x, y, z     = float(line[30:38]), float(line[38:46]), float(line[46:54])
+                    xyz     = np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])])
                     if pqr_format:
                         occ, beta   = line[54:62].strip(), line[62:70].strip()
                     else:
@@ -153,9 +147,7 @@ class coor(object):
                         "res_num"   : res_num,
                         "uniq_resid": uniq_resid,
                         "insert_res": insert_res,
-                        "x"         : x,
-                        "y"         : y,
-                        "z"         : z,
+                        "xyz"         : xyz,
                         "occ"       : occ,
                         "beta"      : beta}
     
@@ -194,9 +186,9 @@ class coor(object):
                 atom["chain"], 
                 atom["res_num"], 
                 atom["insert_res"], 
-                atom["x"], 
-                atom["y"], 
-                atom["z"], 
+                atom["xyz"][0], 
+                atom["xyz"][1], 
+                atom["xyz"][2], 
                 atom["occ"], 
                 atom["beta"]))
         filout.write("TER\n")
@@ -241,7 +233,7 @@ class coor(object):
                     "CYS":"C",
                     "SEC":"U",                   
                     "PRO":"P",
-                    "ALA":"V",                        
+                    "ALA":"A",                        
                     "ILE":"I",
                     "PHE":"F",
                     "TYR":"Y",
@@ -765,9 +757,7 @@ class coor(object):
                 'uniq_resid' : res_insert_list[ (mol_len *i):(mol_len*(i+1)) ] })          
             com_insert = insert_unique.center_of_mass()
 
-            trans_vector = [self.atom_dict[water_good_index[0]]['x']-com_insert[0],
-                self.atom_dict[water_good_index[0]]['y']-com_insert[1],
-                self.atom_dict[water_good_index[0]]['z']-com_insert[2]]
+            trans_vector = self.atom_dict[water_good_index[0]]['xyz']-com_insert
 
             insert_unique.translate(trans_vector)
 
@@ -794,9 +784,7 @@ class coor(object):
         """
 
         for atom_num, atom in self.atom_dict.items():
-            atom['x'] += vector[0]
-            atom['y'] += vector[1]
-            atom['z'] += vector[2]
+            atom['xyz'] += vector
 
         return
 
@@ -824,10 +812,9 @@ class coor(object):
                     break
             if selected:
                 #print(atom)
-                coor_array = np.array([atom['x'], atom['y'], atom['z']])
                 if atom['name'][0] in atom_mass_dict:
                     mass = atom_mass_dict[atom['name'][0]]
-                    com_array += coor_array * mass
+                    com_array += atom['xyz'] * mass
                     mass_tot += mass
 
                 
@@ -908,18 +895,16 @@ class coor(object):
         :Example:
         
         >>> import tools.pdb_manip as pdb_manip
-        >>> atom_1 = {'x':0.0, 'y':0.0, 'z': 0.0}
-        >>> atom_2 = {'x':0.0, 'y':1.0, 'z': 0.0}
-        >>> atom_3 = {'x':1.0, 'y':1.0, 'z': 1.0}
+        >>> atom_1 = {'xyz': np.array([0.0, 0.0, 0.0])}
+        >>> atom_2 = {'xyz': np.array([0.0, 1.0, 0.0])}
+        >>> atom_3 = {'xyz': np.array([1.0, 1.0, 1.0])}
         >>> coor.atom_dist(atom_1, atom_2)
         1.0
         >>> coor.atom_dist(atom_1, atom_3)
         1.7320508075688772
 
         """  
-
-
-        distance = ( (atom_1['x']-atom_2['x'])**2 + (atom_1['y']-atom_2['y'])**2 + (atom_1['z']-atom_2['z'])**2 ) ** 0.5
+        distance = np.linalg.norm(atom_1['xyz']-atom_2['xyz'])
         return(distance)
 
 
