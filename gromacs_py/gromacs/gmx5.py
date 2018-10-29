@@ -2042,14 +2042,20 @@ class gmx_sys(object):
         >>> import gromacs.gmx5 as gmx
         >>> pep = gmx.gmx_sys(name='SAM_pep')
         >>> pep.create_peptide(sequence = 'SAM', out_folder = '../test/output/gmx5/peptide/', em_nsteps = 100, equi_nsteps = 100)
-        -Make peptide using pymol
+        -Make peptide
+        SAM
+        residue name:Å
+        residue name:S
+        residue name:A
+        residue name:M
+        Succeed to save file ../test/output/gmx5/peptide//SAM.pdb
         -Create topologie
         gmx pdb2gmx -f ../SAM.pdb -o SAM_pdb2gmx.pdb -p SAM_pdb2gmx.top -i SAM_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -ter yes -vsite hydrogens
         Molecule topologie present in SAM_pdb2gmx.top , extract the topologie in a separate file: SAM_pdb2gmx.itp
-        Protein
+        Protein_chain_P
         -ITP file: SAM_pdb2gmx.itp
         -molecules defined in the itp file:
-        * Protein
+        * Protein_chain_P
         Rewrite topologie: SAM_pdb2gmx.top
         -Create pbc box
         gmx editconf -f ../test/output/gmx5/peptide/00_top/SAM_pdb2gmx.pdb -o ../test/output/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
@@ -2074,9 +2080,10 @@ class gmx_sys(object):
         #Create a peptide with pymol with one more residue G at the beginning of the peptide
         #This residue will then be change to an ACE
         # NH2 terminaison raise some issue with virtual sites and cannot be used.
-        import tools.pymol as pymol
-        pep_coor = pymol.make_peptide(sequence, out_folder+"/"+sequence+".pdb")
-        self.coor_file = pep_coor
+        #import tools.pymol as pymol
+        pep_coor = pdb_manip.coor()
+        pep_coor.make_peptide(sequence, out_folder+"/"+sequence+".pdb")
+        self.coor_file = out_folder+"/"+sequence+".pdb"
 
     
         self.add_top(out_folder = out_folder+"/00_top", name=sequence, water = "tip3p", ff = "charmm36-jul2017",

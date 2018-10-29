@@ -11,6 +11,466 @@ import  os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import tools.osCommand as osCommand
 import numpy as np
+from numpy.linalg import norm
+from numpy import sin, cos, pi
+
+
+# Global variables:
+aa_dict = {'GLY':'G',
+'HIS':'H', 
+'HSE':'H', 
+'HSD':'H', 
+'HSP':'H',
+'ARG':'R',
+'LYS':'K',
+'ASP':'D',
+'GLU':'E',
+'SER':'S',
+'THR':'T',
+'ASN':'N',
+'GLN':'Q',
+'CYS':'C',
+'SEC':'U',                   
+'PRO':'P',
+'ALA':'A',                        
+'ILE':'I',
+'PHE':'F',
+'TYR':'Y',
+'TRP':'W',
+'VAL':'V',
+'LEU':'L',
+'MET':'M'
+}
+
+aa_1_to_3_dict = { 'G':'GLY',
+'H':'HIS', 
+'R':'ARG',
+'K':'LYS',
+'D':'ASP',
+'E':'GLU',
+'S':'SER',
+'T':'THR',
+'N':'ASN',
+'Q':'GLN',
+'C':'CYS',
+'U':'SEC',                   
+'P':'PRO',
+'A':'ALA',                        
+'I':'ILE',
+'F':'PHE',
+'Y':'TYR',
+'W':'TRP',
+'V':'VAL',
+'L':'LEU',
+'M':'MET',
+'Å':'ACE'
+}
+
+#Atom names for each residues
+back_atom = ['N','CA','C','O']
+
+aa_atom_dict = {'Å':['CH3','O','C'], # Å:ACE
+            'G':back_atom,
+            'A':back_atom+['CB'],
+            'S':back_atom+['CB','OG'],
+            'C':back_atom+['CB','SG'],
+            'T':back_atom+['CB','OG1','CG2'],
+            'V':back_atom+['CB','CG1','CG2'],
+            'I':back_atom+['CB','CG1','CG2','CD'],
+            'L':back_atom+['CB','CG','CD1','CD2'],
+            'N':back_atom+['CB','CG','ND2','OD1'],
+            'D':back_atom+['CB','CG','OD1','OD2'],
+            'M':back_atom+['CB','CG','SD','CE'],
+            'Q':back_atom+['CB','CG','CD','NE2','OE1'],
+            'E':back_atom+['CB','CG','CD','OE1','OE2'],
+            'K':back_atom+['CB','CG','CD','CE','NZ'],
+            'R':back_atom+['CB','CG','CD','NE','CZ','NH1','NH2'],
+            'F':back_atom+['CB','CG','CD1','CE1','CZ','CD2','CE2'],
+            'Y':back_atom+['CB','CG','CD1','CE1','CZ','CD2','CE2','OH'],
+            'H':back_atom+['CB','CG','ND1','CE1','CD2','NE2'],
+            'W':back_atom+['CB','CG','CD1','NE1','CD2','CE2','CE3','CZ3','CH2','CZ2'],
+            'P':back_atom+['CB','CG','CD']
+           }
+
+# Bond definition:
+# Note that order is important
+back_bond = [['-C','N'], ['N','CA'], ['CA','C'], ['C','O']]
+# Å is for ACE special case
+aa_bond_dict = {}
+aa_bond_dict['Å'] = [['CH3','O'],['O','C']] # Need to use a trick with unphysical bond
+aa_bond_dict['G'] = back_bond
+aa_bond_dict['A'] = back_bond+[['CA','CB']]
+aa_bond_dict['S'] = back_bond+[['CA','CB'],['CB','OG']]
+aa_bond_dict['C'] = back_bond+[['CA','CB'],['CB','SG']]
+aa_bond_dict['T'] = back_bond+[['CA','CB'],['CB','OG1'],['CB','CG2']]
+aa_bond_dict['V'] = back_bond+[['CA','CB'],['CB','CG1'],['CB','CG2']]
+aa_bond_dict['I'] = back_bond+\
+                [['CA','CB'],['CB','CG1'],['CG1','CD'],['CB','CG2']]
+aa_bond_dict['L'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','CD1'],['CG','CD2']]
+aa_bond_dict['N'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','ND2'],['CG','OD1']]
+aa_bond_dict['D'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','OD1'],['CG','OD2']]
+aa_bond_dict['M'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','SD'],['SD','CE']]
+aa_bond_dict['Q'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','CD'],['CD','NE2'],['CD','OE1']]
+aa_bond_dict['E'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','CD'],['CD','OE1'],['CD','OE2']]
+aa_bond_dict['K'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','CD'],['CD','CE'],['CE','NZ']]
+aa_bond_dict['R'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','CD'],['CD','NE'],['NE','CZ'],['CZ','NH1'],['CZ','NH2']]
+aa_bond_dict['F'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','CD1'],['CD1','CE1'],['CE1','CZ'],['CG','CD2'],['CD2','CE2']]
+aa_bond_dict['Y'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','CD1'],['CD1','CE1'],['CE1','CZ'],['CZ','OH'],['CG','CD2'],['CD2','CE2']]
+aa_bond_dict['H'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','ND1'],['ND1','CE1'],['CG','CD2'],['CD2','NE2']]
+aa_bond_dict['W'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','CD1'],['CD1','NE1'],['CG','CD2'],['CD2','CE2'],['CD2','CE3'],['CE3','CZ3'],['CZ3','CH2'],['CH2','CZ2']]
+aa_bond_dict['P'] = back_bond+\
+                [['CA','CB'],['CB','CG'],['CG','CD']]
+
+# Distance, angle and dihedral angles parameters
+Back_dist = [['N','CA',1.46],
+      ['CA','C', 1.52],
+      ['C','O',  1.23],
+      ['C','N',  1.29]]
+
+Back_angle = [['N','CA','C',110.9],
+           ['CA','C','O', 122.0],
+           ['CA','C','N', 110.9],
+           ['CA','N','C', 121.3],
+           ['N','C','O', 119.0]]  # Only for ACE-connexion
+
+Back_dihe = [['N','CA','C','O',0],
+          ['N','CA','C','N',180.0],
+          ['CA','N','C','CA',180.0],
+          ['C','CA','N','C', -180.0],
+          ['N','C','O','CH3', 180.0],# Only for ACE-connexion
+            ['CA','N','C','O', 0.0]] # Only for ACE-connexion
+
+dist_dict  = {}
+angle_dict = {}
+dihe_dict  ={}
+
+# ACE Å
+dist_dict['Å']  = [['CH3','O',2.40],['C','O',  1.23]]
+angle_dict['Å'] = [['CH3','O','C', 32.18]]
+dihe_dict['Å']  = Back_dihe
+
+
+# Glycine
+dist_dict['G']  = Back_dist
+angle_dict['G'] = Back_angle
+dihe_dict['G']  = Back_dihe
+
+# Alanine
+dist_dict['A']  = Back_dist + [['CA','CB', 1.52]]
+angle_dict['A'] = Back_angle + [['CB','CA','N',107.7]]
+dihe_dict['A']  = Back_dihe + [['CB','CA','N','C', 56.3]]
+
+# Serine
+dist_dict['S']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','OG', 1.42]]
+angle_dict['S'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','OG', 110.8]]
+dihe_dict['S']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','OG',69.4]]
+# Cysteine
+dist_dict['C']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','SG', 1.81]]
+angle_dict['C'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','SG', 110.8]]
+dihe_dict['C']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','SG',-173.8]]
+# Threonine
+dist_dict['T']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','OG1', 1.42],
+                               ['CB','CG2', 1.54]]
+angle_dict['T'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','OG1', 110.6],
+                               ['CA','CB','CG2', 116.3]]
+dihe_dict['T']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','OG1', -61.5],
+                              ['N','CA','CB','CG2', 179.6]]
+
+# Valine
+dist_dict['V']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG1', 1.54],
+                               ['CB','CG2', 1.54]]
+angle_dict['V'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG1', 110.6],
+                               ['CA','CB','CG2', 116.3]]
+dihe_dict['V']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG1', -61.5],
+                              ['N','CA','CB','CG2', 179.6]]
+
+# Isoleucine
+dist_dict['I']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG1', 1.54],
+                               ['CB','CG2', 1.54],
+                               ['CG1','CD', 1.54]]
+angle_dict['I'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG1', 110.6],
+                               ['CA','CB','CG2', 116.3],
+                               ['CB','CG1','CD', 116.3]]
+dihe_dict['I']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG1', -61.5],
+                              ['N','CA','CB','CG2', 179.6],
+                              ['CA','CB','CG1','CD', 179.6]]
+
+# Isoleucine
+dist_dict['L']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','CD1', 1.54],
+                               ['CG','CD2', 1.54]]
+angle_dict['L'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','CD1', 110.6],
+                               ['CB','CG','CD2', 116.3]]
+dihe_dict['L']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -57.8],
+                              ['CA','CB','CG','CD1', -61.5],
+                              ['CA','CB','CG','CD2', 179.6]]
+
+# Asparagine
+dist_dict['N']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','ND2', 1.29],
+                               ['CG','OD1', 1.23]]
+angle_dict['N'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','ND2', 118.9],
+                               ['CB','CG','OD1', 122.2]]
+dihe_dict['N']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -57.8],
+                              ['CA','CB','CG','ND2', -78.2],
+                              ['CA','CB','CG','OD1', 100.6]]
+
+# Aspartic Acid
+dist_dict['D']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','OD1', 1.23],
+                               ['CG','OD2', 1.23]]
+angle_dict['D'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','OD1', 118.9],
+                               ['CB','CG','OD2', 122.2]]
+dihe_dict['D']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -177.0],
+                              ['CA','CB','CG','OD1', 37.0],
+                              ['CA','CB','CG','OD2', -140.7]]
+
+# Methionine
+dist_dict['M']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','SD', 1.80],
+                               ['SD','CE', 1.80]]
+angle_dict['M'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','SD', 118.9],
+                               ['CG','SD','CE', 98.5]]
+dihe_dict['M']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -68.5],
+                              ['CA','CB','CG','SD', -165.1],
+                              ['CB','CG','SD','CE', -140.7]]
+
+# Glutamine
+dist_dict['Q']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','CD', 1.54],
+                               ['CD','NE2', 1.31],
+                               ['CD','OE1', 1.22]]
+angle_dict['Q'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','CD', 118.9],
+                               ['CG','CD','NE2', 121.1],
+                               ['CG','CD','OE1', 120.0]]
+dihe_dict['Q']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -178.1],
+                              ['CA','CB','CG','CD', -165.1],
+                              ['CB','CG','CD','NE2', -0.9],
+                              ['CB','CG','CD','OE1', 177.9]]
+
+# Glutamic Acid
+dist_dict['E']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','CD', 1.54],
+                               ['CD','OE1', 1.22],
+                               ['CD','OE2', 1.22]]
+angle_dict['E'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','CD', 118.9],
+                               ['CG','CD','OE1', 121.1],
+                               ['CG','CD','OE2', 120.0]]
+dihe_dict['E']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -178.1],
+                              ['CA','CB','CG','CD', -177.3],
+                              ['CB','CG','CD','OE1', -0.9],
+                              ['CB','CG','CD','OE2', 177.9]]
+
+# Lysine
+dist_dict['K']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','CD', 1.54],
+                               ['CD','CE', 1.54],
+                               ['CE','NZ', 1.3]]
+angle_dict['K'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','CD', 118.9],
+                               ['CG','CD','CE', 118.9],
+                               ['CD','CE','NZ', 109.4]]
+dihe_dict['K']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -178.1],
+                              ['CA','CB','CG','CD', -177.3],
+                              ['CB','CG','CD','CE', 177.1],
+                              ['CG','CD','CE','NZ', 177.9]]
+
+# Arginine
+dist_dict['R']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','CD', 1.54],
+                               ['CD','NE', 1.54],
+                               ['NE','CZ', 1.3],
+                               ['NH1','CZ', 1.3],
+                               ['NH2','CZ', 1.3]]
+angle_dict['R'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','CD', 118.9],
+                               ['CG','CD','NE', 118.9],
+                               ['CD','NE','CZ', 125.3],
+                               ['NE','CZ','NH1', 123.6],
+                               ['NE','CZ','NH2', 123.6]]
+dihe_dict['R']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -178.1],
+                              ['CA','CB','CG','CD', -177.3],
+                              ['CB','CG','CD','NE', 177.1],
+                              ['CG','CD','NE','CZ', 177.9],
+                              ['CD','NE','CZ','NH1', 0.3],
+                              ['CD','NE','CZ','NH2', -179.6]]
+
+# Phenylalanine
+dist_dict['F']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','CD1', 1.4],
+                               ['CG','CD2', 1.4],
+                               ['CD1','CE1', 1.4],
+                               ['CD2','CE2', 1.4],
+                               ['CE1','CZ', 1.4]]
+angle_dict['F'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','CD1', 120.8],
+                               ['CB','CG','CD2', 120.8],
+                               ['CG','CD1','CE1', 120.4],
+                               ['CG','CD2','CE2', 120.4],
+                               ['CD1','CE1','CZ', 120.4]]
+dihe_dict['F']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -65.4],
+                              ['CA','CB','CG','CD1', -78.1],
+                              ['CA','CB','CG','CD2', 101.4],
+                              ['CB','CG','CD1','CE1', 179.1],
+                              ['CB','CG','CD2','CE2', 179.1],
+                              ['CG','CD1','CE1','CZ', 0.1]]
+
+# Tyrosine
+dist_dict['Y']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','CD1', 1.4],
+                               ['CG','CD2', 1.4],
+                               ['CD1','CE1', 1.4],
+                               ['CD2','CE2', 1.4],
+                               ['CE1','CZ', 1.4],
+                               ['CZ','OH', 1.22]]
+angle_dict['Y'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','CD1', 120.8],
+                               ['CB','CG','CD2', 120.8],
+                               ['CG','CD1','CE1', 120.4],
+                               ['CG','CD2','CE2', 120.4],
+                               ['CD1','CE1','CZ', 120.4],
+                               ['CE1','CZ','OH', 120.8]]
+dihe_dict['Y']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -65.4],
+                              ['CA','CB','CG','CD1', -78.1],
+                              ['CA','CB','CG','CD2', 101.4],
+                              ['CB','CG','CD1','CE1', 179.1],
+                              ['CB','CG','CD2','CE2', 179.1],
+                              ['CG','CD1','CE1','CZ', 0.1],
+                              ['CD1','CE1','CZ','OH', 179.1]]
+
+# Histidine
+dist_dict['H']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','ND1', 1.4],
+                               ['CG','CD2', 1.4],
+                               ['ND1','CE1', 1.4],
+                               ['CD2','NE2', 1.4]]
+angle_dict['H'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','ND1', 131.5],
+                               ['CB','CG','CD2', 117.8],
+                               ['CG','ND1','CE1', 105.4],
+                               ['CG','CD2','NE2', 105.7]]
+dihe_dict['H']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -109.4],
+                              ['CA','CB','CG','ND1', 107.6],
+                              ['CA','CB','CG','CD2', -75.6],
+                              ['CB','CG','ND1','CE1', 177.5],
+                              ['CB','CG','CD2','NE2', 171.7]]
+
+# Tryptophan
+dist_dict['W']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','CD1', 1.4],
+                               ['CG','CD2', 1.4],
+                               ['CD1','NE1', 1.4],
+                               ['CD2','CE2', 1.4],
+                               ['CD2','CE3', 1.4],
+                               ['CE3','CZ3', 1.4],
+                               ['CZ3','CH2', 1.4],
+                               ['CH2','CZ2', 1.4]]
+angle_dict['W'] = Back_angle + [['CB','CA','N',107.7],
+                               ['CA','CB','CG', 116.3],
+                               ['CB','CG','CD1', 131.5],
+                               ['CB','CG','CD2', 117.8],
+                               ['CG','CD1','NE1', 105.4],
+                               ['CG','CD2','CE2', 105.7],
+                               ['CG','CD2','CE3', 131.5],
+                               ['CD2','CE3','CZ3', 120.4],
+                               ['CE3','CZ3','CH2', 120.4],
+                               ['CZ3','CH2','CZ2', 120.4]]
+dihe_dict['W']  = Back_dihe + [['CB','CA','N','C', 56.3],
+                              ['N','CA','CB','CG', -109.4],
+                              ['CA','CB','CG','CD1', 107.6],
+                              ['CA','CB','CG','CD2', -75.6],
+                              ['CB','CG','CD1','NE1', 177.5],
+                              ['CB','CG','CD2','CE2', 180],
+                              ['CB','CG','CD2','CE3', 0.0],
+                              ['CG','CD2','CE3','CZ3', 180.0],
+                              ['CD2','CE3','CZ3','CH2', 0.0],
+                              ['CE3','CZ3','CH2','CZ2', 0]]
+
+# Proline
+dist_dict['P']  = Back_dist + [['CA','CB', 1.52],
+                               ['CB','CG', 1.54],
+                               ['CG','CD', 1.54]]
+angle_dict['P'] = Back_angle + [['CB','CA','N',101.9],
+                               ['CA','CB','CG', 103.7],
+                               ['CB','CG','CD', 103.3]]
+
+dihe_dict['P']  = [['N','CA','C','O',0],
+                            ['N','CA','C','N',180.0],
+                            ['CA','N','C','CA',180.0],
+                            ['C','CA','N','C', -70.0],
+                            ['N','C','O','CH3', 180.0],# Only for ACE-connexion
+                            ['CA','N','C','O', 0.0],
+                            ['CB','CA','N','C', 168.6],
+                            ['N','CA','CB','CG', 29.6],
+                            ['CA','CB','CG','CD', -37.5]]
+
 
 class coor(object):
     """ Topologie base on coordinates like pdb or gro.
@@ -76,6 +536,7 @@ class coor(object):
 
 
     """
+
     def __init__(self):
         self.atom_dict = dict()
         self.crystal_pack = None
@@ -210,39 +671,13 @@ class coor(object):
         >>> prot_coor.read_pdb('../test/input/1y0m.pdb')
         Succeed to read file ../test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_aa_seq()
-        {'A': 'TFKSVVKVLFDYKVQREDELTFTKSVIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
+        {'A': 'TFKSAVKALFDYKAQREDELTFTKSAIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
 
         .. warning::
             If atom chains are not arranged sequentialy (A,A,A,B,B,A,A,A ...), the first atom seq will be overwritten by the last one. 
 
         """  
         
-        aa_dict = { "GLY":"G", 
-                    "HIS":"H", 
-                    "HSE":"H", 
-                    "HSD":"H", 
-                    "HSP":"H",
-                    "ARG":"R",
-                    "LYS":"K",
-                    "ASP":"D",
-                    "GLU":"E",
-                    "SER":"S",
-                    "THR":"T",
-                    "ASN":"N",
-                    "GLN":"Q",
-                    "CYS":"C",
-                    "SEC":"U",                   
-                    "PRO":"P",
-                    "ALA":"A",                        
-                    "ILE":"I",
-                    "PHE":"F",
-                    "TYR":"Y",
-                    "TRP":"W",
-                    "VAL":"V",
-                    "LEU":"L",
-                    "MET":"M"
-                    }
-
                                                 
         # Get CA atoms 
         CA_index_list = self.get_index_selection( {"name" : ["CA"]} )
@@ -304,11 +739,11 @@ class coor(object):
         >>> prot_coor.read_pdb('../test/input/1y0m.pdb')
         Succeed to read file ../test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_aa_seq()
-        {'A': 'TFKSVVKVLFDYKVQREDELTFTKSVIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
+        {'A': 'TFKSAVKALFDYKAQREDELTFTKSAIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
         >>> prot_coor.change_pdb_field(change_dict = {"chain" : "B"}) #doctest: +ELLIPSIS
         <tools.pdb_manip.coor object at ...>
         >>> prot_coor.get_aa_seq()
-        {'B': 'TFKSVVKVLFDYKVQREDELTFTKSVIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
+        {'B': 'TFKSAVKALFDYKAQREDELTFTKSAIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
 
         """  
     
@@ -337,7 +772,7 @@ class coor(object):
         >>> prot_coor.change_index_pdb_field(index_list = res_826_852, change_dict = {"chain" : "B"}) #doctest: +ELLIPSIS
         <tools.pdb_manip.coor object at ...>
         >>> prot_seq = prot_coor.get_aa_seq()
-        >>> prot_seq == {'A': 'TFKSVVKVLFDYKVQREDELTFTKSVIIQNVEKQD', 'B': 'GGWWRGDYGGKKQLWFPSNYVEEMIN'}
+        >>> prot_seq == {'A': 'TFKSAVKALFDYKAQREDELTFTKSAIIQNVEKQD', 'B': 'GGWWRGDYGGKKQLWFPSNYVEEMIN'}
         True
 
         """  
@@ -369,7 +804,7 @@ class coor(object):
         61
         >>> prot_20_coor = prot_coor.select_part_dict(selec_dict = {'res_num' : list(range(791,800))})
         >>> prot_20_coor.get_aa_seq()
-        {'A': 'TFKSVVKVL'}
+        {'A': 'TFKSAVKAL'}
         >>> prot_20_coor.get_aa_num()
         9
 
@@ -488,12 +923,12 @@ class coor(object):
         >>> prot_coor.read_pdb('../test/input/1y0m.pdb')
         Succeed to read file ../test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_aa_seq()
-        {'A': 'TFKSVVKVLFDYKVQREDELTFTKSVIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
+        {'A': 'TFKSAVKALFDYKAQREDELTFTKSAIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
         >>> res_810_852 = prot_coor.get_index_selection({'res_num' : range(810,852)})
         >>> prot_coor.del_atom_index(index_list = res_810_852) #doctest: +ELLIPSIS
         <tools.pdb_manip.coor object at ...>
         >>> prot_coor.get_aa_seq()
-        {'A': 'TFKSVVKVLFDYKVQREDE'}
+        {'A': 'TFKSAVKALFDYKAQREDE'}
 
         """  
 
@@ -519,7 +954,7 @@ class coor(object):
         >>> res_810 = prot_coor.get_index_selection({'res_num' : [810]})
         >>> prot_coor = prot_coor.del_atom_index(index_list = res_810)
         >>> prot_coor.get_aa_seq()
-        {'A': 'TFKSVVKVLFDYKVQREDETFTKSVIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
+        {'A': 'TFKSAVKALFDYKAQREDETFTKSAIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
         >>> prot_coor.correct_chain() #doctest: +ELLIPSIS
         Chain: A  Residue: 0 to 18
         Chain: B  Residue: 20 to 60
@@ -880,6 +1315,179 @@ class coor(object):
                 #print(coor.atom_dist(atom_i,atom_j))
         
         return(list(set(index_list)))
+
+    def make_peptide(self, sequence, pdb_out, check_file_out = True):
+        """
+        Create a linear peptide structure.
+    
+        :param sequence: peptide sequence 
+        :type sequence: str
+    
+        :param pdb_out: name of output pdb file
+        :type pdb_out: str
+    
+        :param check_file_out: flag to check or not if file has already been created.
+            If the file is present then the command break.
+        :type check_file_out: bool, optional, default=True
+    
+        """
+    
+    
+        # Create and go in out_folder:
+        # This is necessary for the topologie creation
+        out_folder = os.path.dirname(pdb_out)
+        #print(out_folder)
+        osCommand.create_dir(out_folder)
+    
+    
+        print("-Make peptide")
+    
+        # Check if output files exist: 
+        if check_file_out and osCommand.check_file_and_create_path(pdb_out) :
+            print("make_peptide", pdb_out, "already exist")
+            return(os.path.abspath(pdb_out))
+
+            
+
+        pep = coor()
+        print(sequence)
+        seq = 'Å'+sequence
+        atom_num = 0
+        uniq_resid = 0
+        start_xyz = np.zeros(3)
+        connect_dict = {}
+        prev_res_name_index = {}
+        
+        # Initialize atom_dict:
+        for res_name in seq:
+            print("residue name:{}".format(res_name))
+            res_name_index = {}
+        
+            for atom_name in aa_atom_dict[res_name]:
+                #print("\tatom name:{}".format(atom_name))
+                angle = None
+                dihed = None
+                
+                if atom_num == 0:
+                    xyz = start_xyz     
+                else:    
+                    # Look for the previous bonded atom:
+                    for dist in aa_bond_dict[res_name]:
+                        if atom_name == dist[0]:                    
+                            if dist[1][0] != '-':
+                                connect_name = dist[1]
+                                connect_index = res_name_index[connect_name]
+                            else:
+                                connect_name = dist[1][1:]
+                                connect_index = prev_res_name_index[connect_name] 
+                            break
+                        elif atom_name == dist[1]:
+                            if dist[0][0] != '-':
+                                connect_name = dist[0]
+                                connect_index = res_name_index[connect_name]
+                            else:
+                                connect_name = dist[0][1:]
+                                connect_index = prev_res_name_index[connect_name] 
+                            break
+                    #print("{} connect to {} for {}".format(
+                    #    atom_name, connect_name, res_name))
+                    bond_len = coor.find_dist(res_name, atom_name, connect_name)
+                    #print("Bond : {}-{} = {} Å".format(
+                    #    atom_name, connect_name, bond_len)) 
+                    
+                    if atom_num == 1:
+                        xyz = pep.atom_dict[connect_index]['xyz'] + [bond_len, 0 ,0]
+                    connect_dict[atom_num] = connect_index
+                    
+                    if atom_num > 1:
+                        connect_2_index = connect_dict[connect_index]
+                        connect_2_name = pep.atom_dict[connect_2_index]['name']
+                        angle = coor.find_angle(res_name, atom_name, connect_name, connect_2_name)
+                        angle_rad = np.deg2rad(angle)
+                        #print("Angle: {}-{}-{} = {}°".format(atom_name, connect_name, connect_2_name, angle))
+                        if atom_num == 2:
+                            xyz = pep.atom_dict[connect_index]['xyz'] + [-bond_len*np.cos(np.deg2rad(angle)),
+                                                                         -bond_len*np.sin(np.deg2rad(angle)),
+                                                                         0]
+                            
+                    if atom_num > 2:
+                        if connect_2_index not in connect_dict:
+                            xyz = pep.atom_dict[connect_index]['xyz'] + [-bond_len*np.cos(np.deg2rad(angle)),
+                                                                         -bond_len*np.sin(np.deg2rad(angle)),
+                                                                         0]
+                        else:
+                            connect_3_index = connect_dict[connect_2_index]
+                            connect_3_name = pep.atom_dict[connect_3_index]['name']
+                            dihe = coor.find_dihe_angle(res_name, atom_name, connect_name, connect_2_name, connect_3_name)
+                            dihe_rad = np.deg2rad(dihe)
+                            #print("Dihedral Angle: {}-{}-{}-{} = {}°".format(atom_name, connect_name, connect_2_name, connect_3_name, dihe))
+                            # From https://github.com/ben-albrecht/qcl/blob/master/qcl/ccdata_xyz.py#L208
+                            v1 = pep.atom_dict[connect_index]['xyz'] - pep.atom_dict[connect_2_index]['xyz']
+                            v2 = pep.atom_dict[connect_index]['xyz'] - pep.atom_dict[connect_3_index]['xyz']
+                        
+                            n = np.cross(v1, v2)
+                            nn = np.cross(v1, n)
+                        
+                            n /= norm(n)
+                            nn /= norm(nn)
+        
+                            n *= -sin(dihe_rad)
+                            nn *= cos(dihe_rad)
+        
+                            v3 = n + nn
+                            v3 /= norm(v3)
+                            v3 *= bond_len * sin(angle_rad)
+        
+                            v1 /= norm(v1)
+                            v1 *= bond_len * cos(angle_rad)
+        
+                            xyz = pep.atom_dict[connect_index]['xyz'] + v3 - v1
+                            #print(xyz)
+                        
+                atom = {"field" : 'ATOM', 
+                        "num"       : atom_num, 
+                        "name"      : atom_name, 
+                        "alter_loc" : "", 
+                        "res_name"  : aa_1_to_3_dict[res_name], 
+                        "chain"     : "P", 
+                        "res_num"   : uniq_resid,
+                        "uniq_resid": uniq_resid,
+                        "insert_res": "",
+                        "xyz"       : xyz,
+                        "occ"       : 0.0,
+                        "beta"      : 0.0}
+                res_name_index[atom_name] = atom_num
+                #print(atom)
+                pep.atom_dict[atom_num] = atom
+                atom_num +=1
+            prev_res_name_index = res_name_index
+            uniq_resid +=1
+
+        pep.write_pdb(pdb_out)
+        pdb_out = os.path.abspath(pdb_out)
+    
+        return(pdb_out)
+
+    @staticmethod
+    def find_dist(aa_name, name_a, name_b):
+        for dist in dist_dict[aa_name]:
+            if dist[:2] == [name_a, name_b] or dist[:2] == [name_b, name_a]:
+                return dist[2]
+        raise ValueError('Distance param {}-{} for {} not found !!'.format(name_a, name_b, aa_name))
+    
+    @staticmethod
+    def find_angle(aa_name, name_a, name_b, name_c):
+        for angle in angle_dict[aa_name]:
+            if angle[:3] == [name_a, name_b, name_c] or angle[:3] == [name_c, name_b, name_a]:
+                return angle[3]
+        raise ValueError('Angle param {}-{}-{} for {} not found !!'.format(name_a, name_b, name_c, aa_name))
+        
+    @staticmethod
+    def find_dihe_angle(aa_name, name_a, name_b, name_c, name_d):
+        for angle in dihe_dict[aa_name]:
+            if angle[:4] == [name_a, name_b, name_c, name_d] or angle[:4] == [name_d, name_c, name_b, name_a]:
+                return angle[4]
+        raise ValueError('Angle param {}-{}-{}-{} for {} not found !!'.format(name_a, name_b, name_c, name_d, aa_name))
 
 
     @staticmethod
