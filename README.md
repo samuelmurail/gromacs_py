@@ -12,6 +12,7 @@ Get gromacs_py library from [github](https://github.com/samuelmurail/gromacs_py)
 
 ```bash
 git clone https://github.com/samuelmurail/gromacs_py.git
+cd gromacs_py
 ./setup.py install
 ```
 see the [INSTALL.md](./INSTALL.md) file for details.
