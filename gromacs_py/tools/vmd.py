@@ -9,6 +9,8 @@ VMD_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
 
 def insert_mol(pdb_in, pdb_out, out_folder, mol_chain, mol_length, check_file_out = True):
     """
+    DEPRECATED, use pdb_manip.insert_mol instead
+    
     Use vmd to insert molecules defined by chain ID ``mol_chain`` in a water solvant.
 
     :param pdb_in: path of input pdb file

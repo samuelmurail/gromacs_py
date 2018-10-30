@@ -13,7 +13,7 @@ import os
 
 def parser_input():
 
-    parser = argparse.ArgumentParser(description="Create a linear peptide structure using pymol, do a minimisation and a vacuum equilibration")
+    parser = argparse.ArgumentParser(description="Create a linear peptide structure, do a minimisation and a vacuum equilibration")
     parser.add_argument('-seq', action="store", dest="seq", help='Peptide sequence', type=str, required=True)
     parser.add_argument('-o', action="store", dest="o", help='Output Directory', type=str, required=True)
     parser.add_argument('-m_steps', action="store", dest="min_steps", help='Minimisation nsteps, default=1000', type=int, default=1000)
