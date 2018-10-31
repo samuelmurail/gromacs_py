@@ -8,6 +8,7 @@ PYMOL_BIN='pymol'
 
 def make_peptide(sequence, pdb_out, check_file_out = True):
     """
+    DEPRECATED, use a pdb_manip method instead.
     Use Pymol to create a linear peptide structure.
 
     :param sequence: peptide sequence 

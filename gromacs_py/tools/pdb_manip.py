@@ -63,13 +63,13 @@ aa_1_to_3_dict = { 'G':'GLY',
 'V':'VAL',
 'L':'LEU',
 'M':'MET',
-'Å':'ACE'
+'X':'ACE'
 }
 
 #Atom names for each residues
 back_atom = ['N','CA','C','O']
 
-aa_atom_dict = {'Å':['CH3','O','C'], # Å:ACE
+aa_atom_dict = {'X':['CH3','O','C'], # X:ACE
             'G':back_atom,
             'A':back_atom+['CB'],
             'S':back_atom+['CB','OG'],
@@ -95,9 +95,9 @@ aa_atom_dict = {'Å':['CH3','O','C'], # Å:ACE
 # Bond definition:
 # Note that order is important
 back_bond = [['-C','N'], ['N','CA'], ['CA','C'], ['C','O']]
-# Å is for ACE special case
+# X is for ACE special case
 aa_bond_dict = {}
-aa_bond_dict['Å'] = [['CH3','O'],['O','C']] # Need to use a trick with unphysical bond
+aa_bond_dict['X'] = [['CH3','O'],['O','C']] # Need to use a trick with unphysical bond
 aa_bond_dict['G'] = back_bond
 aa_bond_dict['A'] = back_bond+[['CA','CB']]
 aa_bond_dict['S'] = back_bond+[['CA','CB'],['CB','OG']]
@@ -156,10 +156,10 @@ dist_dict  = {}
 angle_dict = {}
 dihe_dict  ={}
 
-# ACE Å
-dist_dict['Å']  = [['CH3','O',2.40],['C','O',  1.23]]
-angle_dict['Å'] = [['CH3','O','C', 32.18]]
-dihe_dict['Å']  = Back_dihe
+# ACE X
+dist_dict['X']  = [['CH3','O',2.40],['C','O',  1.23]]
+angle_dict['X'] = [['CH3','O','C', 32.18]]
+dihe_dict['X']  = Back_dihe
 
 
 # Glycine
@@ -942,7 +942,7 @@ class coor(object):
         """Correct the chain ID's of a coor object, by checking consecutive Calphas atoms distance.
 
         
-        :param Ca_cutoff: cutoff for distances between Calphas atoms (Å)
+        :param Ca_cutoff: cutoff for distances between Calphas atoms (X)
         :type Ca_cutoff: float, default=4.5
 
         :Example:
@@ -1127,10 +1127,10 @@ class coor(object):
     def insert_mol(self, pdb_out, out_folder, mol_chain, check_file_out = True):
         """
         Insert molecules defined by chain ID ``mol_chain`` in a water solvant.
-        Check which water molecules are within ``cutoff_prot_off=12.0`` Å 
-        and ``cutoff_prot_in=15.0`` Å of protein and peptide C alpha atoms.
+        Check which water molecules are within ``cutoff_prot_off=12.0`` X 
+        and ``cutoff_prot_in=15.0`` X of protein and peptide C alpha atoms.
         Move the molecules to be inserted at the position of water molecules.
-        Then delete all water molecules within ``cutoff_water_clash=1.2`` Å of
+        Then delete all water molecules within ``cutoff_water_clash=1.2`` X of
         the inserted molecule atoms.
         
         :param pdb_out: name of output pdb file
@@ -1340,7 +1340,7 @@ class coor(object):
         osCommand.create_dir(out_folder)
     
     
-        print("-Make peptide")
+        print("-Make peptide: {}".format(sequence))
     
         # Check if output files exist: 
         if check_file_out and osCommand.check_file_and_create_path(pdb_out) :
@@ -1350,11 +1350,9 @@ class coor(object):
             
 
         pep = coor()
-        print(sequence)
-        seq = 'Å'+sequence
+        seq = 'X'+sequence
         atom_num = 0
         uniq_resid = 0
-        start_xyz = np.zeros(3)
         connect_dict = {}
         prev_res_name_index = {}
         
@@ -1369,7 +1367,7 @@ class coor(object):
                 dihed = None
                 
                 if atom_num == 0:
-                    xyz = start_xyz     
+                    xyz = np.zeros(3)    
                 else:    
                     # Look for the previous bonded atom:
                     for dist in aa_bond_dict[res_name]:
@@ -1392,7 +1390,7 @@ class coor(object):
                     #print("{} connect to {} for {}".format(
                     #    atom_name, connect_name, res_name))
                     bond_len = coor.find_dist(res_name, atom_name, connect_name)
-                    #print("Bond : {}-{} = {} Å".format(
+                    #print("Bond : {}-{} = {} X".format(
                     #    atom_name, connect_name, bond_len)) 
                     
                     if atom_num == 1:
