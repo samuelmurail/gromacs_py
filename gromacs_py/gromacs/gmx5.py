@@ -2119,6 +2119,7 @@ class gmx_sys(object):
 
         .. note:: 
             VMD don't need anymore to be installed to run the peptide creation
+            NEED TO ADD A TEST
 
         """  
     

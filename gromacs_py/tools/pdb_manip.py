@@ -1224,6 +1224,20 @@ class coor(object):
         :param vector: 3d translation vector
         :type vector: list
     
+        :Example:
+
+        >>> import tools.pdb_manip as pdb_manip
+        >>> prot_coor = pdb_manip.coor()
+        >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
+        Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
+        >>> com_1y0m = prot_coor.center_of_mass()
+        >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*com_1y0m))
+        x:16.01 y:0.45 z:8.57
+        >>> prot_coor.translate(-com_1y0m)
+        >>> com_1y0m = prot_coor.center_of_mass()
+        >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*com_1y0m))
+        x:-0.00 y:0.00 z:0.00
+
         """
 
         for atom_num, atom in self.atom_dict.items():
@@ -1234,6 +1248,17 @@ class coor(object):
     def center_of_mass(self, selec_dict={}):
         """ Compute the center of mass of a selection
         Avoid using atoms with 2 letters atom name like NA Cl ... 
+
+        :Example:
+
+        >>> import tools.pdb_manip as pdb_manip
+        >>> prot_coor = pdb_manip.coor()
+        >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
+        Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
+        >>> com_1y0m = prot_coor.center_of_mass()
+        >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*com_1y0m))
+        x:16.01 y:0.45 z:8.57
+
         """
         index_list = []
     
@@ -1268,13 +1293,25 @@ class coor(object):
     def get_index_dist_between(self, atom_sel_2, cutoff_min = 0, cutoff_max = 10):
         """ Check is distance between atoms of self.atom_dict is under cutoff 
         with the atoms of group 1.
-        Then return list of index of atoms of self.coor under ctuoff ditance. 
+        Then return list of index of atoms of self.coor under cutoff ditance. 
 
         :param atom_sel_1: atom dictionnary
         :type atom_sel_1: dict
 
         :param atom_sel_2: atom dictionnary
         :type atom_sel_2: dict
+
+        :Example:
+
+        >>> import tools.pdb_manip as pdb_manip
+        >>> prot_coor = pdb_manip.coor()
+        >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
+        Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
+        >>> res_810 = prot_coor.select_part_dict({'res_num' : [810]})
+        >>> close_r810 = prot_coor.get_index_dist_between(res_810, cutoff_min = 3, cutoff_max = 5)
+        >>> print(len(close_r810))
+        65
+
         """
 
         index_list = []
