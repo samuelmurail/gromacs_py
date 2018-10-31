@@ -1937,17 +1937,17 @@ class gmx_sys(object):
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        >>> prot.create_box()
+        >>> prot.create_box() #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f gromacs_py_test_out/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx.pdb -o gromacs_py_test_out/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        >>> prot.solvate_add_ions(out_folder = TEST_OUT+'/solvate_add_ions/top_SH3_water_ions/')
+        >>> prot.solvate_add_ions(out_folder = TEST_OUT+'/solvate_add_ions/top_SH3_water_ions/') #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f gromacs_py_test_out/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -o gromacs_py_test_out/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx_box_box.pdb -bt dodecahedron -d 1.1
         -Solvate the pbc box
         Copy topologie file and dependancies 
         Copy topologie file and dependancies 
         -Create the tpr file  genion_1y0m_water_ion.tpr
-        gmx grompp -f ../../../../../gromacs_py/gromacs_py/gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
+        gmx grompp -f .../gromacs_py/gromacs_py/gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
         Get charge of  Protein_chain_A : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
