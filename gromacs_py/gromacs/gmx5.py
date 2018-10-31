@@ -26,10 +26,12 @@ FORCEFIELD_PATH=os.path.abspath(GROMACS_MOD_DIRNAME+"/template/")
 
 GMX_BIN='gmx'
 
-#print(GMX_BIN)
-#print(GMX_PATH)
-#print(FORCEFIELD_PATH)
+# Test folder path
+GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_PATH =os.path.abspath(GMX_LIB_DIR+"/../test/input/")
+TEST_OUT = 'gromacs_py_test_out/gmx5/'
 
+# Global variable
 HA_NAME = ['N','C','O','CA','CB',
     'CG','CG1','CG2','SG','OG','OG1',
     'CD','CD1','CD2','OD1','OD2','SD','ND1',
@@ -734,9 +736,9 @@ class gmx_sys(object):
 
     >>> import gromacs.gmx5 as gmx
     >>> # Create the topologie of a protein and do a minimisation:
-    >>> prot = gmx.gmx_sys(name = '1y0m', coor_file='../test/input/1y0m.pdb')
-    >>> prot.prepare_top(out_folder = '../test/output/gmx5/class/top_SH3')
-    Succeed to read file ../../../../input/1y0m.pdb ,  648 atoms found
+    >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+    >>> prot.prepare_top(out_folder = TEST_OUT+'/class/top_SH3') #doctest: +ELLIPSIS
+    Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file ./tmp_pdb2pqr.pdb
     pdb2pqr.py --ff CHARMM --ffout CHARMM --chain tmp_pdb2pqr.pdb 00_1y0m.pqr
     Succeed to read file 00_1y0m.pqr ,  996 atoms found
@@ -750,7 +752,6 @@ class gmx_sys(object):
     -molecules defined in the itp file:
     * Protein_chain_A
     Rewrite topologie: 1y0m_pdb2gmx.top
-    ()
 
 
     .. note:: 
@@ -962,19 +963,19 @@ class gmx_sys(object):
 
         :Example:
 
+
         >>> import gromacs.gmx5 as gmx
-        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file='../test/input/1y0m.pdb')
+        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
         >>> #Basic usage :
-        >>> prot.add_top(out_folder = '../test/output/gmx5/add_top/top_SH3/')
+        >>> prot.add_top(out_folder = TEST_OUT+'/add_top/top_SH3') #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ../../../../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
+        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
         -ITP file: 1y0m_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        ()
         >>> #########################################
         >>> # Use of different options for pdb2gmx: #
         >>> #########################################
@@ -982,18 +983,17 @@ class gmx_sys(object):
         >>> # Define amino acid termini : 'ter':'yes'
         >>> # Needs to answer pdb2gmx request concerning termini
         >>> # with: input_pdb2gmx ="1 \\n 0"
-        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file='../test/input/1y0m.pdb')
-        >>> prot.add_top(out_folder = '../test/output/gmx5/add_top/top_SH3_2/',
-        ...     pdb2gmx_option_dict = {'ignh':'yes', 'ter':'yes'}, input_pdb2gmx ="1 \\n 0")
+        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+        >>> prot.add_top(out_folder = TEST_OUT+'/add_top/top_SH3_2/',
+        ...     pdb2gmx_option_dict = {'ignh':'yes', 'ter':'yes'}, input_pdb2gmx = "1 \\n 0") #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ../../../../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -ter yes
+        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -ter yes
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
         -ITP file: 1y0m_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        ()
 
         .. note:: 
             To avoid conflict with focefields, the environment variable
@@ -1028,7 +1028,7 @@ class gmx_sys(object):
             print("create_top not launched",new_coor,"already exist")
             self.coor_file = new_coor
             self.top_file = top_file
-            return()
+            return
 
         # Define pdb2gmx command:
         cmd_top = osCommand.command([GMX_BIN, "pdb2gmx", 
@@ -1061,7 +1061,7 @@ class gmx_sys(object):
         self.top_file = top_file
 
         os.chdir(start_dir)
-        return()
+        return
     
     def prepare_top(self, out_folder, name = None, vsite = "hydrogens"):
         """ Prepare the topologie of a protein:
@@ -1094,9 +1094,9 @@ class gmx_sys(object):
 
         >>> import gromacs.gmx5 as gmx
         >>> # Create the topologie of a protein and do a minimisation:
-        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file='../test/input/1y0m.pdb')
-        >>> prot.prepare_top(out_folder = '../test/output/gmx5/prepare_top/top_SH3/')
-        Succeed to read file ../../../../input/1y0m.pdb ,  648 atoms found
+        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+        >>> prot.prepare_top(out_folder = TEST_OUT+'/prepare_top/top_SH3/') #doctest: +ELLIPSIS
+        Succeed to read file .../input/1y0m.pdb ,  648 atoms found
         Succeed to save file ./tmp_pdb2pqr.pdb
         pdb2pqr.py --ff CHARMM --ffout CHARMM --chain tmp_pdb2pqr.pdb 00_1y0m.pqr
         Succeed to read file 00_1y0m.pqr ,  996 atoms found
@@ -1110,7 +1110,6 @@ class gmx_sys(object):
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        ()
 
         .. note:: 
             No options are allowed (forcefield, water model, termini capping) except for vsites.
@@ -1148,7 +1147,7 @@ class gmx_sys(object):
             pdb2gmx_option_dict = { 'vsite':vsite, 'ignh':'yes'} )
     
         os.chdir(start_dir) 
-        return()
+        return
 
     def cyclic_peptide_top(self, out_folder, name = None, check_file_out = True):
         """ Prepare a topologie for a cyclic peptide 
@@ -1181,12 +1180,12 @@ class gmx_sys(object):
         :Example:
 
         >>> import gromacs.gmx5 as gmx
-        >>> cyclic_pep = gmx.gmx_sys(name = '5vav', coor_file = '../test/input/5vav.pdb')
+        >>> cyclic_pep = gmx.gmx_sys(name = '5vav', coor_file = TEST_PATH+'/5vav.pdb')
         >>>
         >>> #Basic usage :
-        >>> cyclic_pep.cyclic_peptide_top(out_folder = '../test/output/gmx5/cyclic/top/')
+        >>> cyclic_pep.cyclic_peptide_top(out_folder = TEST_OUT+'/cyclic/top/') #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ../../../../input/5vav.pdb -o no_cyclic_5vav_pdb2gmx.pdb -p no_cyclic_5vav_pdb2gmx.top -i no_cyclic_5vav_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -ter yes -vsite no
+        gmx pdb2gmx -f .../input/5vav.pdb -o no_cyclic_5vav_pdb2gmx.pdb -p no_cyclic_5vav_pdb2gmx.top -i no_cyclic_5vav_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -ter yes -vsite no
         Molecule topologie present in no_cyclic_5vav_pdb2gmx.top , extract the topologie in a separate file: no_cyclic_5vav_pdb2gmx.itp
         Protein_chain_A
         -ITP file: no_cyclic_5vav_pdb2gmx.itp
@@ -1194,17 +1193,15 @@ class gmx_sys(object):
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_pdb2gmx.top
         Protein_chain_A
-        Succeed to read file ../test/output/gmx5/cyclic/top/no_cyclic_5vav_pdb2gmx.pdb ,  211 atoms found
-        Succeed to save file ../test/output/gmx5/cyclic/top//5vav_pdb2gmx.pdb
-        ()
-        >>> cyclic_pep.em(out_folder = '../test/output/gmx5/cyclic/em/', nsteps = 100, create_box_flag = True)
+        Succeed to read file gromacs_py_test_out/gmx5/cyclic/top/no_cyclic_5vav_pdb2gmx.pdb ,  211 atoms found
+        Succeed to save file gromacs_py_test_out/gmx5//cyclic/top//5vav_pdb2gmx.pdb
+        >>> cyclic_pep.em(out_folder = TEST_OUT+'/cyclic/em/', nsteps = 100, create_box_flag = True)
         -Create pbc box
-        gmx editconf -f ../test/output/gmx5/cyclic/top/5vav_pdb2gmx.pdb -o ../test/output/gmx5/cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+        gmx editconf -f gromacs_py_test_out/gmx5/cyclic/top/5vav_pdb2gmx.pdb -o gromacs_py_test_out/gmx5/cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         -Create the tpr file  5vav.tpr
         gmx grompp -f 5vav.mdp -c ../top/5vav_pdb2gmx_box.pdb -r ../top/5vav_pdb2gmx_box.pdb -p ../top/5vav_pdb2gmx.top -po out_5vav.mdp -o 5vav.tpr -maxwarn 1
         -Launch the simulation 5vav.tpr
         gmx mdrun -s 5vav.tpr -deffnm 5vav -nt 0 -ntmpi 0 -nsteps -2 -v
-        ()
 
         .. note:: 
             No options are allowed (forcefield, water model, termini capping) except for vsites.
@@ -1365,7 +1362,7 @@ class gmx_sys(object):
         # save pdb:
         coor_pep.write_pdb(pdb_out = out_folder+"/"+name+"_pdb2gmx.pdb")
         self.coor_file = out_folder+"/"+name+"_pdb2gmx.pdb"
-        return()
+        return
 
 
     #######################################################
@@ -1402,21 +1399,19 @@ class gmx_sys(object):
         :Example:
 
         >>> import gromacs.gmx5 as gmx
-        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = '../test/input/1y0m.pdb')
-        >>> prot.add_top(out_folder = '../test/output/gmx5/create_box/top_SH3/')
+        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+        >>> prot.add_top(out_folder = TEST_OUT+'/create_box/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ../../../../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
+        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
         -ITP file: 1y0m_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        ()
         >>> prot.create_box()
         -Create pbc box
-        gmx editconf -f ../test/output/gmx5/create_box/top_SH3/1y0m_pdb2gmx.pdb -o ../test/output/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        ()
+        gmx editconf -f gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx.pdb -o gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
 
         .. note:: 
             If ``name`` is not defined, the command will create a new pdb file name after the input one 
@@ -1440,7 +1435,7 @@ class gmx_sys(object):
         if check_file_out and osCommand.check_file_and_create_path(box_coor):
             print("create_box not launched",box_coor,"already exist")
             self.coor_file = box_coor
-            return()
+            return
     
         cmd_box = osCommand.command([GMX_BIN, "editconf", 
             "-f", self.coor_file, 
@@ -1452,7 +1447,7 @@ class gmx_sys(object):
         cmd_box.run()
     
         self.coor_file = box_coor
-        return()
+        return
 
 
     def convert_trj(self, name = None, ur = "compact", pbc = "mol", select = "System", traj = True, check_file_out = True):
@@ -1492,35 +1487,30 @@ class gmx_sys(object):
         :Example:
 
         >>> import gromacs.gmx5 as gmx
-        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = '../test/input/1y0m.pdb')
-        >>> prot.add_top(out_folder = '../test/output/gmx5/convert_trj/top_SH3/')
+        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+        >>> prot.add_top(out_folder = TEST_OUT+'/convert_trj/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ../../../../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
+        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
         -ITP file: 1y0m_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        ()
         >>> prot.create_box()
         -Create pbc box
-        gmx editconf -f ../test/output/gmx5/convert_trj/top_SH3/1y0m_pdb2gmx.pdb -o ../test/output/gmx5/convert_trj/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        ()
-        >>> prot.solvate_box(out_folder = '../test/output/gmx5/convert_trj/top_SH3_water/')
+        gmx editconf -f gromacs_py_test_out/gmx5/convert_trj/top_SH3/1y0m_pdb2gmx.pdb -o gromacs_py_test_out/gmx5/convert_trj/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+        >>> prot.solvate_box(out_folder = TEST_OUT+'/convert_trj/top_SH3_water/')
         -Solvate the pbc box
         Copy topologie file and dependancies 
-        ()
-        >>> prot.em(out_folder = '../test/output/gmx5/convert_trj/em_SH3_water/', nsteps=100, constraints = "none")
+        >>> prot.em(out_folder = TEST_OUT+'/convert_trj/em_SH3_water/', nsteps=100, constraints = "none")
         -Create the tpr file  1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water/1y0m_water.pdb -r ../top_SH3_water/1y0m_water.pdb -p ../top_SH3_water/1y0m_water.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         -Launch the simulation 1y0m.tpr
         gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -v
-        ()
         >>> prot.convert_trj(traj=False)
         -Convert trj/coor
-        gmx trjconv -f ../test/output/gmx5/convert_trj/em_SH3_water/1y0m.gro -o ../test/output/gmx5/convert_trj/em_SH3_water/1y0m_compact.pdb -s ../test/output/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
-        ()
+        gmx trjconv -f gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.gro -o gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m_compact.pdb -s gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
 
 
         .. note:: 
@@ -1552,7 +1542,7 @@ class gmx_sys(object):
                 self.xtc = coor_out
             else:
                 self.coor_file = coor_out
-            return()
+            return
         
         if self.tpr == None:
             print("tpr file missing, function \"convert_trj\" could not be executed")
@@ -1573,7 +1563,7 @@ class gmx_sys(object):
         else:
             self.coor_file = coor_out
 
-        return()
+        return
 
 
     def copy_box(self, nbox, name = None, check_file_out = True, **cmd_args):
@@ -1606,24 +1596,21 @@ class gmx_sys(object):
         :Example:
 
         >>> import gromacs.gmx5 as gmx
-        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = '../test/input/1y0m.pdb')
-        >>> prot.add_top(out_folder = '../test/output/gmx5/copy_box/top_SH3/')
+        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+        >>> prot.add_top(out_folder = TEST_OUT+'/copy_box/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ../../../../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
+        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
         -ITP file: 1y0m_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        ()
         >>> prot.create_box()
         -Create pbc box
-        gmx editconf -f ../test/output/gmx5/copy_box/top_SH3/1y0m_pdb2gmx.pdb -o ../test/output/gmx5/copy_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        ()
+        gmx editconf -f gromacs_py_test_out/gmx5/copy_box/top_SH3/1y0m_pdb2gmx.pdb -o gromacs_py_test_out/gmx5/copy_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         >>> prot.copy_box(nbox = [4,1,1])
         -Copy pbc box using genconf
-        ()
 
         .. note:: 
             If ``name`` is not defined, the command will create a new pdb file name after the input one 
@@ -1647,7 +1634,7 @@ class gmx_sys(object):
         if check_file_out and osCommand.check_file_and_create_path(copy_coor):
             print("create_box not launched",copy_coor,"already exist")
             self.coor_file = copy_coor
-            return()
+            return
 
         # Nbox need to be a string list:
         nbox_str = [str(i) for i in nbox]
@@ -1660,7 +1647,7 @@ class gmx_sys(object):
         cmd_copy.run()
 
         self.coor_file = copy_coor
-        return()
+        return
 
 
     def solvate_box(self, out_folder, name=None, radius = 0.21, cs=WATER_GRO, check_file_out = True):
@@ -1696,25 +1683,22 @@ class gmx_sys(object):
         :Example:
 
         >>> import gromacs.gmx5 as gmx
-        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = '../test/input/1y0m.pdb')
-        >>> prot.add_top(out_folder = '../test/output/gmx5/solv_box/top_SH3/')
+        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+        >>> prot.add_top(out_folder = TEST_OUT+'/solv_box/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ../../../../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
+        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
         -ITP file: 1y0m_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        ()
         >>> prot.create_box()
         -Create pbc box
-        gmx editconf -f ../test/output/gmx5/solv_box/top_SH3/1y0m_pdb2gmx.pdb -o ../test/output/gmx5/solv_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        ()
-        >>> prot.solvate_box(out_folder = '../test/output/gmx5/solv_box/top_SH3_water/')
+        gmx editconf -f gromacs_py_test_out/gmx5/solv_box/top_SH3/1y0m_pdb2gmx.pdb -o gromacs_py_test_out/gmx5/solv_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+        >>> prot.solvate_box(out_folder = TEST_OUT+'/solv_box/top_SH3_water/')
         -Solvate the pbc box
         Copy topologie file and dependancies 
-        ()
 
         .. note:: 
             If ``name`` is not defined, the command will create a new .pdb and .top file name after the object name  
@@ -1740,7 +1724,7 @@ class gmx_sys(object):
             self.coor_file = pdb_out
             self.top_file  = top_out
             os.chdir(start_dir) 
-            return()
+            return
 
         # Copy the top file to the new directorie:
         topologie = top_sys(self.top_file)
@@ -1762,7 +1746,7 @@ class gmx_sys(object):
 
         os.chdir(start_dir) 
 
-        return()
+        return
 
 
     def add_ions(self, out_folder, name = None, ion_C = 0.15, pname="NA", nname="CL", solv_name = "SOL",
@@ -1810,42 +1794,37 @@ class gmx_sys(object):
 
 
         >>> import gromacs.gmx5 as gmx
-        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = '../test/input/1y0m.pdb')
-        >>> prot.add_top(out_folder = '../test/output/gmx5/add_ion/top_SH3/')
+        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+        >>> prot.add_top(out_folder = TEST_OUT+'/add_ions/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ../../../../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
+        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
         -ITP file: 1y0m_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        ()
         >>> prot.create_box()
         -Create pbc box
-        gmx editconf -f ../test/output/gmx5/add_ion/top_SH3/1y0m_pdb2gmx.pdb -o ../test/output/gmx5/add_ion/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        ()
-        >>> prot.solvate_box(out_folder = '../test/output/gmx5/add_ion/top_SH3_water/')
+        gmx editconf -f gromacs_py_test_out/gmx5/add_ions/top_SH3/1y0m_pdb2gmx.pdb -o gromacs_py_test_out/gmx5/add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+        >>> prot.solvate_box(out_folder = TEST_OUT+'/add_ions/top_SH3_water/')
         -Solvate the pbc box
         Copy topologie file and dependancies 
-        ()
-        >>> prot.add_ions(out_folder = '../test/output/gmx5/add_ion/top_SH3_water_ions/')
+        >>> prot.add_ions(out_folder = TEST_OUT+'/add_ions/top_SH3_water_ions/') #doctest: +ELLIPSIS
         Copy topologie file and dependancies 
         -Create the tpr file  genion_1y0m_ion.tpr
-        gmx grompp -f ../../../../../gromacs/template/mini.mdp -c ../top_SH3_water/1y0m_water.pdb -r ../top_SH3_water/1y0m_water.pdb -p 1y0m_ion.top -po out_mini.mdp -o genion_1y0m_ion.tpr -maxwarn 1
+        gmx grompp -f .../gromacs/template/mini.mdp -c ../top_SH3_water/1y0m_water.pdb -r ../top_SH3_water/1y0m_water.pdb -p 1y0m_ion.top -po out_mini.mdp -o genion_1y0m_ion.tpr -maxwarn 1
         Get charge of  Protein_chain_A : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
         -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 water num= 5640
         Add ions : NA : 15   CL : 15
         gmx genion -s genion_1y0m_ion.tpr -p 1y0m_ion.top -o 1y0m_ion.gro -np 15 -pname NA -nn 15 -nname CL
-        ()
-        >>> prot.em(out_folder = '../test/output/gmx5/add_ion/em_SH3_water_ions/', nsteps=100, constraints = "none")
+        >>> prot.em(out_folder = TEST_OUT+'/add_ions/em_SH3_water_ions/', nsteps=100, constraints = "none")
         -Create the tpr file  1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water_ions/1y0m_ion.gro -r ../top_SH3_water_ions/1y0m_ion.gro -p ../top_SH3_water_ions/1y0m_ion.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         -Launch the simulation 1y0m.tpr
         gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -v
-        ()
 
 
         .. note:: 
@@ -1868,7 +1847,7 @@ class gmx_sys(object):
             self.coor_file = name+".gro"
             self.top_file  = name+".top"
             os.chdir(start_dir) 
-            return()        
+            return      
     
     
         # Copy the top file to the new directorie:
@@ -1916,7 +1895,7 @@ class gmx_sys(object):
 
         os.chdir(start_dir) 
     
-        return()
+        return
     
 
     def solvate_add_ions(self, out_folder, name = None, ion_C = 0.15):
@@ -1942,48 +1921,44 @@ class gmx_sys(object):
 
         **Object field(s) changed:**
 
-            * self.coor_file 
+            * self.coor_file solvate_box
             * self.top_file 
 
         :Example:
 
         >>> import gromacs.gmx5 as gmx
-        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = '../test/input/1y0m.pdb')
-        >>> prot.add_top(out_folder = '../test/output/gmx5/solvate_add_ions/top_SH3/')
+        >>> prot = gmx.gmx_sys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+        >>> prot.add_top(out_folder = TEST_OUT+'/solvate_add_ions/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ../../../../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
+        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
         -ITP file: 1y0m_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        ()
         >>> prot.create_box()
         -Create pbc box
-        gmx editconf -f ../test/output/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx.pdb -o ../test/output/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        ()
-        >>> prot.solvate_add_ions(out_folder = '../test/output/gmx5/solvate_add_ions/top_SH3_water_ions/')
+        gmx editconf -f gromacs_py_test_out/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx.pdb -o gromacs_py_test_out/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+        >>> prot.solvate_add_ions(out_folder = TEST_OUT+'/solvate_add_ions/top_SH3_water_ions/')
         -Create pbc box
-        gmx editconf -f ../test/output/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -o ../test/output/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx_box_box.pdb -bt dodecahedron -d 1.1
+        gmx editconf -f gromacs_py_test_out/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -o gromacs_py_test_out/gmx5/solvate_add_ions/top_SH3/1y0m_pdb2gmx_box_box.pdb -bt dodecahedron -d 1.1
         -Solvate the pbc box
         Copy topologie file and dependancies 
         Copy topologie file and dependancies 
         -Create the tpr file  genion_1y0m_water_ion.tpr
-        gmx grompp -f ../../../../../gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
+        gmx grompp -f ../../../../../gromacs_py/gromacs_py/gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
         Get charge of  Protein_chain_A : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
         -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 water num= 6218
         Add ions : NA : 16   CL : 16
         gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o 1y0m_water_ion.gro -np 16 -pname NA -nn 16 -nname CL
-        ()
-        >>> prot.em(out_folder = '../test/output/gmx5/solvate_add_ions/em_SH3_water_ions/', nsteps=100, constraints = "none")
+        >>> prot.em(out_folder = TEST_OUT+'/solvate_add_ions/em_SH3_water_ions/', nsteps=100, constraints = "none")
         -Create the tpr file  1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water_ions/1y0m_water_ion.gro -r ../top_SH3_water_ions/1y0m_water_ion.gro -p ../top_SH3_water_ions/1y0m_water_ion.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         -Launch the simulation 1y0m.tpr
         gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -v
-        ()
 
 
 
@@ -2008,7 +1983,7 @@ class gmx_sys(object):
             name = name+"_water_ion",
             ion_C = ion_C)
             
-        return()
+        return
 
     
     def create_peptide(self, sequence, out_folder, N_ter = "None", C_ter = "COOH", em_nsteps = 1000, equi_nsteps = 10000, posre_post = "_pep"):
@@ -2041,14 +2016,13 @@ class gmx_sys(object):
 
         >>> import gromacs.gmx5 as gmx
         >>> pep = gmx.gmx_sys(name='SAM_pep')
-        >>> pep.create_peptide(sequence = 'SAM', out_folder = '../test/output/gmx5/peptide/', em_nsteps = 100, equi_nsteps = 100)
-        -Make peptide
-        SAM
-        residue name:Å
+        >>> pep.create_peptide(sequence = 'SAM', out_folder = TEST_OUT+'/peptide/', em_nsteps = 100, equi_nsteps = 100)
+        -Make peptide: SAM
+        residue name:X
         residue name:S
         residue name:A
         residue name:M
-        Succeed to save file ../test/output/gmx5/peptide//SAM.pdb
+        Succeed to save file gromacs_py_test_out/gmx5//peptide//SAM.pdb
         -Create topologie
         gmx pdb2gmx -f ../SAM.pdb -o SAM_pdb2gmx.pdb -p SAM_pdb2gmx.top -i SAM_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -ter yes -vsite hydrogens
         Molecule topologie present in SAM_pdb2gmx.top , extract the topologie in a separate file: SAM_pdb2gmx.itp
@@ -2058,7 +2032,7 @@ class gmx_sys(object):
         * Protein_chain_P
         Rewrite topologie: SAM_pdb2gmx.top
         -Create pbc box
-        gmx editconf -f ../test/output/gmx5/peptide/00_top/SAM_pdb2gmx.pdb -o ../test/output/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+        gmx editconf -f gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx.pdb -o gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         -Create the tpr file  SAM_pep.tpr
         gmx grompp -f SAM_pep.mdp -c ../00_top/SAM_pdb2gmx_box.pdb -r ../00_top/SAM_pdb2gmx_box.pdb -p ../00_top/SAM_pdb2gmx.top -po out_SAM_pep.mdp -o SAM_pep.tpr -maxwarn 1
         -Launch the simulation SAM_pep.tpr
@@ -2067,7 +2041,6 @@ class gmx_sys(object):
         gmx grompp -f equi_vacuum_SAM.mdp -c ../01_mini/SAM_pep.gro -r ../01_mini/SAM_pep.gro -p ../00_top/SAM_pdb2gmx.top -po out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         -Launch the simulation equi_vacuum_SAM.tpr
         gmx mdrun -s equi_vacuum_SAM.tpr -deffnm equi_vacuum_SAM -nt 0 -ntmpi 0 -nsteps -2 -v
-        ()
 
         .. note:: 
             Pymol need to be installed to run the peptide creation
@@ -2101,7 +2074,7 @@ class gmx_sys(object):
             mdp_options = {'nsteps':int(equi_nsteps), 'dt':0.001, 'tc_grps':'System', 'tau_t':0.1, 'ref_t':310})
     
 
-        return()
+        return
     
     
     def insert_mol_sys(self, mol_gromacs, mol_num, new_name, out_folder, check_file_out = True):
@@ -2155,11 +2128,11 @@ class gmx_sys(object):
             if osCommand.check_file_and_create_path(out_folder+"/"+new_name+"_neutral.pdb"):
                 self.coor_file = out_folder+"/"+new_name+"_neutral.pdb"
                 self.top_file  = out_folder+"/"+new_name+".top"
-                return()
+                return
             elif osCommand.check_file_and_create_path(out_folder+"/"+new_name+".pdb"):
                 self.coor_file =out_folder+"/"+new_name+".pdb"
                 self.top_file = out_folder+"/"+new_name+".top"
-                return()
+                return
             else:
                 print('Error top file exist but not coor file')
                 raise IOError('coor file not found')
@@ -2230,7 +2203,7 @@ class gmx_sys(object):
                 self.add_ions(out_folder = ".", name = new_name+"_neutral", ion_C = 0)
 
         os.chdir(start_dir) 
-        return()
+        return
 
     
     def insert_mol_sys_no_vmd(self, mol_gromacs, mol_num, new_name, out_folder, check_file_out = True):
@@ -2292,11 +2265,11 @@ class gmx_sys(object):
             if osCommand.check_file_and_create_path(out_folder+"/"+new_name+"_neutral.pdb"):
                 self.coor_file = out_folder+"/"+new_name+"_neutral.pdb"
                 self.top_file  = out_folder+"/"+new_name+".top"
-                return()
+                return
             elif osCommand.check_file_and_create_path(out_folder+"/"+new_name+".pdb"):
                 self.coor_file =out_folder+"/"+new_name+".pdb"
                 self.top_file = out_folder+"/"+new_name+".top"
-                return()
+                return
             else:
                 print('Error top file exist but not coor file')
                 raise IOError('coor file not found')
@@ -2378,7 +2351,7 @@ class gmx_sys(object):
 
         os.chdir(start_dir) 
         self.display()
-        return()
+        return
 
     @staticmethod
     def concat_coor(*coor_in_files, pdb_out):
@@ -2457,7 +2430,7 @@ class gmx_sys(object):
         if check_file_out and os.path.isfile(mdp_out):
             print("Mdp files not created, ",mdp_out,"already exist")
             self.mdp = mdp_out
-            return()
+            return
     
         filout = open(mdp_out,'w')
     
@@ -2484,7 +2457,7 @@ class gmx_sys(object):
 
         self.mdp = self.sim_name+".mdp"
 
-        return()
+        return
 
 
     def add_ndx(self, ndx_cmd_input, ndx_name = None, check_file_out = True):
@@ -2526,7 +2499,7 @@ class gmx_sys(object):
         if check_file_out and os.path.isfile(ndx_out ) :
             print("add_ndx not launched",ndx_out ,"already exist")
             self.ndx = ndx_out 
-            return()
+            return
    
         # Add NDX input ?
         #             "-n", self.ndx,
@@ -2543,7 +2516,7 @@ class gmx_sys(object):
 
         self.ndx = ndx_out
 
-        return()
+        return
 
 
     def add_tpr(self, name, r = None, po = None,
@@ -2593,7 +2566,7 @@ class gmx_sys(object):
         if check_file_out and os.path.isfile(tpr_out ) :
             print("create_tpr not launched",tpr_out ,"already exist")
             self.tpr = tpr_out
-            return()
+            return
     
         # Define grompp few input variable as function of previous input:
         if r == None:
@@ -2628,7 +2601,7 @@ class gmx_sys(object):
 
         self.tpr = self.sim_name+".tpr"
 
-        return()
+        return
 
 
     def run_simulation(self, check_file_out = True, cpi = None, nsteps = -2, rerun = False):
@@ -2683,12 +2656,12 @@ class gmx_sys(object):
         if check_file_out and os.path.isfile(self.sim_name+".gro") :
             print("Simulation not launched",self.sim_name+".gro","already exist")
             self.coor_file = self.sim_name+".gro"
-            return()
+            return
 
         if rerun and check_file_out and os.path.isfile(self.sim_name+".edr") :
             print("Simulation not launched",self.sim_name+".edr","already exist")
             self.edr = self.sim_name+".edr"
-            return()
+            return
 
         cmd_list = [GMX_BIN, "mdrun", 
             "-s", self.tpr, 
@@ -2733,7 +2706,7 @@ class gmx_sys(object):
             self.edr = self.sim_name+".edr"
 
 
-        return()
+        return
 
     
     def run_md_sim(self, out_folder, name, mdp_template, mdp_options,
@@ -2799,7 +2772,7 @@ class gmx_sys(object):
     
         # Get absolute path:
         os.chdir(start_dir) 
-        return()
+        return
 
 
     def em(self, out_folder, name = None, nsteps = 1000, posres = "", create_box_flag = False, **mdp_options):
@@ -2855,7 +2828,7 @@ class gmx_sys(object):
         self.run_md_sim(out_folder = out_folder, name = name, mdp_template = mini_template_mdp,
             mdp_options = mdp_options, maxwarn = 1)
 
-        return()
+        return
 
 
     def em_2_steps(self, out_folder, name = None, no_constr_nsteps = 1000, constr_nsteps = 1000, posres = "", create_box_flag = False, **mdp_options):
@@ -2913,7 +2886,7 @@ class gmx_sys(object):
         self.em(out_folder = out_folder, name = name, nsteps = int(constr_nsteps),
             posres = posres, create_box_flag = False, constraints = "all-bonds", **mdp_options)
     
-        return()
+        return
     
 
     def equi_three_step(self, out_folder, name = None, pdb_restr = None, nsteps_HA = 100000,
@@ -2994,7 +2967,7 @@ class gmx_sys(object):
             pdb_restr = pdb_restr, mdp_template = equi_template_mdp, 
             mdp_options = mdp_options)
 
-        return()
+        return
 
 
     def production(self, out_folder, name = None, nsteps = 400000, dt = 0.005, **mdp_options):
@@ -3043,7 +3016,7 @@ class gmx_sys(object):
         self.run_md_sim(out_folder = out_folder, mdp_template = equi_template_mdp,
             mdp_options = mdp_options, name = "prod_"+name)
 
-        return()
+        return
 
 
     def extend_equi_prod(self, tpr_file = None, nsteps = 200000, dt = 0.005):
@@ -3091,7 +3064,7 @@ class gmx_sys(object):
         nsteps_to_run = int(nsteps-sim_time/dt)
         if nsteps_to_run <=0:
             print("Simulation",self.tpr[:-4],"has already run",sim_time,"ps, extending simulation is useless.")
-            return()
+            return
         print("-Extend simulation for", nsteps_to_run, "steps")
 
 
@@ -3107,7 +3080,7 @@ class gmx_sys(object):
     
         os.chdir(start_dir) 
     
-        return()
+        return
 
     def get_last_output(self):
         """ In a case of a simulation restart, outputs edr, log, gro and xtc files 
@@ -3147,7 +3120,7 @@ class gmx_sys(object):
         self.coor_file = '{}.part{:04d}.gro'.format(self.sim_name,last_index)
         self.xtc = '{}.part{:04d}.xtc'.format(self.sim_name,last_index)
 
-        return()
+        return
 
 
     def get_simulation_time(self):
@@ -3207,7 +3180,7 @@ class gmx_sys(object):
         # Check if output files exist: 
         if check_file_out and os.path.isfile(output_xvg):
             print("get_ener not launched",output_xvg,"already exist")
-            return()
+            return
 
         cmd_convert = osCommand.command([GMX_BIN, "energy", 
             "-f", self.edr, 
@@ -3216,7 +3189,7 @@ class gmx_sys(object):
         cmd_convert.display()
         cmd_convert.run(com_input = selection)
     
-        return()
+        return
 
 
 
