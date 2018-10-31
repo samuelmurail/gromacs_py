@@ -8,3 +8,7 @@ dist/**
 # Test output:
 tmp
 tmp/**
+
+# Build
+gromacs_py.egg-info
+gromacs_py.egg-info/**
