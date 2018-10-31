@@ -1947,7 +1947,7 @@ class gmx_sys(object):
         Copy topologie file and dependancies 
         Copy topologie file and dependancies 
         -Create the tpr file  genion_1y0m_water_ion.tpr
-        gmx grompp -f .../gromacs_py/gromacs_py/gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
+        gmx grompp -f .../gromacs_py/gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
         Get charge of  Protein_chain_A : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
