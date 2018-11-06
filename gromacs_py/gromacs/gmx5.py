@@ -11,12 +11,12 @@ import  os
 # Needed for doctest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import  tools.osCommand  as osCommand
+import  tools.os_command  as os_command
 import  tools.pdb_manip  as pdb_manip
 from    shutil           import copy
 
 
-GMX_BIN=osCommand.which('gmx')
+GMX_BIN=os_command.which('gmx')
 
 GMX_PATH="/".join(GMX_BIN.split("/")[:-2])
 WATER_GRO=GMX_PATH+"/share/gromacs/top/spc216.gro"
@@ -40,7 +40,7 @@ HA_NAME = ['N','C','O','CA','CB',
 
 
 
-class top_sys(object):
+class top_sys:
     """ Topologie base on gromacs .top :
     #include forcefield
 
@@ -73,12 +73,12 @@ class top_sys(object):
 
     def __init__(self, top_in):
 
-        self.path = osCommand.full_path_and_check(top_in)
+        self.path = os_command.full_path_and_check(top_in)
         self.forcefield = []
         self.itp_list = []
         self.mol_comp = []
         self.name = ""
-        self.folder = osCommand.get_directory(top_in)
+        self.folder = os_command.get_directory(top_in)
         self.include_itp = False
 
         self.read_file(top_in)
@@ -109,9 +109,9 @@ class top_sys(object):
                     # Look if the itp is in the top path:
                     #print("Path 1:",self.folder+"/"+file_name)
                     #print("Path 2:",FORCEFIELD_PATH+"/"+file_name)
-                    if osCommand.check_file_exist(self.folder+"/"+file_name):
+                    if os_command.check_file_exist(self.folder+"/"+file_name):
                         path = os.path.abspath(self.folder+"/"+file_name)
-                    elif osCommand.check_file_exist(FORCEFIELD_PATH+"/"+file_name):
+                    elif os_command.check_file_exist(FORCEFIELD_PATH+"/"+file_name):
                         path = os.path.abspath(FORCEFIELD_PATH+"/"+file_name)
                     else:
                         raise IOError('Itp '+file_name+' not found')
@@ -182,7 +182,7 @@ class top_sys(object):
         filout.write("\n")
         filout.close()
 
-        self.copy_dependancies(osCommand.get_directory(top_out))
+        self.copy_dependancies(os_command.get_directory(top_out))
 
     def charge(self):
         """ Get the charge of the system """
@@ -269,7 +269,7 @@ class top_sys(object):
 
     def copy_top_and_dependancies(self, dest_file):
 
-        dest_folder =  osCommand.get_directory(dest_file)
+        dest_folder =  os_command.get_directory(dest_file)
         print("Copy topologie file and dependancies ")
 
         if self.path  != os.path.abspath(dest_file):
@@ -284,7 +284,7 @@ class top_sys(object):
         file_to_copy = self.get_include_file_list()
         #print(file_to_copy)
         for file in file_to_copy:
-            if os.path.abspath(osCommand.get_directory(file)) != os.path.abspath(dest_folder):
+            if os.path.abspath(os_command.get_directory(file)) != os.path.abspath(dest_folder):
                 #print("Copy:"+file+":to:"+dest_folder)
                 copy(file, dest_folder)
 
@@ -304,7 +304,7 @@ class top_sys(object):
             self.write_file(self.path)
 
 
-class itp(object):
+class itp:
     """ Itp topologie in gromacs format
     May contain several molecule definition, so
     itp class is a collection of top_mol object
@@ -448,7 +448,7 @@ class itp(object):
                 if len(index_posre) > 0:
                     # Create the posre itp file :
                     #print("Posre for :",top_mol.name)
-                    posre_file_name = os.path.abspath(osCommand.get_directory(self.path))+"/"+self.name+"_posre_"+posre_name+".itp"
+                    posre_file_name = os.path.abspath(os_command.get_directory(self.path))+"/"+self.name+"_posre_"+posre_name+".itp"
                     #posre_file_name = self.name+"_posre_"+posre_name+".itp"
                     write_index_posre_file(atom_index_list = index_posre, posre_file =posre_file_name, type = 1, fc = fc)
                     # Add the posre include in the mol itp file:
@@ -471,7 +471,7 @@ class itp(object):
         file_list =[]
         for posre in self.posres_file:
             #print(posre)
-            file_list.append(os.path.abspath(osCommand.get_directory(self.path))+"/"+posre['file'])
+            file_list.append(os.path.abspath(os_command.get_directory(self.path))+"/"+posre['file'])
         return(file_list)
 
     def change_mol_name(self, old_name, new_name):
@@ -485,7 +485,7 @@ class itp(object):
             self.write_file(self.path)
 
 
-class top_mol(object):
+class top_mol:
     """ Individual molecule topologie"""
     
     def __init__(self, name, nrexcl):
@@ -679,7 +679,7 @@ def write_index_posre_file(atom_index_list, posre_file, type = 1, fc = [1000, 10
 #### Gromacs System Object #####
 ################################
 
-class gmx_sys(object):
+class gmx_sys:
     """Gromacs system encapsulation class.
 
     This class can be used to launch most of gromacs 
@@ -767,7 +767,7 @@ class gmx_sys(object):
     def __init__(self, name = None, coor_file = None, top_file = None, tpr = None):
         """**__init__:**
         All files path are check when the variable are assigned with the command
-        ``osCommand.full_path_and_check()``, if the file does not exist, the program
+        ``os_command.full_path_and_check()``, if the file does not exist, the program
         will crash. This is usefull as when gromacs commands fail, the only way 
         to realise it, is to check the created files.
 
@@ -784,7 +784,7 @@ class gmx_sys(object):
             Not sure that coor_file, top_file and tpr should the only parameters
 
         .. todo:: 
-            Add exeption when ``osCommand.full_path_and_check()`` crash because files do not exist.
+            Add exeption when ``os_command.full_path_and_check()`` crash because files do not exist.
        
         """
 
@@ -863,43 +863,43 @@ class gmx_sys(object):
     @coor_file.setter 
     def coor_file(self, coor_file): 
         if coor_file != None:
-            self._coor_file = osCommand.full_path_and_check(coor_file)
+            self._coor_file = os_command.full_path_and_check(coor_file)
         else:
             self._coor_file = None
 
     @top_file.setter 
     def top_file(self, top_file):
         if top_file != None:
-            self._top_file = osCommand.full_path_and_check(top_file)
+            self._top_file = os_command.full_path_and_check(top_file)
         else:
             self._top_file = None
 
     @tpr.setter 
     def tpr(self, tpr): 
         if tpr != None:
-            self._tpr = osCommand.full_path_and_check(tpr)
+            self._tpr = os_command.full_path_and_check(tpr)
         else:
             self._tpr = None
 
     @mdp.setter
     def mdp(self, mdp): 
-        self._mdp = osCommand.full_path_and_check(mdp)
+        self._mdp = os_command.full_path_and_check(mdp)
 
     @xtc.setter 
     def xtc(self, xtc): 
-        self._xtc = osCommand.full_path_and_check(xtc)
+        self._xtc = os_command.full_path_and_check(xtc)
 
     @edr.setter 
     def edr(self, edr): 
-        self._edr = osCommand.full_path_and_check(edr)
+        self._edr = os_command.full_path_and_check(edr)
 
     @log.setter 
     def log(self, log): 
-        self._log = osCommand.full_path_and_check(log)
+        self._log = os_command.full_path_and_check(log)
 
     @ndx.setter 
     def ndx(self, ndx): 
-        self._ndx = osCommand.full_path_and_check(ndx)
+        self._ndx = os_command.full_path_and_check(ndx)
 
     def display(self):
         """ Display coor_file and top_file """
@@ -1017,21 +1017,21 @@ class gmx_sys(object):
 
         # Create and go in out_folder:
         # This is necessary for the topologie creation
-        osCommand.create_or_go_dir(out_folder)
+        os_command.create_or_go_dir(out_folder)
         
         new_coor = name+"_pdb2gmx.pdb"
         top_file = name+"_pdb2gmx.top"
         posre_file = name+"_posre.itp"
 
         # Check if output files exist: 
-        if check_file_out and osCommand.check_file_and_create_path(new_coor):
+        if check_file_out and os_command.check_file_and_create_path(new_coor):
             print("create_top not launched",new_coor,"already exist")
             self.coor_file = new_coor
             self.top_file = top_file
             return
 
         # Define pdb2gmx command:
-        cmd_top = osCommand.command([GMX_BIN, "pdb2gmx", 
+        cmd_top = os_command.Command([GMX_BIN, "pdb2gmx", 
             "-f", self.coor_file,
             "-o", new_coor,
             "-p", top_file,
@@ -1120,7 +1120,7 @@ class gmx_sys(object):
     
         # Create and go in out_folder:
         # This is necessary for the topologie creation
-        osCommand.create_or_go_dir(out_folder)
+        os_command.create_or_go_dir(out_folder)
         
         # If name is not define use the object name
         if name == None:
@@ -1432,12 +1432,12 @@ class gmx_sys(object):
 
 
         # Check if output files exist: 
-        if check_file_out and osCommand.check_file_and_create_path(box_coor):
+        if check_file_out and os_command.check_file_and_create_path(box_coor):
             print("create_box not launched",box_coor,"already exist")
             self.coor_file = box_coor
             return
     
-        cmd_box = osCommand.command([GMX_BIN, "editconf", 
+        cmd_box = os_command.Command([GMX_BIN, "editconf", 
             "-f", self.coor_file, 
             "-o", box_coor, 
             "-bt", box_type,
@@ -1527,13 +1527,13 @@ class gmx_sys(object):
             if name == None:
                 coor_out = self.xtc[:-4]+"_compact.xtc"
             else:
-                coor_out = osCommand.get_directory(self.xtc)+name+"_compact.xtc"
+                coor_out = os_command.get_directory(self.xtc)+name+"_compact.xtc"
         else:
             coor_in = self.coor_file
             if name == None:
                 coor_out = self.coor_file[:-4]+"_compact.pdb"
             else:
-                coor_out = osCommand.get_directory(self.coor_file)+name+"_compact.pdb"
+                coor_out = os_command.get_directory(self.coor_file)+name+"_compact.pdb"
     
         # Check if output files exist: 
         if check_file_out and os.path.isfile(coor_out):
@@ -1548,7 +1548,7 @@ class gmx_sys(object):
             print("tpr file missing, function \"convert_trj\" could not be executed")
             raise Error("tpr file is missing")
 
-        cmd_convert = osCommand.command([GMX_BIN, "trjconv", 
+        cmd_convert = os_command.Command([GMX_BIN, "trjconv", 
             "-f", coor_in, 
             "-o", coor_out, 
             "-s", self.tpr,
@@ -1631,7 +1631,7 @@ class gmx_sys(object):
             copy_coor = "/".join(self.coor_file.split("/")[:-1])+"/"+name+"_copy_box.pdb"
 
         # Check if output files exist: 
-        if check_file_out and osCommand.check_file_and_create_path(copy_coor):
+        if check_file_out and os_command.check_file_and_create_path(copy_coor):
             print("create_box not launched",copy_coor,"already exist")
             self.coor_file = copy_coor
             return
@@ -1639,7 +1639,7 @@ class gmx_sys(object):
         # Nbox need to be a string list:
         nbox_str = [str(i) for i in nbox]
     
-        cmd_copy = osCommand.command([GMX_BIN, "genconf", 
+        cmd_copy = os_command.Command([GMX_BIN, "genconf", 
             "-f", self.coor_file, 
             "-o", copy_coor, 
             "-nbox"] + nbox_str, **cmd_args)
@@ -1710,7 +1710,7 @@ class gmx_sys(object):
         # Create the out dir:
         start_dir = os.path.abspath(".")
         # Go in out_folder:
-        osCommand.create_or_go_dir(out_folder)
+        os_command.create_or_go_dir(out_folder)
 
         if name == None:
             name = self.name+"_water"
@@ -1719,7 +1719,7 @@ class gmx_sys(object):
         top_out = name+".top"
 
         # Check if output files exist: 
-        if check_file_out and osCommand.check_file_and_create_path(pdb_out):
+        if check_file_out and os_command.check_file_and_create_path(pdb_out):
             print("solvate_box not launched",pdb_out,"already exist")
             self.coor_file = pdb_out
             self.top_file  = top_out
@@ -1731,7 +1731,7 @@ class gmx_sys(object):
         #topologie.display()
         topologie.copy_top_and_dependancies(top_out)
 
-        cmd_solvate = osCommand.command([GMX_BIN, "solvate", 
+        cmd_solvate = os_command.Command([GMX_BIN, "solvate", 
             "-cp", self.coor_file, 
             "-cs", cs,
             "-p", top_out,
@@ -1839,10 +1839,10 @@ class gmx_sys(object):
         # Create the out dir:
         start_dir = os.path.abspath(".")
         # Go in out_folder:
-        osCommand.create_or_go_dir(out_folder)
+        os_command.create_or_go_dir(out_folder)
     
         # Check if output files exist: 
-        if check_file_out and osCommand.check_file_and_create_path(name+".gro"):
+        if check_file_out and os_command.check_file_and_create_path(name+".gro"):
             print("add ions not launched",name+".gro","already exist")
             self.coor_file = name+".gro"
             self.top_file  = name+".top"
@@ -1851,7 +1851,7 @@ class gmx_sys(object):
     
     
         # Copy the top file to the new directorie:
-        #if not osCommand.check_file_and_create_path(out_folder+"/"+sys_name+".top"):
+        #if not os_command.check_file_and_create_path(out_folder+"/"+sys_name+".top"):
         topologie = top_sys(self.top_file)
         topologie.copy_top_and_dependancies(name+".top")
     
@@ -1879,7 +1879,7 @@ class gmx_sys(object):
     
         print("Add ions :",pname,":",cation_num," ",nname,":",anion_num)
     
-        cmd_ions = osCommand.command([GMX_BIN, "genion", 
+        cmd_ions = os_command.Command([GMX_BIN, "genion", 
             "-s", self.tpr, 
             "-p", self.top_file,
             "-o", name+".gro",
@@ -1947,7 +1947,7 @@ class gmx_sys(object):
         Copy topologie file and dependancies 
         Copy topologie file and dependancies 
         -Create the tpr file  genion_1y0m_water_ion.tpr
-        gmx grompp -f .../gromacs_py/gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
+        gmx grompp -f .../gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
         Get charge of  Protein_chain_A : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
@@ -2124,13 +2124,13 @@ class gmx_sys(object):
         """  
     
         # Check if output files exist: 
-        if check_file_out and osCommand.check_file_and_create_path(out_folder+"/"+new_name+".top"):
+        if check_file_out and os_command.check_file_and_create_path(out_folder+"/"+new_name+".top"):
             print("insert_mol_sys not launched",out_folder+"/"+new_name+".top","already exist")
-            if osCommand.check_file_and_create_path(out_folder+"/"+new_name+"_neutral.pdb"):
+            if os_command.check_file_and_create_path(out_folder+"/"+new_name+"_neutral.pdb"):
                 self.coor_file = out_folder+"/"+new_name+"_neutral.pdb"
                 self.top_file  = out_folder+"/"+new_name+".top"
                 return
-            elif osCommand.check_file_and_create_path(out_folder+"/"+new_name+".pdb"):
+            elif os_command.check_file_and_create_path(out_folder+"/"+new_name+".pdb"):
                 self.coor_file =out_folder+"/"+new_name+".pdb"
                 self.top_file = out_folder+"/"+new_name+".top"
                 return
@@ -2140,7 +2140,7 @@ class gmx_sys(object):
     
         # Create and got to the out dir:
         start_dir = os.path.abspath(".")
-        osCommand.create_or_go_dir(out_folder)
+        os_command.create_or_go_dir(out_folder)
     
         # Copy the mol using genconf:
         # Add random rotation ?
@@ -2261,13 +2261,13 @@ class gmx_sys(object):
         """  
     
         # Check if output files exist: 
-        if check_file_out and osCommand.check_file_and_create_path(out_folder+"/"+new_name+".top"):
+        if check_file_out and os_command.check_file_and_create_path(out_folder+"/"+new_name+".top"):
             print("insert_mol_sys not launched",out_folder+"/"+new_name+".top","already exist")
-            if osCommand.check_file_and_create_path(out_folder+"/"+new_name+"_neutral.pdb"):
+            if os_command.check_file_and_create_path(out_folder+"/"+new_name+"_neutral.pdb"):
                 self.coor_file = out_folder+"/"+new_name+"_neutral.pdb"
                 self.top_file  = out_folder+"/"+new_name+".top"
                 return
-            elif osCommand.check_file_and_create_path(out_folder+"/"+new_name+".pdb"):
+            elif os_command.check_file_and_create_path(out_folder+"/"+new_name+".pdb"):
                 self.coor_file =out_folder+"/"+new_name+".pdb"
                 self.top_file = out_folder+"/"+new_name+".top"
                 return
@@ -2277,7 +2277,7 @@ class gmx_sys(object):
     
         # Create and got to the out dir:
         start_dir = os.path.abspath(".")
-        osCommand.create_or_go_dir(out_folder)
+        os_command.create_or_go_dir(out_folder)
     
         # Copy the mol using genconf:
         # Add random rotation ?
@@ -2509,7 +2509,7 @@ class gmx_sys(object):
             "-f", self.coor_file,
             "-o", ndx_out]
         
-        cmd_ndx = osCommand.command(cmd_list)
+        cmd_ndx = os_command.Command(cmd_list)
     
         cmd_ndx.display()
         
@@ -2592,7 +2592,7 @@ class gmx_sys(object):
         if self.ndx != None:
             cmd_list = cmd_list + ["-n", self.ndx]
 
-        cmd_tpr = osCommand.command(cmd_list)
+        cmd_tpr = os_command.Command(cmd_list)
     
         cmd_tpr.display()
         #cmd_tpr.define_env(my_env = {**os.environ, 'GMXLIB': FORCEFIELD_PATH})
@@ -2689,7 +2689,7 @@ class gmx_sys(object):
             cmd_list = cmd_list +["-cpi", self.sim_name+".cpt"]
 
 
-        cmd_run = osCommand.command(cmd_list)
+        cmd_run = os_command.Command(cmd_list)
     
         cmd_run.display()
         cmd_run.run()
@@ -2697,7 +2697,7 @@ class gmx_sys(object):
         # If it's not a rerun, assign all output to the object variables xtc, edr, log
         if not rerun:
             self.coor_file = self.sim_name+".gro"
-            if osCommand.check_file_exist(self.sim_name+".xtc"):
+            if os_command.check_file_exist(self.sim_name+".xtc"):
                 self.xtc = self.sim_name+".xtc"
             else:
                 self.xtc = self.sim_name+".trr"
@@ -2759,10 +2759,10 @@ class gmx_sys(object):
         start_dir = os.path.abspath(".")
     
         if pdb_restr != None:
-            pdb_restr = osCommand.full_path_and_check(pdb_restr)
+            pdb_restr = os_command.full_path_and_check(pdb_restr)
         
         # Create and go in out_folder:
-        osCommand.create_or_go_dir(out_folder)
+        os_command.create_or_go_dir(out_folder)
     
         #Create mdp :
         self.sim_name = name
@@ -3070,11 +3070,11 @@ class gmx_sys(object):
 
 
         self.sim_name = self.tpr.split("/")[-1][:-4]
-        out_folder = osCommand.get_directory(self.tpr)
+        out_folder = os_command.get_directory(self.tpr)
 
         start_dir = os.path.abspath(".")
     
-        osCommand.create_or_go_dir(out_folder)
+        os_command.create_or_go_dir(out_folder)
 
         self.run_simulation(cpi=self.sim_name+".cpt", nsteps=int(nsteps_to_run), check_file_out = False)
         self.get_last_output()
@@ -3156,7 +3156,7 @@ class gmx_sys(object):
         cmd_list = [GMX_BIN, "check", 
             "-f", cpt_file]
         
-        cmd_run = osCommand.command(cmd_list)
+        cmd_run = os_command.Command(cmd_list)
     
         cmd_run.display()
         output = cmd_run.run(out_data = True)
@@ -3183,7 +3183,7 @@ class gmx_sys(object):
             print("get_ener not launched",output_xvg,"already exist")
             return
 
-        cmd_convert = osCommand.command([GMX_BIN, "energy", 
+        cmd_convert = os_command.Command([GMX_BIN, "energy", 
             "-f", self.edr, 
             "-o", output_xvg])
     
@@ -3211,5 +3211,5 @@ if __name__ == "__main__":
     shutil.rmtree('../test/output/gmx5', ignore_errors=True)
 
     doctest.testmod()
-    osCommand.create_or_go_dir(start_dir)
+    os_command.create_or_go_dir(start_dir)
 

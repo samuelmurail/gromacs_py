@@ -11,7 +11,7 @@ import  os
 # Needed for doctest
 #sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import tools.osCommand as osCommand
+import tools.os_command as os_command
 import tools.pdb_manip as pdb_manip
 
 PDB2PQR_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
@@ -47,7 +47,7 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff = "CHARMM", check_file_out = True):
     >>> import tools.pdb2pqr as pdb2pqr
     >>> # Compute protonation with pdb2pqr: 
     >>> pdb2pqr.compute_pdb2pqr(TEST_PATH+'/4n1m.pdb', TEST_OUT+'/4n1m.pqr') #doctest: +ELLIPSIS
-    Succeed to read file .../test/input/4n1m.pdb ,  2530 atoms found
+    Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
     Succeed to save file gromacs_py_test_out/pdb2pqr_test/tmp_pdb2pqr.pdb
     pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb2pqr_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb2pqr_test/4n1m.pqr
     0
@@ -74,11 +74,11 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff = "CHARMM", check_file_out = True):
     #print("Compute pdb2pqr on",pdb_in)
 
     # Check if output files exist and create directory: 
-    if check_file_out and osCommand.check_file_and_create_path(pdb_out):
+    if check_file_out and os_command.check_file_and_create_path(pdb_out):
         #print("pdb2pqr not launched",pdb_out,"already exist")
         return(pdb_out)
 
-    out_folder = osCommand.get_directory(pdb_out)
+    out_folder = os_command.get_directory(pdb_out)
     #print("out_folder", out_folder)
 
     # WARING :
@@ -93,7 +93,7 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff = "CHARMM", check_file_out = True):
     no_hetatm_pdb.write_pdb(out_folder+"/tmp_pdb2pqr.pdb")
 
 
-    cmd_pdb2pqr = osCommand.command([PDB2PQR_BIN, 
+    cmd_pdb2pqr = os_command.Command([PDB2PQR_BIN, 
         "--ff", ff, 
         "--ffout", ff,
         "--chain",
@@ -101,7 +101,7 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff = "CHARMM", check_file_out = True):
 
     cmd_pdb2pqr.display()
     out_data = cmd_pdb2pqr.run()
-    osCommand.delete_file(out_folder+"/tmp_pdb2pqr.pdb")
+    os_command.delete_file(out_folder+"/tmp_pdb2pqr.pdb")
 
     return(out_data)
 
