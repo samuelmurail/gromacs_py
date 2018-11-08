@@ -18,6 +18,9 @@ def which(*program_list):
     :param program_list: list of program name
     :type program_list: list of str
 
+    :return: path of the program
+    :rtype: str
+
     :Example:
 
     >>> import tools.os_command as os_command

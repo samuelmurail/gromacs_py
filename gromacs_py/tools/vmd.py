@@ -1,7 +1,7 @@
 import os
-import tools.osCommand as osCommand
+import tools.os_command as os_command
 
-VMD_BIN=osCommand.which('vmd_MACOSXX86','vmd','vmd_LINUXAMD64')
+VMD_BIN=os_command.which('vmd_MACOSXX86','vmd','vmd_LINUXAMD64')
 
 
 #VMD_BIN="/Applications/VMD 1.9.3.app/Contents/vmd/vmd_MACOSXX86"
@@ -48,7 +48,7 @@ def insert_mol(pdb_in, pdb_out, out_folder, mol_chain, mol_length, check_file_ou
         return(None)
 
     script_vmd = VMD_MOD_DIRNAME+"/vmd_script/insert_mol.tcl"
-    cmd_insert = osCommand.command([VMD_BIN, "-dispdev", "text", "-e", script_vmd, pdb_in,"-args",mol_chain, str(mol_length), pdb_out])
+    cmd_insert = os_command.Command([VMD_BIN, "-dispdev", "text", "-e", script_vmd, pdb_in,"-args",mol_chain, str(mol_length), pdb_out])
 
     cmd_insert.run()
 
