@@ -7,7 +7,11 @@
 """
 __author__ = "Samuel Murail"
 
-import  os
+import os
+import sys
+# Needed for doctest
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 from numpy.linalg import norm
 from numpy import sin, cos
@@ -1610,7 +1614,9 @@ if __name__ == "__main__":
 
     import doctest
     import shutil
-    shutil.rmtree('../test/output/pdb_manip_test', ignore_errors=True)
-    doctest.testmod("pdb_manip")
+
+    print("-Test pdb_manip module:")
+    print("tools.pdb_manip:\t",doctest.testmod())
+
     # Erase all test files
-    shutil.rmtree('../test/output/pdb_manip_test', ignore_errors=True)
+    shutil.rmtree('gromacs_py_test_out', ignore_errors=True)
