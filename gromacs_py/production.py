@@ -35,7 +35,7 @@ if __name__ == "__main__":
     dt = args.dt
     nsteps = 1000*args.time/dt
     
-    sys_prod = gmx.Gmx_sys(name = args.name, coor_file = args.f, top_file = args.p)
+    sys_prod = gmx.GmxSys(name = args.name, coor_file = args.f, top_file = args.p)
     sys_prod.nt = args.nt
     sys_prod.ntmpi = args.ntmpi
     sys_prod.gpuid = args.gpuid
