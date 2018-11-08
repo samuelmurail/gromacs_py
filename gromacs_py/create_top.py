@@ -29,7 +29,7 @@ if __name__ == "__main__":
     
     sys_name = args.f.split("/")[-1][:-4]
     
-    md_sys = gmx.Gmx_sys(name = sys_name, coor_file = args.f)
+    md_sys = gmx.GmxSys(name = sys_name, coor_file = args.f)
     md_sys.prepare_top(out_folder = args.o, vsite = vsite)
     md_sys.create_box(dist = 1.0, box_type = "dodecahedron", check_file_out = True)
     

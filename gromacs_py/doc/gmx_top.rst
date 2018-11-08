@@ -5,7 +5,7 @@ Top class
 ---------------------------------------
 
 
-.. autoclass:: gromacs_py.gromacs.gmx5.Top_sys
+.. autoclass:: gromacs_py.gromacs.gmx5.TopSys
     :members:
 
 
@@ -13,7 +13,7 @@ Itp class
 ---------------------------------------
 
 
-.. autoclass:: gromacs_py.gromacs.gmx5.itp
+.. autoclass:: gromacs_py.gromacs.gmx5.Itp
     :members:
 
 
@@ -21,6 +21,6 @@ Top Mol class
 ---------------------------------------
 
 
-.. autoclass:: gromacs_py.gromacs.gmx5.top_mol
+.. autoclass:: gromacs_py.gromacs.gmx5.TopMol
     :members:
 

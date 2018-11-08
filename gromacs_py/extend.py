@@ -31,7 +31,7 @@ if __name__ == "__main__":
     dt = args.dt
     nsteps = 1000*args.time/dt
     
-    sys_prod = gmx.Gmx_sys()
+    sys_prod = gmx.GmxSys()
     sys_prod.nt = args.nt
     sys_prod.ntmpi = args.ntmpi
     sys_prod.gpuid = args.gpuid

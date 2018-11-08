@@ -54,7 +54,7 @@ if __name__ == "__main__":
     
     top_dir = args.o+"/prot_top/"
 
-    md_sys = gmx.Gmx_sys(name = sys_name, coor_file = args.f)
+    md_sys = gmx.GmxSys(name = sys_name, coor_file = args.f)
     md_sys.nt = args.nt
     md_sys.ntmpi = args.ntmpi
     md_sys.gpuid = args.gpuid

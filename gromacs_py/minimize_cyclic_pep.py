@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     vsite = "none"
     
-    cyclic_pep = gmx.Gmx_sys(name = args.name, coor_file = args.f)
+    cyclic_pep = gmx.GmxSys(name = args.name, coor_file = args.f)
     cyclic_pep.cyclic_peptide_top(out_folder = args.out_dir+'/top')
     
     cyclic_pep.em(out_folder = args.out_dir+'/em',name = "min_"+args.name,

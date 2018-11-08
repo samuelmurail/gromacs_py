@@ -26,13 +26,13 @@ args = parser.parse_args()
 
 #print("Min steps :\t",args.min_steps,"\nEqui HA time :",args.HA_time,"ns\nEqui CA time :",args.CA_time,"ns\nEqui CA_LOW time :",args.CA_LOW_time,"ns")
 
-sys_raw = gmx.Gmx_sys(name = args.name, coor_file = args.f_sys, top_file = args.p_sys)
-mol_gmx = gmx.Gmx_sys(name = "mol", coor_file = args.f_mol, top_file = args.p_mol)
+sys_raw = gmx.GmxSys(name = args.name, coor_file = args.f_sys, top_file = args.p_sys)
+mol_gmx = gmx.GmxSys(name = "mol", coor_file = args.f_mol, top_file = args.p_mol)
 
 sys_raw.display()
 mol_gmx.display()
 
-sys_raw.insert_mol_sys_no_vmd(mol_gromacs=mol_gmx, mol_num=args.num_mol, new_name=args.name, out_folder=args.o, check_file_out = True)
+sys_raw.insert_mol_sys(mol_gromacs=mol_gmx, mol_num=args.num_mol, new_name=args.name, out_folder=args.o, check_file_out = True)
 #	mol_num = args.num_mol, mol_length = 3, out_folder = args.o, sys_name = args.name)
 
 #insert_mol_sys(self, mol_gromacs, mol_num, new_name, out_folder, check_file_out = True):

@@ -58,7 +58,7 @@ if __name__ == "__main__":
     pep_step    = 1000*args.pep_time/dt
 
     # Create peptide:
-    peptide =  gmx.Gmx_sys(name='pep_'+sequence)
+    peptide =  gmx.GmxSys(name='pep_'+sequence)
     peptide.nt = args.nt
     peptide.ntmpi = args.ntmpi
     peptide.gpuid = args.gpuid
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     pep_num     = args.num_mol
 
     # Insert peptide:
-    sys_pep_prot = gmx.Gmx_sys(name = sys_name, coor_file = coor_sys, top_file = top_sys, tpr = args.s_sys)
+    sys_pep_prot = gmx.GmxSys(name = sys_name, coor_file = coor_sys, top_file = top_sys, tpr = args.s_sys)
     sys_pep_prot.nt = args.nt
     sys_pep_prot.ntmpi = args.ntmpi
     sys_pep_prot.gpuid = args.gpuid

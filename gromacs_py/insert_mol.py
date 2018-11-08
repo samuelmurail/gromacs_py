@@ -26,7 +26,7 @@ args = parser.parse_args()
 
 #print("Min steps :\t",args.min_steps,"\nEqui HA time :",args.HA_time,"ns\nEqui CA time :",args.CA_time,"ns\nEqui CA_LOW time :",args.CA_LOW_time,"ns")
 
-sys_min = gmx.insert_mol_sys(sys_pdb = args.f_sys, sys_top = args.p_sys, mol_pdb = args.f_mol, mol_top = args.p_mol,
+sys_min = gmx.insert_mol_sys_vmd(sys_pdb = args.f_sys, sys_top = args.p_sys, mol_pdb = args.f_mol, mol_top = args.p_mol,
 	mol_num = args.num_mol, mol_length = 3, out_folder = args.o, sys_name = args.name)
 
 ### TO DO ####
