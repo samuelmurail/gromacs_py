@@ -206,10 +206,8 @@ class Command:
     1AWR-055_bestene1-mc.pdb
     1dpx.pdb
     1rxz.pdb
-    1y0m.pdb
     ...
     4n1m.pdb
-    5vav.pdb
     ...
     <BLANKLINE>
     """
