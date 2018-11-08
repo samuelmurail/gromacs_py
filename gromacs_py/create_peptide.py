@@ -35,7 +35,7 @@ if __name__ == "__main__":
     out_folder = args.o
     em_nsteps = args.min_steps
     
-    peptide =  gmx.gmx_sys(name='pep_'+sequence)
+    peptide =  gmx.Gmx_sys(name='pep_'+sequence)
     peptide.create_peptide(sequence = sequence, out_folder = out_folder, em_nsteps = em_nsteps, equi_nsteps = step)
     
     print("\n\nPeptide Creation was sucessfull \n\tPeptide directorie :\t"+args.o)

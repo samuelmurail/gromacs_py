@@ -30,7 +30,7 @@ if __name__ == "__main__":
     parser = parser_input()
     args = parser.parse_args()
     
-    sys_min = gmx.gmx_sys(name = args.name, coor_file = args.f, top_file = args.p)
+    sys_min = gmx.Gmx_sys(name = args.name, coor_file = args.f, top_file = args.p)
     sys_min.nt = args.nt
     sys_min.ntmpi = args.ntmpi
     sys_min.gpuid = args.gpuid

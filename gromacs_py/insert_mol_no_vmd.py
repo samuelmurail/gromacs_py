@@ -26,8 +26,8 @@ args = parser.parse_args()
 
 #print("Min steps :\t",args.min_steps,"\nEqui HA time :",args.HA_time,"ns\nEqui CA time :",args.CA_time,"ns\nEqui CA_LOW time :",args.CA_LOW_time,"ns")
 
-sys_raw = gmx.gmx_sys(name = args.name, coor_file = args.f_sys, top_file = args.p_sys)
-mol_gmx = gmx.gmx_sys(name = "mol", coor_file = args.f_mol, top_file = args.p_mol)
+sys_raw = gmx.Gmx_sys(name = args.name, coor_file = args.f_sys, top_file = args.p_sys)
+mol_gmx = gmx.Gmx_sys(name = "mol", coor_file = args.f_mol, top_file = args.p_mol)
 
 sys_raw.display()
 mol_gmx.display()

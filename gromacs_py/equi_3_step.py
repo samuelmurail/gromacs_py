@@ -44,7 +44,7 @@ if __name__ == "__main__":
     print("\nEqui HA time :", args.HA_time, "ns\nEqui CA time :", args.CA_time, "ns\nEqui CA_LOW time :", args.CA_LOW_time, "ns")
     
     
-    sys_equi = gmx.gmx_sys(name = args.name, coor_file = args.f, top_file = args.p)
+    sys_equi = gmx.Gmx_sys(name = args.name, coor_file = args.f, top_file = args.p)
     sys_equi.nt = args.nt
     sys_equi.ntmpi = args.ntmpi
     sys_equi.gpuid = args.gpuid
