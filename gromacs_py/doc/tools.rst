@@ -6,7 +6,7 @@ PDB class
 ---------------------------------------
 
 
-.. autoclass:: gromacs_py.tools.pdb_manip.coor
+.. autoclass:: gromacs_py.tools.pdb_manip.Coor
     :members:
 
 

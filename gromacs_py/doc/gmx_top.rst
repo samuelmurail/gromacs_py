@@ -5,7 +5,7 @@ Top class
 ---------------------------------------
 
 
-.. autoclass:: gromacs_py.gromacs.gmx5.top_sys
+.. autoclass:: gromacs_py.gromacs.gmx5.Top_sys
     :members:
 
 
