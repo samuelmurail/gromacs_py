@@ -17,14 +17,13 @@ from    shutil           import copy
 
 
 GMX_BIN = os_command.which('gmx')
-
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
 WATER_GRO = GMX_PATH+"/share/gromacs/top/spc216.gro"
 
 GROMACS_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
 FORCEFIELD_PATH = os.path.abspath(GROMACS_MOD_DIRNAME+"/template/")
 
-GMX_BIN = 'gmx'
+#GMX_BIN = 'gmx'
 
 # Test folder path
 GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -1030,7 +1029,6 @@ file: 1y0m_pdb2gmx.itp
 
         :Example:
 
-
         >>> import gromacs.gmx5 as gmx
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> #Basic usage :
@@ -1571,8 +1569,8 @@ gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedro
         self.coor_file = box_coor
 
 
-    def convert_trj(self, name=None, ur="compact", pbc="mol",
-                    select="System", traj=True, check_file_out=True):
+    def convert_trj(self, name=None, ur="compact", pbc="mol", select="System", traj=True,
+                    specific_coor_out = None, check_file_out=True, **cmd_args):
         """Convert a trajectory or coordinate file using the commande ``gmx trjconv``.
 
         This is specially usefull when the protein is break across pbc. Using \
@@ -1591,12 +1589,17 @@ gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedro
         :param select: group for output
         :type select: str, default="System"
 
+        :param specific_coor_out: specific output file
+        :type specific_coor_out: str, optional, default=None
+
         :param traj: Flag to convert trajectory or coordinates
         :type traj: bool, default=True
 
         :param check_file_out: flag to check or not if file has already been created.
             If the file is present then the command break.
         :type check_file_out: bool, optional, default=True
+
+        :param \**cmd_args: Optional arguments for ``gmx trjconv``
 
         **Object requirement(s):**
 
@@ -1665,6 +1668,9 @@ gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
             else:
                 coor_out = os_command.get_directory(self.coor_file)+name+"_compact.pdb"
 
+        if specific_coor_out is not None:
+            coor_out = specific_coor_out
+
         # Check if output files exist:
         if check_file_out and os.path.isfile(coor_out):
             print("convert trj not launched", coor_out, "already exist")
@@ -1678,12 +1684,16 @@ gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
             print("tpr file missing, function \"convert_trj\" could not be executed")
             raise Error("tpr file is missing")
 
+        if self.ndx is not None:
+            cmd_args.update({'n':self.ndx})
+
         cmd_convert = os_command.Command([GMX_BIN, "trjconv",
                                           "-f", coor_in,
                                           "-o", coor_out,
                                           "-s", self.tpr,
                                           "-ur", ur,
-                                          "-pbc", pbc])
+                                          "-pbc", pbc],
+                                         **cmd_args)
 
         cmd_convert.display()
         cmd_convert.run(com_input=select)
@@ -2621,7 +2631,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         self.mdp = self.sim_name+".mdp"
 
 
-    def add_ndx(self, ndx_cmd_input, ndx_name=None, check_file_out=True):
+    def add_ndx(self, ndx_cmd_input, ndx_name=None, folder_out="", check_file_out=True):
         """Create a ndx file using ``gmx make_ndx``
 
         :param ndx_name: output name for the index file
@@ -2634,11 +2644,9 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             If the file is present then the command break.
         :type check_file_out: bool, optional, default=True
 
-
         **Object requirement(s):**
 
             * self.coor_file
-
 
         **Object field(s) changed:**
 
@@ -2653,6 +2661,9 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             ndx_out = ndx_name+".ndx"
         else:
             ndx_out = self.name+".ndx"
+
+        if folder_out != "":
+            ndx_out = folder_out+"/"+ndx_out
 
         print("-Create the ndx file ", ndx_out)
 
@@ -2944,7 +2955,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
 
-
         **Object requirement(s):**
 
             * self.coor_file
@@ -2952,7 +2962,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.nt
             * self.ntmpi
             * self.gpu_id
-
 
         **Object field(s) changed:**
 
@@ -3003,7 +3012,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
 
-
         **Object requirement(s):**
 
             * self.coor_file
@@ -3011,7 +3019,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.nt
             * self.ntmpi
             * self.gpu_id
-
 
         **Object field(s) changed:**
 
@@ -3125,7 +3132,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
 
-
         **Object requirement(s):**
 
             * self.coor_file
@@ -3133,7 +3139,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.nt
             * self.ntmpi
             * self.gpu_id
-
 
         **Object field(s) changed:**
 
@@ -3221,14 +3226,11 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         are called for example as  ``self.sim_name+".partXXXX.edr"`` where XXXX is the iteration
         number of restart (eg. first restart: XXXX=0002).
 
-
         This function actualise the edr, log, coor_file and xtc variable.
-
 
         **Object requirement(s):**
 
             * self.sim_name
-
 
         **Object field(s) changed:**
 
