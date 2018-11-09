@@ -1265,6 +1265,9 @@ class Coor:
         """ Compute the center of mass of a selection
         Avoid using atoms with 2 letters atom name like NA Cl ...
 
+        :param selec_dict: selection dictionnary
+        :type selec_dict: dict, default={}
+
         :Example:
 
         >>> import tools.pdb_manip as pdb_manip
@@ -1275,6 +1278,8 @@ class Coor:
         >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*com_1y0m))
         x:16.01 y:0.45 z:8.57
 
+        .. warning::
+            Atom name must start with its type letter (H, C, N, O, P, S).
         """
 
         com_array = np.zeros(3)
@@ -1314,6 +1319,11 @@ class Coor:
         :param atom_sel_2: atom dictionnary
         :type atom_sel_2: dict
 
+        :param cutoff_min: maximum distance cutoff
+        :type cutoff_min: float, default=0.0
+
+        :param cutoff_max: minimum distance cutoff
+        :type cutoff_max: float, default=10.0
         :Example:
 
         >>> import tools.pdb_manip as pdb_manip
@@ -1350,7 +1360,7 @@ class Coor:
         return list(set(index_list))
 
 
-    def dist_under_index(self, atom_sel_2, cutoff=10):
+    def dist_under_index(self, atom_sel_2, cutoff=10.0):
         """ Check is distance between atoms of self.coor is under cutoff with
         atoms of group 1.
         Then return list of index of atoms of self.coor under ctuoff ditance.
@@ -1360,6 +1370,9 @@ class Coor:
 
         :param atom_sel_2: atom dictionnary
         :type atom_sel_2: dict
+
+        :param cutoff: distance cutoff
+        :type cutoff: float, default=10.0
         """
 
         index_list = []
@@ -1555,6 +1568,9 @@ class Coor:
 
         :param atom_2: atom dictionnary
         :type atom_2: dict
+
+        :return: distance
+        :rtype: float
 
         :Example:
 
