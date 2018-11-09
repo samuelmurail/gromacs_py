@@ -42,7 +42,6 @@ def which(*program_list):
                 return program
         else:
             for path in os.environ["PATH"].split(os.pathsep):
-                #print(path)
                 # Use expanduser in case of ~ caracter
                 exe_file = os.path.expanduser(os.path.join(path.replace("\\ ", " "), program))
                 #print(exe_file)
@@ -235,12 +234,15 @@ class Command:
 
         relative_path_list = []
 
-        for arg in self.cmd:
-            #print(arg)
-            try:
-                relative_path = os.path.relpath(arg)
-            except:
-                relative_path = arg
+        for i, arg in enumerate(self.cmd):
+            # To avoid showing the full pass of the program extract only the name:
+            if i==0:
+                relative_path = os.path.split(arg)[1]
+            else:
+                try:
+                    relative_path = os.path.relpath(arg)
+                except:
+                    relative_path = arg
             relative_path_list.append(relative_path)
         print(" ".join(relative_path_list))
 
