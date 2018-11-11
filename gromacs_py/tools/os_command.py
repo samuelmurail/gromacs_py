@@ -4,10 +4,11 @@
 """ Collection of function related to os and sys operations.
 """
 
-
 import os
 import subprocess
 import operator
+
+__author__ = "Samuel Murail"
 
 # Test folder path
 OS_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -228,15 +229,22 @@ class Command:
         #sorted(x.items(), key=operator.itemgetter(1))
 
     def define_env(self, my_env):
+        """ Define the environment of the ``Command`` object.
+        """
+
         self.env = my_env
 
     def display(self):
+        """ Show ``Command`` object that will be launch.
+        Show only the name of the command (*eg.* `gmx`) instead of the full path.
+        Show relative path for files in the command.
+        """
 
         relative_path_list = []
 
         for i, arg in enumerate(self.cmd):
             # To avoid showing the full pass of the program extract only the name:
-            if i==0:
+            if i == 0:
                 relative_path = os.path.split(arg)[1]
             else:
                 try:
@@ -247,9 +255,17 @@ class Command:
         print(" ".join(relative_path_list))
 
     def display_raw(self):
+        """ Show ``Command`` object that will be launch.
+        Show the full path of the command as well as the 
+        full path for files in the command.
+        """
+
         print(" ".join(self.cmd))
 
     def run(self, com_input="", display=False, out_data=False):
+        """ Launch ``Command`` object that will be launch.
+        return programm output is `out_data` is set to `True`
+        """
 
         proc = subprocess.Popen(self.cmd,
                                 stdin=subprocess.PIPE,

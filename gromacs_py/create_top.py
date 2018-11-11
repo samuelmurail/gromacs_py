@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-__author__ = "Samuel Murail"
-
 """ Create topologie from a pdb file
 """
 
 import argparse
 import gromacs.gmx5 as gmx
+
+__author__ = "Samuel Murail"
 
 def parser_input():
 

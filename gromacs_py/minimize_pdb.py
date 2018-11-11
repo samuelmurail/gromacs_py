@@ -3,11 +3,12 @@
 """ Minimize a pdb file, return a pdb
 """
 
+import argparse
+import gromacs.gmx5 as gmx
+
 __author__ = "Samuel Murail"
 
 
-import argparse
-import gromacs.gmx5 as gmx
 
 def parser_input():
 

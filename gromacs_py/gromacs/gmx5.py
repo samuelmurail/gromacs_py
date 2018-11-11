@@ -4,7 +4,6 @@
 #########   GROMACS 5   ##########
 ##################################
 
-__author__ = "Samuel Murail"
 
 import sys
 import  os
@@ -15,6 +14,7 @@ import  tools.os_command  as os_command
 import  tools.pdb_manip  as pdb_manip
 from    shutil           import copy
 
+__author__ = "Samuel Murail"
 
 GMX_BIN = os_command.which('gmx')
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
