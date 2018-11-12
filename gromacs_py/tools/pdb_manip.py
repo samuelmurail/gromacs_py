@@ -1601,7 +1601,7 @@ class Coor:
         :Example:
 
         >>> import tools.pdb_manip as pdb_manip
-        >>> Coor.concat_pdb(TEST_PATH+'/1y0m.pdb',TEST_PATH+'/1rxz.pdb', pdb_out = TEST_OUT+'/tmp_2.pdb') #doctest: +ELLIPSIS
+        >>> Coor.concat_pdb(TEST_PATH+'/1y0m.pdb', TEST_PATH+'/1rxz.pdb', pdb_out = TEST_OUT+'/tmp_2.pdb') #doctest: +ELLIPSIS
         Concat : ...test/input/1y0m.pdb
         Concat : ...test/input/1rxz.pdb
         Succeed to save .../pdb_manip_test/tmp_2.pdb

@@ -2561,7 +2561,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             else:
                 raise RuntimeError('Cannot concat the file, should be gro or pdb format')
         print("CONCAT:", pdb_in_files)
-        return pdb_manip.Coor.concat_pdb(*pdb_in_files, pdb_out=pdb_out)
+        return pdb_manip.Coor.concat_pdb(pdb_out=pdb_out, *pdb_in_files)
 
 
     ##########################################################
