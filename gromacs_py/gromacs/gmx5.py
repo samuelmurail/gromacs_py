@@ -2632,7 +2632,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         filout.close()
 
-        self.mdp = self.sim_name+".mdp"
+        self.mdp = mdp_out
 
 
     def add_ndx(self, ndx_cmd_input, ndx_name=None, folder_out="", check_file_out=True):
@@ -2778,7 +2778,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         cmd_tpr.run(display=False)
 
-        self.tpr = self.sim_name+".tpr"
+        self.tpr = tpr_out
 
 
     def run_simulation(self, check_file_out=True, cpi=None, nsteps=-2, rerun=False):
