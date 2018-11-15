@@ -2568,7 +2568,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
     #############  SIMULATION RELATED FUNCTIONS  #############
     ##########################################################
 
-    def add_mdp(self, mdp_template, mdp_options, check_file_out=True):
+    def add_mdp(self, mdp_template, mdp_options, folder_out="", check_file_out=True):
         """Create the MD simulation input mdp file.
 
         Read a template mdp file and replace define fields in mdp_options with the new value.
@@ -2579,6 +2579,9 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         :param mdp_options: New parameters to use
         :type mdp_options: dict
+
+        :param folder_out: Path for output file
+        :type folder_out: str, default=""
 
         :param check_file_out: flag to check or not if file has already been created.
             If the file is present then the command break.
@@ -2592,12 +2595,13 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
             * self.mdp
 
-        .. note::
-            The function must be launched in the path where the mdp has to be saved.
         """
 
 
         mdp_out = self.sim_name+".mdp"
+
+        if folder_out != "":
+            mdp_out = folder_out+"/"+mdp_out
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(mdp_out):
@@ -2634,11 +2638,14 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
     def add_ndx(self, ndx_cmd_input, ndx_name=None, folder_out="", check_file_out=True):
         """Create a ndx file using ``gmx make_ndx``
 
+        :param ndx_cmd_input: Input arguments for ``gmx make_ndx``
+        :type ndx_cmd_input: str
+
         :param ndx_name: output name for the index file
         :type ndx_name: str, default=None
 
-        :param ndx_cmd_input: Input arguments for ``gmx make_ndx``
-        :type ndx_cmd_input: str
+        :param folder_out: Path for output file
+        :type folder_out: str, default=""
 
         :param check_file_out: flag to check or not if file has already been created.
             If the file is present then the command break.
@@ -2653,7 +2660,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.ndx
 
         .. note::
-            The function must be launched in the path where the ndx has to be saved.
             If name is not defined, will use the name of the object.
         """
 
@@ -2689,7 +2695,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         self.ndx = ndx_out
 
 
-    def add_tpr(self, name, r=None, po=None,
+    def add_tpr(self, name, r=None, po=None, folder_out="",
                 check_file_out=True, **grompp_options):
         """Create a tpr file using ``gmx grompp``.
 
@@ -2701,6 +2707,9 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         :param po: output file for the mdp file
         :type po: str, default=None
+
+        :param folder_out: Path for output file
+        :type folder_out: str, default=""
 
         :param check_file_out: flag to check or not if file has already been created.
             If the file is present then the command break.
@@ -2722,12 +2731,14 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
             * self.tpr
 
-        .. note::
-            The function must be launched in the path where the tpr has to be saved.
         """
+
 
         self.sim_name = name
         tpr_out = self.sim_name+".tpr"
+
+        if folder_out != "":
+            tpr_out = folder_out+"/"+tpr_out
 
         print("-Create the tpr file ", tpr_out)
 
