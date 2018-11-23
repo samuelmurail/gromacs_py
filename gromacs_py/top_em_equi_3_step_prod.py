@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
     # SOLVATION
     solv_dir = args.o+"/sys_top/"
-    md_sys.solvate_add_ions(out_folder = solv_dir, name = sys_name, ion_C = args.Conc)
+    md_sys.solvate_add_ions(out_folder = solv_dir, name = sys_name, ion_C = args.Conc, create_box_flag=False)
     print("\n\nSolvation was sucessfull \n\tTopologie directorie :\t"+solv_dir)
     md_sys.display()
 

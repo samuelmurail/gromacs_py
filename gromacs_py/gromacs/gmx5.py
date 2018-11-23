@@ -2043,7 +2043,7 @@ constraints="none")
         os.chdir(start_dir)
 
 
-    def solvate_add_ions(self, out_folder, name=None, ion_C=0.15):
+    def solvate_add_ions(self, out_folder, name=None, ion_C=0.15, create_box_flag=True, box_dist=1.1):
         """Solvate a system with three succesive steps:
 
             1. Create box using ``create_box()``
@@ -2129,7 +2129,8 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
             name = self.name
 
         # Create box:
-        self.create_box(dist=1.1)
+        if create_box_flag:
+            self.create_box(dist=box_dist)
 
         # Solvate box:
         self.solvate_box(out_folder=out_folder,
