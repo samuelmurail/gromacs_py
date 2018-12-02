@@ -2564,9 +2564,9 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         print("CONCAT:", pdb_in_files)
         return pdb_manip.Coor.concat_pdb(pdb_out=pdb_out, *pdb_in_files)
 
-    @staticmethod
-    def concat_traj(*xtc_files_list, concat_traj_out):
-        """Concat a list of coordinates file in one coordinate file:
+
+    def concat_traj(self, *xtc_files_list, concat_traj_out):
+        """Concat a list of trajectory file in one trajectory file:
 
         :param xtc_in_files: list of xtc files
         :type xtc_in_files: list of str
@@ -2585,14 +2585,40 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
                     "-f"] + list(xtc_files_list)
 
         cmd_trjcat = os_command.Command(cmd_list)
-
         cmd_trjcat.display()
-
         cmd_trjcat.run(display=False)
 
         self.xtc = concat_traj_out
 
         return
+
+    def concat_edr(self, *edr_files_list, concat_edr_out):
+        """Concat a list of energy file in one energy file:
+
+        :param xtc_in_files: list of edr files
+        :type xtc_in_files: list of str
+
+        :param concat_edr_out: file to save the concat energy
+        :type concat_edr_out: str
+
+
+        **Object field(s) changed:**
+
+            * self.edr
+        """
+
+        cmd_list = [GMX_BIN, "eneconv",
+                    "-o", concat_edr_out,
+                    "-f"] + list(edr_files_list)
+
+        cmd_eneconv = os_command.Command(cmd_list)
+        cmd_eneconv.display()
+        cmd_eneconv.run(display=False)
+
+        self.edr = concat_edr_out
+
+        return
+
 
     ##########################################################
     #############  SIMULATION RELATED FUNCTIONS  #############
