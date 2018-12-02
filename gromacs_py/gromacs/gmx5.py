@@ -2581,7 +2581,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         """
 
         xtc_in_str = ""
-        for xtc in *xtc_in_files:
+        for xtc in xtc_in_files:
             xtc_in_str = xtc_in_str+" "+xtc
 
         cmd_list = [GMX_BIN, "trjcat",
