@@ -2533,7 +2533,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
     @staticmethod
     def concat_coor(*coor_in_files, pdb_out):
-        """Concat a list of coordinates file in one:
+        """Concat a list of coordinates file in one coordinate file:
 
         :param coor_in_files: list of pdb/gro files
         :type coor_in_files: list of str
@@ -2564,6 +2564,35 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         print("CONCAT:", pdb_in_files)
         return pdb_manip.Coor.concat_pdb(pdb_out=pdb_out, *pdb_in_files)
 
+    @staticmethod
+    def concat_traj(*xtc_in_files, concat_traj_out):
+        """Concat a list of coordinates file in one coordinate file:
+
+        :param xtc_in_files: list of xtc files
+        :type xtc_in_files: list of str
+
+        :param concat_traj_out: file to save the concat trajectory
+        :type concat_traj_out: str
+
+
+        **Object field(s) changed:**
+
+            * self.xtc
+        """
+
+        cmd_list = [GMX_BIN, "trjcat",
+                    "-f", *xtc_in_files,
+                    "-o", concat_traj_out]
+
+        cmd_trjcat = os_command.Command(cmd_list)
+
+        cmd_trjcat.display()
+
+        cmd_trjcat.run(com_input=ndx_cmd_input, display=False)
+
+        self.xtc = concat_traj_out
+        
+        return
 
     ##########################################################
     #############  SIMULATION RELATED FUNCTIONS  #############
