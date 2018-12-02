@@ -3251,9 +3251,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.coor_file
             * self.xtc
 
-        .. note::
-            This function has to be launched in the simulation folder.
-
         """
 
         import glob
@@ -3267,6 +3264,38 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         self.log = '{}.part{:04d}.log'.format(self.sim_name, last_index)
         self.coor_file = '{}.part{:04d}.gro'.format(self.sim_name, last_index)
         self.xtc = '{}.part{:04d}.xtc'.format(self.sim_name, last_index)
+
+    def get_all_output(self):
+        """In a case of a simulation restart, outputs edr, log, gro and xtc files
+        are called for example as  ``self.sim_name+".partXXXX.edr"`` where XXXX is the iteration
+        number of restart (eg. first restart: XXXX=0002).
+
+        This function return a dictionnary of all edr, log, coor_file and xtc list.
+
+        **Object requirement(s):**
+
+            * self.sim_name
+
+        :return: return dict containing edr, log, xtc and coor_file file list
+        :rtype: dict
+
+        """
+
+        import glob
+        # Get all edr files name :
+        edr_file_list = glob.glob(self.sim_name+'*.edr')
+
+        index_list = [file[:-4] for file in edr_file_list]
+
+        output_dict = {'edr':[], 'log':[], 'gro':[], 'xtc':[]}
+
+        for index in index_list:
+            output_dict['edr'].append('{}.edr'.format(index))
+            output_dict['log'].append('{}.log'.format(index))
+            output_dict['gro'].append('{}.gro'.format(index))
+            output_dict['xtc'].append('{}.xtc'.format(index))
+
+        return(output_dict)
 
 
     def get_simulation_time(self):
@@ -3286,8 +3315,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         :return: return simulation time (ns)
         :rtype: float
 
-        .. note::
-            This function has to be launched in the simulation folder.
         """
 
         cpt_file = self.tpr[:-4]+".cpt"
