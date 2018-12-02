@@ -2565,7 +2565,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         return pdb_manip.Coor.concat_pdb(pdb_out=pdb_out, *pdb_in_files)
 
     @staticmethod
-    def concat_traj(*xtc_in_files, concat_traj_out):
+    def concat_traj(*xtc_files_list, concat_traj_out):
         """Concat a list of coordinates file in one coordinate file:
 
         :param xtc_in_files: list of xtc files
@@ -2580,12 +2580,10 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.xtc
         """
 
-        xtc_in_str = ""
-        for xtc in xtc_in_files:
-            xtc_in_str = xtc_in_str+" "+xtc
+        print("Concat: ", " ".join(xtc_files_list))
 
         cmd_list = [GMX_BIN, "trjcat",
-                    "-f", xtc_in_str,
+                    "-f", " ".join(xtc_files_list),
                     "-o", concat_traj_out]
 
         cmd_trjcat = os_command.Command(cmd_list)
