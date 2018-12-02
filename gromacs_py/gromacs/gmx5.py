@@ -2565,7 +2565,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         return pdb_manip.Coor.concat_pdb(pdb_out=pdb_out, *pdb_in_files)
 
 
-    def concat_traj(self, *xtc_files_list, concat_traj_out):
+    def concat_traj(self, *xtc_files_list, concat_traj_out, check_file_out=True):
         """Concat a list of trajectory file in one trajectory file:
 
         :param xtc_in_files: list of xtc files
@@ -2580,6 +2580,13 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.xtc
         """
 
+        # Check if output files exist:
+        if check_file_out and os.path.isfile(concat_traj_out):
+            print("Edr files not created, ", concat_traj_out, "already exist")
+            self.xtc = concat_traj_out
+            return
+
+
         cmd_list = [GMX_BIN, "trjcat",
                     "-o", concat_traj_out,
                     "-f"] + list(xtc_files_list)
@@ -2592,7 +2599,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         return
 
-    def concat_edr(self, *edr_files_list, concat_edr_out):
+    def concat_edr(self, *edr_files_list, concat_edr_out, check_file_out=True):
         """Concat a list of energy file in one energy file:
 
         :param xtc_in_files: list of edr files
@@ -2606,6 +2613,11 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
             * self.edr
         """
+        # Check if output files exist:
+        if check_file_out and os.path.isfile(concat_edr_out):
+            print("Edr files not created, ", concat_edr_out, "already exist")
+            self.edr = concat_edr_out
+            return
 
         cmd_list = [GMX_BIN, "eneconv",
                     "-o", concat_edr_out,
