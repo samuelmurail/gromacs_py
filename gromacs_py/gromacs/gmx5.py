@@ -2581,7 +2581,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         """
 
         cmd_list = [GMX_BIN, "trjcat",
-                    "-f", " ".join(xtc_files_list),
+                    "-f", xtc_files_list,
                     "-o", concat_traj_out]
 
         cmd_trjcat = os_command.Command(cmd_list)
