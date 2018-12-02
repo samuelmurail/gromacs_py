@@ -2580,8 +2580,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.xtc
         """
 
-        print("Concat: ", " ".join(xtc_files_list))
-
         cmd_list = [GMX_BIN, "trjcat",
                     "-f", " ".join(xtc_files_list),
                     "-o", concat_traj_out]
@@ -2590,7 +2588,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         cmd_trjcat.display()
 
-        cmd_trjcat.run(com_input=ndx_cmd_input, display=False)
+        cmd_trjcat.run(display=False)
 
         self.xtc = concat_traj_out
 
