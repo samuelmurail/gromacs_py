@@ -2580,8 +2580,12 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.xtc
         """
 
+        xtc_in_str = ""
+        for xtc in *xtc_in_files:
+            xtc_in_str = xtc_in_str+" "+xtc
+
         cmd_list = [GMX_BIN, "trjcat",
-                    "-f", *xtc_in_files,
+                    "-f", xtc_in_str,
                     "-o", concat_traj_out]
 
         cmd_trjcat = os_command.Command(cmd_list)
@@ -2591,7 +2595,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         cmd_trjcat.run(com_input=ndx_cmd_input, display=False)
 
         self.xtc = concat_traj_out
-        
+
         return
 
     ##########################################################
