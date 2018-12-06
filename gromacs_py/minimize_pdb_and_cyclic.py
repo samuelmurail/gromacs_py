@@ -42,7 +42,8 @@ if __name__ == "__main__":
     if args.cyclic_flag:
         peptide.cyclic_peptide_top(out_folder=args.out_dir+'/top')
     else:
-        peptide.add_top(out_folder=args.out_dir+'/top', pdb2gmx_option_dict={'vsite':'no', 'ignh':'yes', 'ter':'yes'})
+        peptide.add_top(out_folder=args.out_dir+'/top',
+                        pdb2gmx_option_dict={'vsite':'no', 'ignh':'yes', 'ter':'no'})
 
     peptide.em(out_folder=args.out_dir+'/em', name="min_"+args.name,
                nsteps=args.min_steps, posres="", nstxout=1000, create_box_flag=True,
