@@ -27,6 +27,13 @@ def parser_input():
                         directory will be delete')
     parser.add_argument('-cyclic', action="store_true", dest="cyclic_flag",
                         help='Flag to indicate if the peptide/protein is cyclic')
+    parser.add_argument('-nt', action="store", dest="nt",
+                        help='Total number of threads to start, default=0', type=float, default=0)
+    parser.add_argument('-ntmpi', action="store", dest="ntmpi",
+                        help='Number of thread-MPI threads to start, default=0',
+                        type=float, default=0)
+    parser.add_argument('-gpu_id', action="store", dest="gpuid",
+                        help='List of GPU device id-s to use, default=\"\" ', default="None")
 
     return parser
 
@@ -38,6 +45,10 @@ if __name__ == "__main__":
 
     vsite = "none"
     peptide = gmx.GmxSys(name=args.name, coor_file=args.f)
+    peptide.nt = args.nt
+    peptide.ntmpi = args.ntmpi
+    peptide.gpuid = args.gpuid
+
 
     if args.cyclic_flag:
         peptide.cyclic_peptide_top(out_folder=args.out_dir+'/top')
