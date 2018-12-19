@@ -61,7 +61,7 @@ if __name__ == "__main__":
     peptide =  gmx.GmxSys(name='pep_'+sequence)
     peptide.nt = args.nt
     peptide.ntmpi = args.ntmpi
-    peptide.gpuid = args.gpuid
+    peptide.gpu_id = args.gpuid
     peptide.create_peptide(sequence = sequence, out_folder = out_folder+"/"+sequence, em_nsteps = em_nsteps, equi_nsteps = pep_step, posre_post = "_pep")
     peptide.display()
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     sys_pep_prot = gmx.GmxSys(name = sys_name, coor_file = coor_sys, top_file = top_sys, tpr = args.s_sys)
     sys_pep_prot.nt = args.nt
     sys_pep_prot.ntmpi = args.ntmpi
-    sys_pep_prot.gpuid = args.gpuid
+    sys_pep_prot.gpu_id = args.gpuid
     
     sys_pep_prot.insert_mol_sys(mol_gromacs = peptide, mol_num = pep_num, new_name = sys_name+"_"+sequence, out_folder = out_folder+"/top_prot_"+sequence+"/")
 

@@ -40,7 +40,7 @@ if __name__ == "__main__":
     sys_prod = gmx.GmxSys()
     sys_prod.nt = args.nt
     sys_prod.ntmpi = args.ntmpi
-    sys_prod.gpuid = args.gpuid
+    sys_prod.gpu_id = args.gpuid
 
     sys_prod.extend_equi_prod(args.tpr, nsteps=nsteps)
 

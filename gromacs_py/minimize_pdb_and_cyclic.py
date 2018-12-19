@@ -47,7 +47,7 @@ if __name__ == "__main__":
     peptide = gmx.GmxSys(name=args.name, coor_file=args.f)
     peptide.nt = args.nt
     peptide.ntmpi = args.ntmpi
-    peptide.gpuid = args.gpuid
+    peptide.gpu_id = args.gpuid
 
 
     if args.cyclic_flag:

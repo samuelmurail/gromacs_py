@@ -57,7 +57,7 @@ if __name__ == "__main__":
     md_sys = gmx.GmxSys(name = sys_name, coor_file = args.f)
     md_sys.nt = args.nt
     md_sys.ntmpi = args.ntmpi
-    md_sys.gpuid = args.gpuid
+    md_sys.gpu_id = args.gpuid
 
     # TOPOLOGIE
     md_sys.prepare_top(out_folder = top_dir, vsite = vsite)
