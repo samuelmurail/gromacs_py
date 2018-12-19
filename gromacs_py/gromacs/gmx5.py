@@ -757,7 +757,7 @@ class GmxSys:
     The GmxSys object can be considered as a md simulation system. Each operation on the object
     will affect the object variables.
 
-    The variables ``nt``, ``ntmpi`` and ``gpuid`` are only used by functions which run \
+    The variables ``nt``, ``ntmpi`` and ``gpu_id`` are only used by functions which run \
     simulations ``run_simulation()`` like ``em()`` or ``production()``.
 
     :param name: generic name of the system
@@ -796,8 +796,8 @@ class GmxSys:
     :param ntmpi: Number of thread-MPI threads to start
     :type ntmpi: int, default=0
 
-    :param gpuid: List of GPU device id-s to use, specifies the per-node PP rank to GPU mapping
-    :type gpuid: str, default=None
+    :param gpu_id: List of GPU device id-s to use, specifies the per-node PP rank to GPU mapping
+    :type gpu_id: str, default=None
 
     :Example:
 
@@ -2582,7 +2582,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(concat_traj_out):
-            print("Edr files not created, ", concat_traj_out, "already exist")
+            print("XTC files not created, ", concat_traj_out, "already exist")
             self.xtc = concat_traj_out
             return
 
