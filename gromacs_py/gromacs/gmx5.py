@@ -91,7 +91,7 @@ class TopSys:
 
         with open(top_in) as topfile:
             for line in topfile:
-                #print("line:",line)
+                # print("line:",line)
                 # Check #ifdef field:
                 if line[:6] == '#ifdef':
                     ifdef = True
@@ -341,6 +341,7 @@ class Itp:
         posre_def = ""
         with open(self.path) as file:
             for line in file:
+                #print("Itp line:", line)
                 # Check posres include:
                 if line[:6] == '#ifdef':
                     ifdef = True
@@ -420,7 +421,10 @@ class Itp:
                                                    'am':am, 'funct':funct})
                     #else:
                     #   raise ValueError('Unknown field :'+field)
-        self.top_mol_list.append(local_top)
+
+        # Needed for empty topologies like aditional ff parameters:
+        if 'local_top' in locals():
+            self.top_mol_list.append(local_top)
 
     def write_file(self, itp_file):
         filout = open(itp_file, 'w')
