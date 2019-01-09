@@ -24,7 +24,7 @@
 
 ; TEMPERATURE COUPLING FLAGS
     tcoupl                  = v-rescale
-    tc-grps                 = Protein 	Water_and_ions
+    tc-grps                 = Protein 	non-Protein
     tau_t                   = 0.1 		0.1
     ref_t                   = 310 		310
 
