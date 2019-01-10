@@ -75,7 +75,7 @@ if __name__ == "__main__":
         vsite = "none"
         if (args.dt_HA > 0.002) or (args.dt > 0.002):
             print("Wrong dt, using dt >0.002 with vsite")
-            return
+            exit
 
     sys_name = args.name
     min_steps = args.min_steps
@@ -96,7 +96,8 @@ if __name__ == "__main__":
     prot_sys = gmx.GmxSys(name=sys_name, coor_file=args.f)
     prot_sys.nt = args.nt
     prot_sys.ntmpi = args.ntmpi
-    prot_sys.gpu_id = args.gpuid
+    if args.gpuid != "None":
+        prot_sys.gpu_id = args.gpuid
 
 
 

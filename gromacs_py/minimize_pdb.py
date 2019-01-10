@@ -46,7 +46,8 @@ if __name__ == "__main__":
     sys_min = gmx.GmxSys(name=args.name, coor_file=args.f, top_file=args.p)
     sys_min.nt = args.nt
     sys_min.ntmpi = args.ntmpi
-    sys_min.gpu_id = args.gpuid
+    if args.gpuid != "None":
+        sys_min.gpu_id = args.gpuid
 
     sys_min.em_2_steps(out_folder=args.o, name=args.name,
                        no_constr_nsteps=args.min_steps, constr_nsteps=args.min_steps,

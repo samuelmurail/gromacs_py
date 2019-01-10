@@ -70,7 +70,8 @@ if __name__ == "__main__":
     sys_equi = gmx.GmxSys(name=args.name, coor_file=args.f, top_file=args.p)
     sys_equi.nt = args.nt
     sys_equi.ntmpi = args.ntmpi
-    sys_equi.gpu_id = args.gpuid
+    if args.gpuid != "None":
+        sys_equi.gpu_id = args.gpuid
 
     sys_equi.equi_three_step(out_folder=args.o, name=args.name, nsteps_HA=HA_step,
                              nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA)

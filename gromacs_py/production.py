@@ -38,7 +38,8 @@ if __name__ == "__main__":
     sys_prod = gmx.GmxSys(name = args.name, coor_file = args.f, top_file = args.p)
     sys_prod.nt = args.nt
     sys_prod.ntmpi = args.ntmpi
-    sys_prod.gpu_id = args.gpuid
+    if args.gpuid != "None":
+        sys_prod.gpu_id = args.gpuid
     
     sys_prod.production(out_folder = args.o,	name = args.name, nsteps = nsteps, dt=args.dt)
     
