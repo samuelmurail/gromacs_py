@@ -74,7 +74,7 @@ Minimize cyclic peptide
 ---------------------------------------
 
 .. argparse::
-   :filename: ../minimize_cyclic_pep.py
+   :filename: ../minimize_pdb_and_cyclic.py
    :func: parser_input
    :prog: minimize_cyclic_pep.py
    :nodefault:
