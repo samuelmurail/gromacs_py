@@ -76,7 +76,7 @@ Minimize cyclic peptide
 .. argparse::
    :filename: ../minimize_pdb_and_cyclic.py
    :func: parser_input
-   :prog: minimize_cyclic_pep.py
+   :prog: minimize_pdb_and_cyclic.py
    :nodefault:
 
 Insert n copy of a peptide in a system
