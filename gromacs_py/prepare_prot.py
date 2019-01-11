@@ -38,17 +38,17 @@ def parser_input():
     parser.add_argument('-m_steps', action="store", dest="min_steps",
                         help='Minimisation nsteps, default=10000', type=int, default=10000)
     parser.add_argument('-HA_time', action="store", dest="HA_time",
-                        help='Equilibration with HA constraint time(ns), default = 0.25ns',
-                        type=float, default=0.25)
+                        help='Equilibration with HA constraint time(ns), default = 2.5 ns',
+                        type=float, default=2.5)
     parser.add_argument('-CA_time', action="store", dest="CA_time",
-                        help='Equilibration with HA constraint time(ns), default = 1ns',
-                        type=float, default=1)
-    parser.add_argument('-CA_LOW_time', action="store", dest="CA_LOW_time",
-                        help='Equilibration with HA constraint time(ns), default = 5ns',
+                        help='Equilibration with HA constraint time(ns), default = 5 ns',
                         type=float, default=5)
+    parser.add_argument('-CA_LOW_time', action="store", dest="CA_LOW_time",
+                        help='Equilibration with HA constraint time(ns), default = 10 ns',
+                        type=float, default=10)
 
     parser.add_argument('-dt_HA', action="store", dest="dt_HA",
-                        help='Equi HA dt, default=0.005 (5 fs)', type=float, default=0.002)
+                        help='Equi HA dt, default=0.002 (2 fs)', type=float, default=0.002)
     parser.add_argument('-dt', action="store", dest="dt",
                         help='Equi CA, CA_LOW, dt, default=0.005 (5 fs)', type=float,
                         default=0.005)
