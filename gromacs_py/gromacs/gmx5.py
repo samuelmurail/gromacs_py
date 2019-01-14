@@ -2331,7 +2331,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         mol_coor = pdb_manip.Coor()
         mol_coor.read_pdb(mol_gromacs.coor_file)
         mol_coor.change_pdb_field({"chain":"Y"})
-        mol_coor.write_pdb(mol_gromacs.coor_file)
+        mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
         mol_length = int(mol_coor.get_aa_num()/mol_num)
         print("AA num:", mol_length)
 
@@ -2470,7 +2470,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         mol_coor = pdb_manip.Coor()
         mol_coor.read_pdb(mol_gromacs.coor_file)
         mol_coor.change_pdb_field({"chain":"Y"})
-        mol_coor.write_pdb(mol_gromacs.coor_file)
+        mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
         mol_length = int(mol_coor.get_aa_num()/mol_num)
         print("AA num:", mol_length)
 
