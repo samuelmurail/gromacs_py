@@ -2352,7 +2352,9 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         # Insert the peptide top in the prot_sys top
         # Copy itp and posre files of mol_top to the new location
         top_mol = TopSys(mol_gromacs.top_file)
-        top_mol.change_mol_name("Protein", "Peptide")
+        old_name = top_mol.mol_comp[0]['name']
+        print("Old topologie name is:", old_name)
+        top_mol.change_mol_name(old_name, "Peptide")
         top_mol.copy_dependancies("./")
         #top_mol.display()
         # Get the new location of the peptide itp file:
@@ -2499,7 +2501,9 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         # Insert the peptide top in the prot_sys top
         # Copy itp and posre files of mol_top to the new location
         top_mol = TopSys(mol_gromacs.top_file)
-        top_mol.change_mol_name("Protein", "Peptide")
+        old_name = top_mol.mol_comp[0]['name']
+        print("Old topologie name is:", old_name)
+        top_mol.change_mol_name(old_name, "Peptide")
         top_mol.copy_dependancies("./")
         #top_mol.display()
         # Get the new location of the peptide itp file:
