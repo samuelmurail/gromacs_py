@@ -29,7 +29,7 @@
     ref_t                   = 310 		310
 
 ; PRESSURE COUPLING FLAGS
-    Pcoupl                  = parrinello-Rahman
+    pcoupl                  = parrinello-Rahman
     pcoupltype              = isotropic
     tau_p                   = 5.0
     compressibility         = 4.5e-5
