@@ -2250,8 +2250,12 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
                             pdb_restr=None,
                             mdp_template=GROMACS_MOD_DIRNAME+"/template/equi.mdp",
                             maxwarn=1,
-                            mdp_options={'nsteps':int(equi_nsteps), 'dt':0.001,
-                                         'tc_grps':'System', 'tau_t':0.1, 'ref_t':310})
+                            mdp_options={'nsteps':int(equi_nsteps),
+                                         'dt':0.001,
+                                         'tc_grps':'System',
+                                         'tau_t':0.1,
+                                         'ref_t':310,
+                                         'pcoupl':'no'})
 
 
     def insert_mol_sys_vmd(self, mol_gromacs, mol_num, new_name, out_folder, check_file_out=True):
