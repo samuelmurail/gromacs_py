@@ -893,7 +893,7 @@ class Coor:
 
     def get_attribute_selection(self, selec_dict={}, attribute='uniq_resid', index_list=None):
         """Select atom of a coor object based on the change_dict dictionnary.
-        Return the list of unique atrtribute of the selected atoms.
+        Return the list of unique attribute of the selected atoms.
 
         :param selec_dict: select ditionnay eg. {"chain" : ["A","G"]}
         :type selec_dict: dict
@@ -917,6 +917,7 @@ class Coor:
         if index_list is None:
             index_list = self.atom_dict.keys()
 
+        #for atom_num, atom in sorted(self.atom_dict.items()):
         for atom_num  in index_list:
             atom = self.atom_dict[atom_num]
             selected = True
@@ -1202,7 +1203,10 @@ class Coor:
                                                          'res_name' : ['ACE']})
 
         mol_num = len(insert_ACE_C.atom_dict)
-        res_insert_list = insert.get_attribute_selection()
+        res_insert_list = insert.get_attribute_selection(attribute='uniq_resid')
+        # Need to sort the resid, to have consecutive residues 
+        res_insert_list.sort()
+        print("Residue list = ",res_insert_list)
         mol_len = int(len(res_insert_list)/mol_num)
 
         print("Insert {} mol of {:d} residues each".format(mol_num, mol_len))
