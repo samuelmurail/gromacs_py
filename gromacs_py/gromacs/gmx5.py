@@ -3422,7 +3422,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         raise Error()
 
 
-    def get_ener(self, output_xvg, selection, check_file_out=True):
+    def get_ener(self, output_xvg, selection, skip=0, check_file_out=True):
         """Get enrgy of a system using ``gmx energy``.
         """
 
@@ -3435,7 +3435,8 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         cmd_convert = os_command.Command([GMX_BIN, "energy",
                                           "-f", self.edr,
-                                          "-o", output_xvg])
+                                          "-o", output_xvg,
+                                          "-skip", skip])
 
         cmd_convert.display()
         cmd_convert.run(com_input=selection)
