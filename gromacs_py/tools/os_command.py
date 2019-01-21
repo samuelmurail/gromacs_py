@@ -205,7 +205,7 @@ class Command:
     ..
     1AWR-055_bestene1-mc.pdb
     1dpx.pdb
-    1rxz.pdb
+    1jd4.pdb
     ...
     4n1m.pdb
     ...
