@@ -814,6 +814,7 @@ class GmxSys:
     pdb2pqr.py --ff CHARMM --ffout CHARMM --chain tmp_pdb2pqr.pdb 00_1y0m.pqr
     Succeed to read file 00_1y0m.pqr ,  996 atoms found
     Chain: A  Residue: 0 to 60
+    Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file 01_1y0m_good_his.pdb
     -Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
@@ -1137,14 +1138,15 @@ separate file: 1y0m_pdb2gmx.itp
         os.chdir(start_dir)
 
 
-    def prepare_top(self, out_folder, name=None, vsite="hydrogens"):
+    def prepare_top(self, out_folder, name=None, vsite="hydrogens", ignore_ZN = False):
         """Prepare the topologie of a protein:
 
             1. compute hisdine protonation with ``pdb2pqr``
             2. Change Histidine resname according to the protonation
             3. Correct cystein resname
             4. Correct chain ID's
-            5. Finally compute the topologie with pdb2gmx add_top()
+            5. Zinc Fimger: Add Zinc in the pdb and change residue type of CYS and HIS coordinating the Zinc
+            6. Finally compute the topologie with pdb2gmx add_top()
 
         :param out_folder: path of the output file folder
         :type out_folder: str
@@ -1154,6 +1156,9 @@ separate file: 1y0m_pdb2gmx.itp
 
         :param vsite: option for topologie's bonds constraints ("none", "hydrogens", "all")
         :type vsite: str, optional, default="hydrogens"
+
+        :param ignore_ZN: option for not adding parameters to ZINC finger
+        :type ignore_ZN: bool, optional, default=False
 
         **Object requirement(s):**
 
@@ -1175,6 +1180,7 @@ separate file: 1y0m_pdb2gmx.itp
         pdb2pqr.py --ff CHARMM --ffout CHARMM --chain tmp_pdb2pqr.pdb 00_1y0m.pqr
         Succeed to read file 00_1y0m.pqr ,  996 atoms found
         Chain: A  Residue: 0 to 60
+        Succeed to read file .../input/1y0m.pdb ,  648 atoms found
         Succeed to save file 01_1y0m_good_his.pdb
         -Create topologie
         gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
@@ -1189,6 +1195,9 @@ separate file: 1y0m_pdb2gmx.itp
 
         .. note::
             No options are allowed (forcefield, water model, termini capping) except for vsites.
+
+        .. note2::
+            Starting file need to be a pdb, this should be changed.
         """
 
         start_dir = os.path.abspath(".")
@@ -1201,6 +1210,9 @@ separate file: 1y0m_pdb2gmx.itp
         if name is None:
             name = self.name
 
+        # Save initial pdb file:
+        start_pdb = self.coor_file
+
         # Compute protonation:
         import tools.pdb2pqr as pdb2pqr
         pdb2pqr.compute_pdb2pqr(self.coor_file, "00_"+name+".pqr", ff="CHARMM",
@@ -1212,14 +1224,19 @@ separate file: 1y0m_pdb2gmx.itp
         coor_in.correct_his_name()
         coor_in.correct_cys_name()
         coor_in.correct_chain()
+        if not ignore_ZN:
+            coor_in.add_zinc_finger(start_pdb)
+
         coor_in.write_pdb(pdb_out="01_"+name+"_good_his.pdb")
 
         self.coor_file = "01_"+name+"_good_his.pdb"
 
         # Compute topologie:
+        pdb2gmx_option_dict={'vsite':vsite, 'ignh':'yes'}
+
         self.add_top(out_folder=".",
                      check_file_out=True,
-                     pdb2gmx_option_dict={'vsite':vsite, 'ignh':'yes'})
+                     pdb2gmx_option_dict=pdb2gmx_option_dict)
 
         os.chdir(start_dir)
 

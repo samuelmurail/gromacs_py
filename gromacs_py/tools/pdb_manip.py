@@ -831,6 +831,10 @@ class Coor:
         {'A': 'TFKSAVKAL'}
         >>> prot_20_coor.get_aa_num()
         9
+        >>> prot_N_atom = prot_coor.select_part_dict(selec_dict = {'name' : ['ZN']})
+        >>> # WARNING using selec_dict = {'name' : 'ZN'} will give you 61 residues !!
+        >>> print(len(prot_N_atom.atom_dict))
+        0
 
         """
 
@@ -1104,6 +1108,98 @@ class Coor:
 
         return self
 
+
+    def add_zinc_finger(self, ZN_pdb, cutoff=3.2):
+        """ Chabge protonation state of cysteins and histidine coordinating Zinc atoms.
+        To do after `correct_his_name` and `correct_cys_name`, in order that protonation is recognize by pdb2gmx.
+
+        :Example:
+
+        >>> import tools.pdb_manip as pdb_manip
+        >>> import tools.pdb2pqr as pdb2pqr
+        >>> # Compute protonation with pdb2pqr:
+        >>> pdb2pqr.compute_pdb2pqr(TEST_PATH+'/1jd4.pdb',  TEST_OUT+'/1jd4.pqr') #doctest: +ELLIPSIS
+        Succeed to read file ...test/input/1jd4.pdb ,  1586 atoms found
+        Succeed to save file gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb
+        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/1jd4.pqr
+        0
+        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor.read_pdb(TEST_OUT+'/1jd4.pqr', pqr_format = True)
+        Succeed to read file gromacs_py_test_out/pdb_manip_test/1jd4.pqr ,  3096 atoms found
+        >>> prot_coor.correct_cys_name() #doctest: +ELLIPSIS
+        <tools.pdb_manip.Coor object at 0x...
+        >>> prot_coor.correct_his_name() #doctest: +ELLIPSIS
+        <tools.pdb_manip.Coor object at 0x...
+        >>> prot_coor.correct_chain() #doctest: +ELLIPSIS
+        <tools.pdb_manip.Coor object at 0x...
+        >>> ZN_index = prot_coor.get_index_selection({'name':['ZN']})
+        >>> print(len(ZN_index))
+        0
+
+        .. note::
+            This function seems useless. Since last version of pdb2pqr residue name seems correct.
+        """
+        
+        # Check the number of ZN atoms:
+        coor_pre_pqr = Coor()
+        coor_pre_pqr.read_pdb(ZN_pdb)
+        Zinc_sel = coor_pre_pqr.select_part_dict(selec_dict = {'name' : ['ZN']})
+        Zinc_num = len(Zinc_sel.atom_dict)
+
+        if Zinc_num == 0:
+            return self
+        else:
+            print("Presence of {} Zinc detected".format(Zinc_num))
+
+        # Add the Zinc atoms:
+        for key, val in Zinc_sel.atom_dict.items():
+            atom = val
+            atom['chain'] = 'Z'
+            self.atom_dict[len(self.atom_dict)] = val
+
+        # Check cystein and histidine atoms close to ZN:
+        close_atom = self.dist_under_index(Zinc_sel, cutoff=cutoff)
+        cys_uniq_res_list = []
+        his_uniq_res_list = []
+        for atom in close_atom:
+            local_atom = self.atom_dict[atom]
+            if local_atom['res_name'] in ['CYS']:
+                cys_uniq_res_list.append(local_atom['uniq_resid'])
+            if local_atom['res_name'] in ['HIS','HSD','HSE','HSP']:
+                his_uniq_res_list.append(local_atom['uniq_resid'])
+
+        cys_uniq_res_list = list(set(cys_uniq_res_list))
+        his_uniq_res_list = list(set(his_uniq_res_list))
+
+
+        # Change CYS to CYN:
+        print("change cystein residue(s) : {}".format(cys_uniq_res_list,))
+        to_change_cys = self.get_index_selection({'uniq_resid':cys_uniq_res_list})
+        self.change_index_pdb_field(to_change_cys, {'res_name':'CYN'})
+        
+        # Change Histidine to HSD or HSE
+        # the non protonated nitrogen have to be the closest to the ZN atom:
+        print("change histidine residue(s) : {}".format(his_uniq_res_list,))
+        for his_uniq_res in his_uniq_res_list:
+            # NE2 ND1
+            epsilon_his_index = self.get_index_selection({'uniq_resid':[his_uniq_res],
+                                                          'name':['NE2']})[0]
+            delta_his_index = self.get_index_selection({'uniq_resid':[his_uniq_res],
+                                                          'name':['ND1']})[0]
+            for key, val in Zinc_sel.atom_dict.items():
+
+                epsilon_dist = Coor.atom_dist(val, self.atom_dict[epsilon_his_index])
+                delta_dist = Coor.atom_dist(val, self.atom_dict[delta_his_index])
+
+                if (epsilon_dist < cutoff or delta_dist < cutoff):
+                    to_change_his = self.get_index_selection({'uniq_resid':[his_uniq_res]})
+                    if (epsilon_dist < delta_dist):
+                        self.change_index_pdb_field(to_change_his, {'res_name':'HSD'})
+                    else:
+                        self.change_index_pdb_field(to_change_his, {'res_name':'HSE'})
+
+
+        return self
 
     def correct_cys_name(self):
         """ Correct the CYS resname from pdb2pqr
