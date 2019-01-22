@@ -816,7 +816,7 @@ class GmxSys:
     Chain: A  Residue: 0 to 60
     Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file 01_1y0m_good_his.pdb
-    Succeed to read file ../../../../test/input/1y0m.pdb ,  648 atoms found
+    Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     -Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -vsite hydrogens

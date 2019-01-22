@@ -1121,7 +1121,7 @@ class Coor:
         >>> # Read the pdb 1jd4 and keep only chain A
         >>> input_pdb = pdb_manip.Coor()
         >>> input_pdb.read_pdb(TEST_PATH+'/1jd4.pdb')
-        Succeed to read file test/input/1jd4.pdb ,  1586 atoms found
+        Succeed to read file gromacs_py/test/input/1jd4.pdb ,  1586 atoms found
         >>> chain_A = input_pdb.select_part_dict(selec_dict = {'chain' : ['A']})
         >>> chain_A.write_pdb(TEST_OUT+'/1jd4_A.pdb')
         Succeed to save file gromacs_py_test_out/pdb_manip_test/1jd4_A.pdb
