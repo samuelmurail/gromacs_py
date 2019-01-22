@@ -1145,7 +1145,7 @@ separate file: 1y0m_pdb2gmx.itp
             2. Change Histidine resname according to the protonation
             3. Correct cystein resname
             4. Correct chain ID's
-            5. Zinc Fimger: Add Zinc in the pdb and change residue type of CYS and HIS coordinating the Zinc
+            5. Zinc Finger: Add Zinc in the pdb and change residue type of CYS and HIS coordinating the Zinc
             6. Finally compute the topologie with pdb2gmx add_top()
 
         :param out_folder: path of the output file folder
