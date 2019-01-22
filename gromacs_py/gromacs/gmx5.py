@@ -3151,7 +3151,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
     def equi_three_step(self, out_folder, name=None, pdb_restr=None, nsteps_HA=100000,
                         nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.005, dt_HA=0.002,
-                        **mdp_options):
+                        maxwarn=0, **mdp_options):
         """Equilibrate a system in 3 steps:
 
         1. equilibration of nsteps_HA with position restraints on Heavy Atoms with dt = dt_HA
@@ -3212,17 +3212,17 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         mdp_options.update({'nsteps':int(nsteps_HA), 'define':'-DPOSRES', 'dt':dt_HA})
         self.run_md_sim(out_folder=out_folder+"/00_equi_HA", name="equi_HA_"+name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options)
+                        mdp_options=mdp_options, maxwarn=maxwarn)
 
         mdp_options.update({'nsteps':int(nsteps_CA), 'define':'-DPOSRES_CA', 'dt':dt})
         self.run_md_sim(out_folder=out_folder+"/01_equi_CA", name="equi_CA_"+name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options)
+                        mdp_options=mdp_options, maxwarn = maxwarn)
 
         mdp_options.update({'nsteps':int(nsteps_CA_LOW), 'define':'-DPOSRES_CA_LOW', 'dt':dt})
         self.run_md_sim(out_folder=out_folder+"/02_equi_CA_LOW", name="equi_CA_LOW_"+name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options)
+                        mdp_options=mdp_options, maxwarn=maxwarn)
 
 
     def production(self, out_folder, name=None, nsteps=400000, dt=0.005, **mdp_options):

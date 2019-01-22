@@ -53,6 +53,10 @@ def parser_input():
                         help='Equi CA, CA_LOW, dt, default=0.005 (5 fs)', type=float,
                         default=0.005)
 
+    parser.add_argument('-maxwarn', action="store", dest="maxwarn",
+                        help='Total number of warnings allowed for the equilibration, default=0', type=int,
+                        default=0)
+
     parser.add_argument('-nt', action="store", dest="nt",
                         help='Total number of threads to start, default=0', type=float,
                         default=0)
@@ -79,6 +83,7 @@ if __name__ == "__main__":
 
     sys_name = args.name
     min_steps = args.min_steps
+    maxwarn = args.maxwarn
     dt_HA = args.dt_HA
     dt = args.dt
     HA_step = 1000*args.HA_time/dt_HA
@@ -119,7 +124,7 @@ if __name__ == "__main__":
     prot_sys.convert_trj(traj=False)
 
     prot_sys.equi_three_step(out_folder=sys_equi_folder, name=sys_name, nsteps_HA=HA_step,
-                             nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA)
+                             nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA, maxwarn = maxwarn)
     
     prot_sys.convert_trj(traj=False)
 

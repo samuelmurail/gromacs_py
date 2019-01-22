@@ -38,11 +38,13 @@
     DispCorr                = no
 
 ; CONSTRAINT FLAGS
+    disre                   = simple
     constraints             = all-bonds
     constraint_algorithm    = lincs
     lincs-iter              = 1
     lincs-order             = 6
     lincs_warnangle         = 45
+    disre-fc                = 1000
 
 ; OUTPUT FLAGS
     nstxout                 = 0

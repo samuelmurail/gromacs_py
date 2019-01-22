@@ -32,6 +32,9 @@ def parser_input():
     parser.add_argument('-HA_time', action="store", dest="HA_time", help='Equilibration with HA constraint time(ns), default = 0.25ns', type=float, default=0.25)
     parser.add_argument('-CA_time', action="store", dest="CA_time", help='Equilibration with HA constraint time(ns), default = 1ns', type=float, default=1)
     parser.add_argument('-CA_LOW_time', action="store", dest="CA_LOW_time", help='Equilibration with HA constraint time(ns), default = 5ns', type=float, default=5)
+    parser.add_argument('-maxwarn', action="store", dest="maxwarn",
+                        help='Total number of warnings allowed for the equilibration, default=0', type=int,
+                        default=0)
     parser.add_argument('-PROD_time', action="store", dest="Prod_time", help='Production time(ns), default = 100ns', type=float, default=100)
     # mdrun args:
     parser.add_argument('-nt', action="store", dest="nt", help='Total number of threads to start, default=0', type=float, default=0)
@@ -51,6 +54,7 @@ if __name__ == "__main__":
     dt          = args.dt
     out_folder  = args.o
     sys_name    = args.name
+    maxwarn     = maxwarn
 
     # Peptide args:
     sequence    = args.seq
@@ -90,7 +94,7 @@ if __name__ == "__main__":
 
     sys_pep_prot.em_2_steps(out_folder = out_folder+"/em_prot_"+sequence+"/", name = sys_name, no_constr_nsteps = em_nsteps, constr_nsteps = em_nsteps, create_box_flag = False)
     sys_pep_prot.equi_three_step(out_folder = out_folder+"/equi_prot_"+sequence+"/", name = sys_name, nsteps_HA = HA_step,
-        nsteps_CA = CA_step, nsteps_CA_LOW = CA_LOW_step, dt = dt, dt_HA = dt_HA)
-    sys_pep_prot.production(out_folder = out_folder+"/prod_prot_"+sequence+"/", name = sys_name, nsteps = PROD_step, dt=dt)
+        nsteps_CA = CA_step, nsteps_CA_LOW = CA_LOW_step, dt = dt, dt_HA = dt_HA, maxwarn = maxwarn)
+    sys_pep_prot.production(out_folder = out_folder+"/prod_prot_"+sequence+"/", name = sys_name, nsteps = PROD_step, dt=dt, maxwarn=maxwarn)
     
     sys_pep_prot.display()

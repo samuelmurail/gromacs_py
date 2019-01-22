@@ -58,6 +58,7 @@ if __name__ == "__main__":
 
     dt_HA = args.dt_HA
     dt = args.dt
+    maxwarn = args.maxwarn
     HA_step = 1000*args.HA_time/dt_HA
     CA_step = 1000*args.CA_time/dt
     CA_LOW_step = 1000*args.CA_LOW_time/dt
