@@ -1120,8 +1120,8 @@ class Coor:
         >>> 
         >>> # Read the pdb 1jd4 and keep only chain A
         >>> input_pdb = pdb_manip.Coor()
-        >>> input_pdb.read_pdb(TEST_PATH+'/1jd4.pdb')
-        Succeed to read file gromacs_py/test/input/1jd4.pdb ,  1586 atoms found
+        >>> input_pdb.read_pdb(TEST_PATH+'/1jd4.pdb') #doctest: +ELLIPSIS
+        Succeed to read file ...test/input/1jd4.pdb ,  1586 atoms found
         >>> chain_A = input_pdb.select_part_dict(selec_dict = {'chain' : ['A']})
         >>> chain_A.write_pdb(TEST_OUT+'/1jd4_A.pdb')
         Succeed to save file gromacs_py_test_out/pdb_manip_test/1jd4_A.pdb
@@ -1192,13 +1192,13 @@ class Coor:
 
 
         # Change CYS to CYN:
-        print("change cystein residue(s) : {}".format(cys_uniq_res_list,))
+        print("change cystein residue(s) : {}".format(sorted(cys_uniq_res_list)))
         to_change_cys = self.get_index_selection({'uniq_resid':cys_uniq_res_list})
         self.change_index_pdb_field(to_change_cys, {'res_name':'CYN'})
         
         # Change Histidine to HSD or HSE
         # the non protonated nitrogen have to be the closest to the ZN atom:
-        print("change histidine residue(s) : {}".format(his_uniq_res_list,))
+        print("change histidine residue(s) : {}".format(sorted(his_uniq_res_list)))
         for his_uniq_res in his_uniq_res_list:
             # NE2 ND1
             epsilon_his_index = self.get_index_selection({'uniq_resid':[his_uniq_res],
