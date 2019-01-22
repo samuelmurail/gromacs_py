@@ -92,7 +92,6 @@ if __name__ == "__main__":
     sys_min_folder = args.o+"/em_sys/"
     sys_equi_folder = args.o+"/equi_sys/"
 
-
     prot_sys = gmx.GmxSys(name=sys_name, coor_file=args.f)
     prot_sys.nt = args.nt
     prot_sys.ntmpi = args.ntmpi
@@ -128,3 +127,4 @@ if __name__ == "__main__":
     print("\n\nSystem preparation was sucessfull \n\tOutput directory :\t"+args.o)
 
     prot_sys.display()
+

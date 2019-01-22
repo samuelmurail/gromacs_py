@@ -816,6 +816,7 @@ class GmxSys:
     Chain: A  Residue: 0 to 60
     Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file 01_1y0m_good_his.pdb
+    Succeed to read file ../../../../test/input/1y0m.pdb ,  648 atoms found
     -Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -vsite hydrogens
@@ -1182,6 +1183,7 @@ separate file: 1y0m_pdb2gmx.itp
         Chain: A  Residue: 0 to 60
         Succeed to read file .../input/1y0m.pdb ,  648 atoms found
         Succeed to save file 01_1y0m_good_his.pdb
+        Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
         -Create topologie
         gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -vsite hydrogens
@@ -1231,15 +1233,16 @@ separate file: 1y0m_pdb2gmx.itp
 
         self.coor_file = "01_"+name+"_good_his.pdb"
 
-        # Compute topologie:
-        pdb2gmx_option_dict={'vsite':vsite, 'ignh':'yes'}
+        # Compute topology for system without zinc
+        if coor_in.add_zinc_finger(start_pdb)== False:
+            pdb2gmx_option_dict={'vsite':vsite, 'ignh':'yes'}
+        # Compute topology for system with zinc
+        else:
+            pdb2gmx_option_dict={'vsite':vsite, 'ignh':'yes', 'merge':'all'}
 
-        self.add_top(out_folder=".",
-                     check_file_out=True,
+        self.add_top(out_folder=".",check_file_out=True,
                      pdb2gmx_option_dict=pdb2gmx_option_dict)
-
         os.chdir(start_dir)
-
 
     def cyclic_peptide_top(self, out_folder, name=None, check_file_out=True):
         """Prepare a topologie for a cyclic peptide

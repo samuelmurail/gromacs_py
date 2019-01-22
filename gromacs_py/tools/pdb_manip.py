@@ -1148,9 +1148,9 @@ class Coor:
         >>> prot_coor.add_zinc_finger(TEST_OUT+'/1jd4_A.pdb') #doctest: +ELLIPSIS
         Succeed to read file gromacs_py_test_out/pdb_manip_test/1jd4_A.pdb ,  793 atoms found
         Presence of 1 Zinc detected
-        change cystein residue(s) : [48, 75, 51]
+        change cystein residue(s) : [48, 51, 75]
         change histidine residue(s) : [68]
-        <tools.pdb_manip.Coor object at 0x...
+        True
         >>> ZN_index = prot_coor.get_index_selection({'name':['ZN']})
         >>> print(len(ZN_index))
         1
@@ -1166,7 +1166,7 @@ class Coor:
         Zinc_num = len(Zinc_sel.atom_dict)
 
         if Zinc_num == 0:
-            return self
+            return False
         else:
             print("Presence of {} Zinc detected".format(Zinc_num))
 
@@ -1218,7 +1218,7 @@ class Coor:
                         self.change_index_pdb_field(to_change_his, {'res_name':'HSE'})
 
 
-        return self
+        return True
 
     def correct_cys_name(self):
         """ Correct the CYS resname from pdb2pqr
