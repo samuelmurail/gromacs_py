@@ -54,7 +54,7 @@ if __name__ == "__main__":
     dt          = args.dt
     out_folder  = args.o
     sys_name    = args.name
-    maxwarn     = maxwarn
+    maxwarn     = args.maxwarn
 
     # Peptide args:
     sequence    = args.seq
