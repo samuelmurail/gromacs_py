@@ -3225,7 +3225,8 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
                         mdp_options=mdp_options, maxwarn=maxwarn)
 
 
-    def production(self, out_folder, name=None, nsteps=400000, dt=0.005, **mdp_options):
+    def production(self, out_folder, name=None, nsteps=400000, dt=0.005, 
+                   maxwarn=0, **mdp_options):
         """Run a production run.
 
         :param out_folder: path of the output file folder
@@ -3266,7 +3267,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         mdp_options.update({'nsteps':int(nsteps), 'dt':dt, 'define':''})
         self.run_md_sim(out_folder=out_folder, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options, name="prod_"+name)
+                        mdp_options=mdp_options, name="prod_"+name, maxwarn = maxwarn)
 
 
     def extend_equi_prod(self, tpr_file=None, nsteps=200000, dt=0.005):
