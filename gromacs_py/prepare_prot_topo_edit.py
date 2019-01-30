@@ -47,15 +47,14 @@ def parser_input():
     parser.add_argument('-CA_LOW_time', action="store", dest="CA_LOW_time",
                         help='Equilibration with HA constraint time(ns), default = 10 ns',
                         type=float, default=10)
-
+    parser.add_argument('-maxwarn', action="store", dest="maxwarn",
+                        help='Total number of warnings allowed for the equilibration, default=0', type=int,
+                        default=0)
     parser.add_argument('-dt_HA', action="store", dest="dt_HA",
                         help='Equi HA dt, default=0.002 (2 fs)', type=float, default=0.002)
     parser.add_argument('-dt', action="store", dest="dt",
                         help='Equi CA, CA_LOW, dt, default=0.005 (5 fs)', type=float,
                         default=0.005)
-    parser.add_argument('-maxwarn', action="store", dest="maxwarn",
-                        help='Total number of warnings allowed for the equilibration, default=0', type=int,
-                        default=0)   
     parser.add_argument('-nt', action="store", dest="nt",
                         help='Total number of threads to start, default=0', type=float,
                         default=0)
@@ -81,6 +80,7 @@ if __name__ == "__main__":
             exit
 
     sys_name = args.name
+    maxwarn = args.maxwarn
     min_steps = args.min_steps
     dt_HA = args.dt_HA
     dt = args.dt
