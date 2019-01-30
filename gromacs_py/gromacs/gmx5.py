@@ -3457,7 +3457,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         cmd_convert = os_command.Command([GMX_BIN, "energy",
                                           "-f", self.edr,
                                           "-o", output_xvg,
-                                          "-skip", skip])
+                                          "-skip", str(skip)])
 
         cmd_convert.display()
         cmd_convert.run(com_input=selection)
