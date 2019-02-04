@@ -38,6 +38,7 @@
     lincs_warnangle         = 45
     comm_grps               = system
     disre-fc                = 1000
+    nstdisreout             = 0
 ; OUTPUT FLAGS
     nstxout                 = 0
     nstvout                 = 0
