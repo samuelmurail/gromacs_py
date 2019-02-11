@@ -6,28 +6,28 @@
 
 
 import sys
-import  os
+import os
 # Needed for doctest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import  tools.os_command  as os_command
-import  tools.pdb_manip  as pdb_manip
-from    shutil           import copy
+import tools.os_command as os_command
+import tools.pdb_manip as pdb_manip
+from shutil import copy
 
 __author__ = "Samuel Murail"
 
 GMX_BIN = os_command.which('gmx')
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
-WATER_GRO = GMX_PATH+"/share/gromacs/top/spc216.gro"
+WATER_GRO = GMX_PATH + "/share/gromacs/top/spc216.gro"
 
 GROMACS_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
-FORCEFIELD_PATH = os.path.abspath(GROMACS_MOD_DIRNAME+"/template/")
+FORCEFIELD_PATH = os.path.abspath(GROMACS_MOD_DIRNAME + "/template/")
 
-#GMX_BIN = 'gmx'
+# GMX_BIN = 'gmx'
 
 # Test folder path
 GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(GMX_LIB_DIR+"/../test/input/")
+TEST_PATH = os.path.abspath(GMX_LIB_DIR + "/../test/input/")
 TEST_OUT = 'gromacs_py_test_out/gmx5/'
 
 # Global variable
@@ -36,7 +36,6 @@ HA_NAME = ['N', 'C', 'O', 'CA', 'CB', 'CG', 'CG1', 'CG2', 'SG',
            'ND1', 'CE', 'CE1', 'CE2', 'CE3', 'OE1', 'OE2', 'NE',
            'NE1', 'NE2', 'OH', 'CZ', 'CZ2', 'CZ3', 'NZ', 'NH1',
            'NH2']
-
 
 
 class TopSys:
@@ -105,25 +104,25 @@ class TopSys:
                     include = (file_name.split("/")[-1]).split(".")[0]
 
                     # Look if the itp is in the top path:
-                    #print("Path 1:",self.folder+"/"+file_name)
-                    #print("Path 2:",FORCEFIELD_PATH+"/"+file_name)
-                    if os_command.check_file_exist(self.folder+"/"+file_name):
-                        path = os.path.abspath(self.folder+"/"+file_name)
-                    elif os_command.check_file_exist(FORCEFIELD_PATH+"/"+file_name):
-                        path = os.path.abspath(FORCEFIELD_PATH+"/"+file_name)
+                    # print("Path 1:",self.folder+"/"+file_name)
+                    # print("Path 2:",FORCEFIELD_PATH+"/"+file_name)
+                    if os_command.check_file_exist(self.folder + "/" + file_name):
+                        path = os.path.abspath(self.folder + "/" + file_name)
+                    elif os_command.check_file_exist(FORCEFIELD_PATH + "/" + file_name):
+                        path = os.path.abspath(FORCEFIELD_PATH + "/" + file_name)
                     else:
-                        raise IOError('Itp '+file_name+' not found')
-                    #print("name =", include, "fullname =", file_name, "path =",path)
+                        raise IOError('Itp ' + file_name + ' not found')
+                    # print("name =", include, "fullname =", file_name, "path =",path)
                     if include == "forcefield":
-                        self.forcefield = {'name':include, 'fullname':file_name, 'path':path}
+                        self.forcefield = {'name': include, 'fullname': file_name, 'path': path}
                     else:
-                        #print("name =", include, "fullname = ",file_name, "path = ",path)
+                        # print("name =", include, "fullname = ",file_name, "path = ",path)
                         self.itp_list.append(Itp(name=include, fullname=file_name, path=path))
                 # Check field
                 elif not ifdef and line[0] == "[":
                     # Remove space and [ ]
                     field = line.strip()[1:-1].strip()
-                    #print(field)
+                    # print(field)
                     continue
                 # Check in the field :
                 elif not ifdef and line[0] != ";" and line.strip() != "":
@@ -131,18 +130,18 @@ class TopSys:
                         # in the case where mol param are present in the top file
                         # Convert the top to an itp
                         # If mol_name variable is defined, give to the mol param this name
-                        name_itp = os.path.basename(top_in)[:-3]+"itp"
+                        name_itp = os.path.basename(top_in)[:-3] + "itp"
 
                         print("Molecule topologie present in", top_in,
                               ", extract the topologie in a separate file:", name_itp)
                         # Store and write the itp file:
                         top_itp = Itp(name=name_itp, fullname=name_itp,
                                       path=os.path.abspath(top_in))
-                        top_itp.write_file(self.folder+"/"+name_itp)
+                        top_itp.write_file(self.folder + "/" + name_itp)
                         top_itp.display()
                         # Add the itp to the itp_list
                         self.itp_list.append(Itp(name=name_itp, fullname=name_itp,
-                                                 path=self.folder+"/"+name_itp))
+                                                 path=self.folder + "/" + name_itp))
                         self.include_itp = True
                     # Name of the system
                     elif field == 'system':
@@ -150,7 +149,7 @@ class TopSys:
                     # Molecule composition of the system
                     elif field == 'molecules':
                         line_list = line.strip().split()
-                        self.mol_comp.append({'name':line_list[0], 'num':line_list[1]})
+                        self.mol_comp.append({'name': line_list[0], 'num': line_list[1]})
 
     def display(self):
         print("Forcefield include :\n", self.forcefield)
@@ -162,24 +161,24 @@ class TopSys:
     def write_file(self, top_out):
         filout = open(top_out, 'w')
 
-        filout.write("; Topologie file created by "+__author__+"\n")
-        filout.write("; Using library "+__name__+" \n\n")
+        filout.write("; Topologie file created by " + __author__ + "\n")
+        filout.write("; Using library " + __name__ + " \n\n")
         filout.write("; Forcefield: \n")
-        filout.write("#include \""+self.forcefield['fullname']+"\"\n")
+        filout.write("#include \"" + self.forcefield['fullname'] + "\"\n")
         # print include files
         filout.write("\n; Itp to include: \n")
         for itp in self.itp_list:
-            filout.write("#include \""+itp.fullname+"\"\n")
+            filout.write("#include \"" + itp.fullname + "\"\n")
             # Check if the include is in the ff folder:
-            #if self.forcefield['fullname'].split("/")[0] == itp.fullname.split("/")[0]:
+            # if self.forcefield['fullname'].split("/")[0] == itp.fullname.split("/")[0]:
             #    filout.write("#include \""+itp.fullname+"\"\n")
-            #else:
+            # else:
             #    filout.write("#include \""+itp.fullname+"\"\n")
         filout.write("\n[ system ]\n; Name\n")
-        filout.write(self.name+"\n")
+        filout.write(self.name + "\n")
         filout.write("\n[ molecules ]\n; Compound        #mols\n")
         for mol in self.mol_comp:
-            filout.write(mol['name']+" \t"+mol['num']+"\n")
+            filout.write(mol['name'] + " \t" + mol['num'] + "\n")
         filout.write("\n")
         filout.close()
 
@@ -194,13 +193,13 @@ class TopSys:
         for mol in self.mol_comp:
             name = mol['name']
             num = int(mol['num'])
-            #print("Mol top info:",name,num)
+            # print("Mol top info:",name,num)
             # Search mol name in itp:
             for local_itp in self.itp_list:
                 itp_charge = local_itp.charge(name)
                 if itp_charge is not None:
-                    print("Get charge of ", name, ":", itp_charge, "total charge:", itp_charge*num)
-                    self._charge += num*itp_charge
+                    print("Get charge of ", name, ":", itp_charge, "total charge:", itp_charge * num)
+                    self._charge += num * itp_charge
                     break
         return self._charge
 
@@ -217,12 +216,12 @@ class TopSys:
             if name.find(selection) != -1:
                 # Search mol name in itp:
                 for itp in self.itp_list:
-                    #print(itp.name)
+                    # print(itp.name)
                     itp_res_num = itp.res_num(name)
                     if itp_res_num is not None:
                         print("Get Res num of ", name, ":", itp_res_num,
-                              "total charge:", num*itp_res_num)
-                        self.res_num += num*itp_res_num
+                              "total charge:", num * itp_res_num)
+                        self.res_num += num * itp_res_num
                         break
         return self.res_num
 
@@ -237,8 +236,7 @@ class TopSys:
                 mol_num = mol_num + int(mol['num'])
         return mol_num
 
-
-    def add_posre(self, posre_name="CA", selec_dict={'atom_name':['CA']}, fc=[1000, 1000, 1000]):
+    def add_posre(self, posre_name="CA", selec_dict={'atom_name': ['CA']}, fc=[1000, 1000, 1000]):
         """Add position restraint based on the selection for each itp
         """
         for mol in self.mol_comp:
@@ -246,13 +244,13 @@ class TopSys:
                 itp.add_posre(mol_name=mol['name'], posre_name=posre_name,
                               selec_dict=selec_dict, fc=fc)
 
-
     def add_mol(self, mol_name, mol_itp_file, mol_num):
         """Add a molecule in the topologie (composition and itp_list)
         """
+
         print("Add", mol_num, "mol", mol_itp_file)
         mol_itp = Itp(name=mol_name, fullname=mol_itp_file, path=os.path.abspath(mol_itp_file))
-        self.mol_comp.append({'name':mol_itp.name, 'num':str(mol_num)})
+        self.mol_comp.append({'name': mol_itp.name, 'num': str(mol_num)})
         self.itp_list.append(mol_itp)
 
     def change_mol_num(self, mol_name, mol_num):
@@ -262,17 +260,17 @@ class TopSys:
 
     def get_include_file_list(self):
         file_list = []
-        #print("\n\nIncluded files:")
+        # print("\n\nIncluded files:")
         for itp in self.itp_list:
             if self.forcefield['fullname'].split("/")[0] != itp.fullname.split("/")[0]:
-                #print(itp.path)
+                # print(itp.path)
                 file_list.append(itp.path)
                 file_list = file_list + itp.get_include_file_list()
         return file_list
 
     def get_include_no_posre_file_list(self):
         file_list = []
-        #print("\n\nIncluded files:")
+        # print("\n\nIncluded files:")
         for itp in self.itp_list:
             if self.forcefield['fullname'].split("/")[0] != itp.fullname.split("/")[0]:
                 file_list.append(itp.path)
@@ -293,10 +291,10 @@ class TopSys:
         dest_folder = os.path.abspath(dest_folder)
 
         file_to_copy = self.get_include_file_list()
-        #print(file_to_copy)
+        # print(file_to_copy)
         for file in file_to_copy:
             if os.path.abspath(os_command.get_directory(file)) != os.path.abspath(dest_folder):
-                #print("Copy:"+file+":to:"+dest_folder)
+                # print("Copy:"+file+":to:"+dest_folder)
                 copy(file, dest_folder)
 
     def change_mol_name(self, old_name, new_name):
@@ -341,7 +339,7 @@ class Itp:
         posre_def = ""
         with open(self.path) as file:
             for line in file:
-                #print("Itp line:", line)
+                # print("Itp line:", line)
                 # Check posres include:
                 if line[:6] == '#ifdef':
                     ifdef = True
@@ -352,7 +350,7 @@ class Itp:
                 if ifdef and line[:8] == '#include':
                     line_list = line.split()
                     posre_file = line_list[1][1:-1]
-                    self.posres_file.append({'def':posre_def, 'file':posre_file})
+                    self.posres_file.append({'def': posre_def, 'file': posre_file})
                 if line[0] == "[":
                     # Remove space and [ ], remove also comments
                     field = line.replace(" ", "").split("]")[0][1:]
@@ -361,9 +359,9 @@ class Itp:
                     line_list = line.split()
 
                     if field == 'moleculetype':
-                        #Check if a top_mol already exist, if yes append it to the top_mol_list
+                        # Check if a top_mol already exist, if yes append it to the top_mol_list
                         if 'local_top' in locals():
-                            #print("Add mol topologie",local_top.name)
+                            # print("Add mol topologie",local_top.name)
                             self.top_mol_list.append(local_top)
                         # Create a new top_mol
                         local_top = TopMol(line_list[0], line_list[1])
@@ -380,46 +378,46 @@ class Itp:
                             mass = float(line_list[7])
                         else:
                             mass = None
-                        atom = {"num":atom_num,
-                                "atom_type":atom_type,
-                                "atom_name":atom_name,
-                                "res_num":res_num,
-                                "res_name":res_name,
-                                "charge_num":charge_num,
-                                "charge":charge,
-                                "mass":mass}
+                        atom = {"num": atom_num,
+                                "atom_type": atom_type,
+                                "atom_name": atom_name,
+                                "res_num": res_num,
+                                "res_name": res_name,
+                                "charge_num": charge_num,
+                                "charge": charge,
+                                "mass": mass}
                         local_top.atom_dict[atom_num] = atom
                     # Read only indexes not the parameters (c0, c1 ...)
                     # May need some modifications :
                     elif field == 'bonds':
                         ai, aj, funct = [int(col) for col in line_list[:3]]
-                        local_top.bond_list.append({'ai':ai, 'aj':aj, 'funct':funct})
+                        local_top.bond_list.append({'ai': ai, 'aj': aj, 'funct': funct})
                     elif field == 'constraints':
                         ai, aj, funct = [int(col) for col in line_list[:3]]
-                        local_top.cons_list.append({'ai':ai, 'aj':aj, 'funct':funct})
+                        local_top.cons_list.append({'ai': ai, 'aj': aj, 'funct': funct})
                     elif field == 'pairs':
                         ai, aj, funct = [int(col) for col in line_list[:3]]
-                        local_top.pair_list.append({'ai':ai, 'aj':aj, 'funct':funct})
+                        local_top.pair_list.append({'ai': ai, 'aj': aj, 'funct': funct})
                     elif field == 'angles':
                         ai, aj, ak, funct = [int(col) for col in line_list[:4]]
-                        local_top.angl_list.append({'ai':ai, 'aj':aj, 'ak':ak, 'funct':funct})
+                        local_top.angl_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'funct': funct})
                     elif field == 'dihedrals':
                         ai, aj, ak, al, funct = [int(col) for col in line_list[:5]]
-                        local_top.dihe_list.append({'ai':ai, 'aj':aj, 'ak':ak, 'al':al,
-                                                    'funct':funct})
+                        local_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al,
+                                                    'funct': funct})
                     elif field == 'virtual_sites3':
                         ai, aj, ak, al, funct = [int(col) for col in line_list[:5]]
-                        local_top.vs3_list.append({'ai':ai, 'aj':aj, 'ak':ak, 'al':al,
-                                                   'funct':funct})
+                        local_top.vs3_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al,
+                                                   'funct': funct})
                     elif field == 'cmap':
                         ai, aj, ak, al, am, funct = [int(col) for col in line_list[:6]]
-                        local_top.cmap_list.append({'ai':ai, 'aj':aj, 'ak':ak, 'al':al,
-                                                    'am':am, 'funct':funct})
+                        local_top.cmap_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al,
+                                                    'am': am, 'funct': funct})
                     elif field == 'virtual_sites4':
                         ai, aj, ak, al, am, funct = [int(col) for col in line_list[:6]]
-                        local_top.vs4_list.append({'ai':ai, 'aj':aj, 'ak':ak, 'al':al,
-                                                   'am':am, 'funct':funct})
-                    #else:
+                        local_top.vs4_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al,
+                                                   'am': am, 'funct': funct})
+                    # else:
                     #   raise ValueError('Unknown field :'+field)
 
         # Needed for empty topologies like aditional ff parameters:
@@ -428,15 +426,15 @@ class Itp:
 
     def write_file(self, itp_file):
         filout = open(itp_file, 'w')
-        filout.write("; Itp file created by "+__author__+"\n")
-        filout.write("; Using library "+__name__+" \n\n")
+        filout.write("; Itp file created by " + __author__ + "\n")
+        filout.write("; Using library " + __name__ + " \n\n")
 
         for top_mol in self.top_mol_list:
             print(top_mol.name)
             top_mol.write_file(filout)
         for posre in self.posres_file:
-            filout.write("\n#ifdef "+posre['def']+"\n")
-            filout.write("#include \""+posre['file']+"\"\n")
+            filout.write("\n#ifdef " + posre['def'] + "\n")
+            filout.write("#include \"" + posre['file'] + "\"\n")
             filout.write("#endif\n\n")
 
         filout.close()
@@ -449,41 +447,41 @@ class Itp:
 
     def charge(self, mol_name):
         for top_mol in self.top_mol_list:
-            #print(mol_name, top_mol.name)
+            # print(mol_name, top_mol.name)
             if top_mol.name == mol_name:
                 return top_mol.get_charge()
         return None
 
     def res_num(self, mol_name):
         for top_mol in self.top_mol_list:
-            #print(mol_name, top_mol.name)
+            # print(mol_name, top_mol.name)
             if top_mol.name == mol_name:
                 return top_mol.get_res_num()
         return None
 
     def add_posre(self, mol_name, posre_name, selec_dict, fc):
         for top_mol in self.top_mol_list:
-            #print(mol_name, top_mol.name)
+            # print(mol_name, top_mol.name)
             if top_mol.name == mol_name:
                 index_posre = top_mol.get_selection_index(selec_dict=selec_dict)
                 if index_posre:
                     # Create the posre itp file :
-                    #print("Posre for :",top_mol.name)
-                    posre_file_name = os.path.abspath(os_command.get_directory(self.path))+\
-                                                      "/"+self.name+"_posre_"+posre_name+".itp"
-                    #posre_file_name = self.name+"_posre_"+posre_name+".itp"
+                    # print("Posre for :",top_mol.name)
+                    posre_file_name = (os.path.abspath(os_command.get_directory(self.path)) +
+                                       "/" + self.name + "_posre_" + posre_name + ".itp")
+                    # posre_file_name = self.name+"_posre_"+posre_name+".itp"
                     write_index_posre_file(atom_index_list=index_posre,
                                            posre_file=posre_file_name,
                                            type_val=1, fc=fc)
                     # Add the posre include in the mol itp file:
-                    posre = "POSRES_"+posre_name
+                    posre = "POSRES_" + posre_name
 
                     # Need to solve the problem of #ifdef location with .top files
                     # containing self top
                     with open(self.path, 'a') as file:
-                        file.write('#ifdef '+posre+'\n')
-                        #file.write('#include \"'+self.name+"_posre_"+posre_name+".itp\" \n")
-                        file.write('#include \"'+os.path.basename(posre_file_name)+"\" \n")
+                        file.write('#ifdef ' + posre + '\n')
+                        # file.write('#include \"'+self.name+"_posre_"+posre_name+".itp\" \n")
+                        file.write('#include \"' + os.path.basename(posre_file_name) + "\" \n")
                         file.write('#endif \n\n')
 
     def set_top_mol_name(self, new_name):
@@ -495,8 +493,8 @@ class Itp:
     def get_include_file_list(self):
         file_list = []
         for posre in self.posres_file:
-            #print(posre)
-            file_list.append(os.path.abspath(os_command.get_directory(self.path))+"/"+posre['file'])
+            # print(posre)
+            file_list.append(os.path.abspath(os_command.get_directory(self.path)) + "/" + posre['file'])
         return file_list
 
     def change_mol_name(self, old_name, new_name):
@@ -542,7 +540,7 @@ class TopMol:
                 self.res_num += 1
         return self.res_num
 
-    def get_selection_index(self, selec_dict={'atom_name':['CA']}):
+    def get_selection_index(self, selec_dict={'atom_name': ['CA']}):
         """Return the atom index to add posre
         """
 
@@ -550,7 +548,7 @@ class TopMol:
         for index, atom in self.atom_dict.items():
             selected = True
             for field, selection in selec_dict.items():
-                if  atom[field] not in selection:
+                if atom[field] not in selection:
                     selected = False
                     break
             if selected:
@@ -562,17 +560,17 @@ class TopMol:
         filout.write("\n[ moleculetype ]\n; Name            nrexcl\n")
         filout.write("{}\t\t{}\n".format(self.name, self.nrexcl))
         # Print Atoms field
-        filout.write("\n[ atoms ]\n;   nr       type  resnr residue  atom   cgnr     charge"+
+        filout.write("\n[ atoms ]\n;   nr       type  resnr residue  atom   cgnr     charge" +
                      "       mass  typeB    chargeB      massB\n")
         tot_charge = 0
         for atom in self.atom_dict.values():
             tot_charge += atom['charge']
-            filout.write("{:>6}{:>11}{:>7}{:>7}{:>7}{:>7}{:>11.2f}{:>11}   ; qtot {:<6.2f} \n".\
+            filout.write("{:>6}{:>11}{:>7}{:>7}{:>7}{:>7}{:>11.2f}{:>11}   ; qtot {:<6.2f} \n".
                          format(atom['num'], atom['atom_type'], atom['res_num'], atom['res_name'],
                                 atom['atom_name'], atom['charge_num'], atom['charge'],
                                 atom['mass'], tot_charge))
         # Print bonds field
-        filout.write("\n[ bonds ]\n;  ai    aj funct            c0            c1            "+\
+        filout.write("\n[ bonds ]\n;  ai    aj funct            c0            c1            " +
                      "c2            c3\n")
         for param in self.bond_list:
             filout.write("{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'], param['funct']))
@@ -581,18 +579,18 @@ class TopMol:
         for param in self.cons_list:
             filout.write("{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'], param['funct']))
         # Print pairs field
-        filout.write("\n[ pairs ]\n;  ai    aj funct            c0            c1"+\
+        filout.write("\n[ pairs ]\n;  ai    aj funct            c0            c1" +
                      "            c2            c3\n")
         for param in self.pair_list:
             filout.write("{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'], param['funct']))
         # Print angles field
-        filout.write("\n[ angles ]\n;  ai    aj    ak funct            c0            c1"+\
+        filout.write("\n[ angles ]\n;  ai    aj    ak funct            c0            c1" +
                      "            c2            c3\n")
         for param in self.angl_list:
             filout.write("{:>5}{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'],
                                                          param['ak'], param['funct']))
         # Print dihedrals field
-        filout.write("\n[ dihedrals ]\n;  ai    aj    ak    al funct            c0"+\
+        filout.write("\n[ dihedrals ]\n;  ai    aj    ak    al funct            c0" +
                      "            c1            c2            c3            c4            c5\n")
         for param in self.dihe_list:
             filout.write("{:>5}{:>5}{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'],
@@ -605,14 +603,14 @@ class TopMol:
                                                                    param['ak'], param['al'],
                                                                    param['am'], param['funct']))
         # Print virtual_sites3 field
-        filout.write("\n[ virtual_sites3 ]\n;  ai    aj    ak    al funct            c0"+\
+        filout.write("\n[ virtual_sites3 ]\n;  ai    aj    ak    al funct            c0" +
                      "            c1\n")
         for param in self.vs3_list:
             filout.write("{:>5}{:>5}{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'],
                                                               param['ak'], param['al'],
                                                               param['funct']))
         # Print virtual_sites3 field
-        filout.write("\n[ virtual_sites4 ]\n;  ai    aj    ak    al    am funct            c0"+\
+        filout.write("\n[ virtual_sites4 ]\n;  ai    aj    ak    al    am funct            c0" +
                      "            c1            c2\n")
         for param in self.vs4_list:
             filout.write("{:>5}{:>5}{:>5}{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'],
@@ -620,8 +618,6 @@ class TopMol:
                                                                    param['am'], param['funct']))
 
     def delete_atom(self, index_list):
-
-
         # Remove atom:
         for i in index_list:
             del self.atom_dict[i]
@@ -629,8 +625,8 @@ class TopMol:
         # Create the dict to have all atom num consecutive staring from 0
         dict_atom_index = {}
         for i, atom in sorted(enumerate(self.atom_dict.items())):
-            #print(i, atom)
-            dict_atom_index[atom[0]] = i+1
+            # print(i, atom)
+            dict_atom_index[atom[0]] = i + 1
 
         # Modify all atom to have correct index
         new_atom_dict = {}
@@ -647,94 +643,94 @@ class TopMol:
         new_bond_list = []
         for i, param in enumerate(self.bond_list):
             if not ((param['ai'] in index_list) or (param['aj'] in index_list)):
-                new_bond_list.append({'ai':dict_atom_index[param['ai']],
-                                      'aj':dict_atom_index[param['aj']],
-                                      'funct':param['funct']})
+                new_bond_list.append({'ai': dict_atom_index[param['ai']],
+                                      'aj': dict_atom_index[param['aj']],
+                                      'funct': param['funct']})
         self.bond_list = new_bond_list
 
         new_cons_list = []
         for i, param in enumerate(self.cons_list):
             if not ((param['ai'] in index_list) or (param['aj'] in index_list)):
-                new_cons_list.append({'ai':dict_atom_index[param['ai']],
-                                      'aj':dict_atom_index[param['aj']],
-                                      'funct':param['funct']})
+                new_cons_list.append({'ai': dict_atom_index[param['ai']],
+                                      'aj': dict_atom_index[param['aj']],
+                                      'funct': param['funct']})
         self.cons_list = new_cons_list
 
         new_pair_list = []
         for i, param in enumerate(self.pair_list):
             if not ((param['ai'] in index_list) or (param['aj'] in index_list)):
-                new_pair_list.append({'ai':dict_atom_index[param['ai']],
-                                      'aj':dict_atom_index[param['aj']],
-                                      'funct':param['funct']})
+                new_pair_list.append({'ai': dict_atom_index[param['ai']],
+                                      'aj': dict_atom_index[param['aj']],
+                                      'funct': param['funct']})
         self.pair_list = new_pair_list
 
         new_angl_list = []
         for i, param in enumerate(self.angl_list):
-            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or\
-               (param['ak'] in index_list)):
-                new_angl_list.append({'ai':dict_atom_index[param['ai']],
-                                      'aj':dict_atom_index[param['aj']],
-                                      'ak':dict_atom_index[param['ak']],
-                                      'funct':param['funct']})
+            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or
+                    (param['ak'] in index_list)):
+                new_angl_list.append({'ai': dict_atom_index[param['ai']],
+                                      'aj': dict_atom_index[param['aj']],
+                                      'ak': dict_atom_index[param['ak']],
+                                      'funct': param['funct']})
         self.angl_list = new_angl_list
 
         new_dihe_list = []
         for i, param in enumerate(self.dihe_list):
-            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or\
-               (param['ak'] in index_list) or (param['al'] in index_list)):
-                new_dihe_list.append({'ai':dict_atom_index[param['ai']],
-                                      'aj':dict_atom_index[param['aj']],
-                                      'ak':dict_atom_index[param['ak']],
-                                      'al':dict_atom_index[param['al']],
-                                      'funct':param['funct']})
+            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or
+                    (param['ak'] in index_list) or (param['al'] in index_list)):
+                new_dihe_list.append({'ai': dict_atom_index[param['ai']],
+                                      'aj': dict_atom_index[param['aj']],
+                                      'ak': dict_atom_index[param['ak']],
+                                      'al': dict_atom_index[param['al']],
+                                      'funct': param['funct']})
         self.dihe_list = new_dihe_list
 
         new_vs3_list = []
         for i, param in enumerate(self.vs3_list):
-            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or\
-               (param['ak'] in index_list) or (param['al'] in index_list)):
-                new_vs3_list.append({'ai':dict_atom_index[param['ai']],
-                                     'aj':dict_atom_index[param['aj']],
-                                     'ak':dict_atom_index[param['ak']],
-                                     'al':dict_atom_index[param['al']],
-                                     'funct':param['funct']})
+            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or
+                    (param['ak'] in index_list) or (param['al'] in index_list)):
+                new_vs3_list.append({'ai': dict_atom_index[param['ai']],
+                                     'aj': dict_atom_index[param['aj']],
+                                     'ak': dict_atom_index[param['ak']],
+                                     'al': dict_atom_index[param['al']],
+                                     'funct': param['funct']})
         self.vs3_list = new_vs3_list
 
         new_cmap_list = []
         for i, param in enumerate(self.cmap_list):
-            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or\
-               (param['ak'] in index_list) or (param['al'] in index_list) or\
-               (param['am'] in index_list)):
-                new_cmap_list.append({'ai':dict_atom_index[param['ai']],
-                                      'aj':dict_atom_index[param['aj']],
-                                      'ak':dict_atom_index[param['ak']],
-                                      'al':dict_atom_index[param['al']],
-                                      'am':dict_atom_index[param['am']],
-                                      'funct':param['funct']})
+            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or
+                    (param['ak'] in index_list) or (param['al'] in index_list) or
+                    (param['am'] in index_list)):
+                new_cmap_list.append({'ai': dict_atom_index[param['ai']],
+                                      'aj': dict_atom_index[param['aj']],
+                                      'ak': dict_atom_index[param['ak']],
+                                      'al': dict_atom_index[param['al']],
+                                      'am': dict_atom_index[param['am']],
+                                      'funct': param['funct']})
         self.cmap_list = new_cmap_list
 
         new_vs4_list = []
         for i, param in enumerate(self.vs4_list):
-            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or\
-                 (param['ak'] in index_list) or (param['al'] in index_list) or\
-                  (param['am'] in index_list)):
-                new_vs4_list.append({'ai':dict_atom_index[param['ai']],
-                                     'aj':dict_atom_index[param['aj']],
-                                     'ak':dict_atom_index[param['ak']],
-                                     'al':dict_atom_index[param['al']],
-                                     'am':dict_atom_index[param['am']],
-                                     'funct':param['funct']})
+            if not ((param['ai'] in index_list) or (param['aj'] in index_list) or
+                    (param['ak'] in index_list) or (param['al'] in index_list) or
+                    (param['am'] in index_list)):
+                new_vs4_list.append({'ai': dict_atom_index[param['ai']],
+                                     'aj': dict_atom_index[param['aj']],
+                                     'ak': dict_atom_index[param['ak']],
+                                     'al': dict_atom_index[param['al']],
+                                     'am': dict_atom_index[param['am']],
+                                     'funct': param['funct']})
         self.vs4_list = new_vs4_list
 
 
-## Position restraints files:
+# Position restraints files:
 def write_index_posre_file(atom_index_list, posre_file, type_val=1, fc=[1000, 1000, 1000]):
     """Write a pos restraint file based on atom index list
     """
 
     filout = open(posre_file, 'w')
-    filout.write("; Position restraint file created by "+__author__+"\n")
-    filout.write(";using library "+__name__+" \n\n")
+    filout.write("; Position restraint file created by " + __author__ + "\n")
+    filout.write(";using library " + __name__ + " \n\n")
     filout.write("[ position_restraints ]\n")
     filout.write("; atom  type      fx      fy      fz\n")
 
@@ -929,7 +925,6 @@ file: 1y0m_pdb2gmx.itp
             return os.path.relpath(self._ndx)
         return None
 
-
     @coor_file.setter
     def coor_file(self, coor_file):
         if coor_file is not None:
@@ -974,7 +969,7 @@ file: 1y0m_pdb2gmx.itp
     def display(self):
         """Display defined attribute of the GmxSys object.
         """
-        #print("Coor :", self.coor_file, "\nTop :", self.top_file)
+        # print("Coor :", self.coor_file, "\nTop :", self.top_file)
 
         attr_list = [attr for attr in vars(self) if not attr.startswith('__')]
         for attr in attr_list:
