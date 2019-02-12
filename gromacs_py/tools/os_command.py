@@ -12,7 +12,7 @@ __author__ = "Samuel Murail"
 
 # Test folder path
 OS_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(OS_LIB_DIR+"/../test/input/")
+TEST_PATH = os.path.abspath(OS_LIB_DIR + "/../test/input/")
 TEST_OUT = 'gromacs_py_test_out/os_command/'
 
 
@@ -37,7 +37,7 @@ def which(*program_list):
 
     for program in program_list:
         fpath, fname = os.path.split(program)
-        #print(fpath, fname)
+        # print(fpath, fname)
         if fpath:
             if is_exe(program):
                 return program
@@ -45,11 +45,12 @@ def which(*program_list):
             for path in os.environ["PATH"].split(os.pathsep):
                 # Use expanduser in case of ~ caracter
                 exe_file = os.path.expanduser(os.path.join(path.replace("\\ ", " "), program))
-                #print(exe_file)
+                # print(exe_file)
                 if os.path.isfile(exe_file):
                     return exe_file
     print("program not found !!")
     raise IOError("program not found :", program_list)
+
 
 def is_exe(fpath):
     """ Check is a file path exist and if user has access to it
@@ -69,6 +70,7 @@ def is_exe(fpath):
     """
 
     return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
 
 def create_and_go_dir(dir_name):
     """ Create the path to a directory and change path in it.
@@ -91,6 +93,7 @@ def create_and_go_dir(dir_name):
         os.makedirs(dir_name)
     os.chdir(dir_name)
 
+
 def create_dir(dir_name):
     """ Create the path to a directory.
 
@@ -102,6 +105,7 @@ def create_dir(dir_name):
     dir_name = os.path.expanduser(dir_name)
     if not os.path.isdir(dir_name) and dir_name != "":
         os.makedirs(dir_name)
+
 
 def check_file_exist(file):
     """ Check is a file exist.
@@ -123,6 +127,7 @@ def check_file_exist(file):
     file = os.path.expanduser(file)
     return os.path.isfile(file)
 
+
 def delete_file(file):
     """ Delete a file.
 
@@ -135,6 +140,7 @@ def delete_file(file):
 
     file = os.path.expanduser(file)
     return os.remove(file)
+
 
 def check_file_and_create_path(file):
     """ Check if file exist and create path if not available
@@ -153,6 +159,7 @@ def check_file_and_create_path(file):
         create_dir(os.path.dirname(file))
     return False
 
+
 def full_path_and_check(file):
     """ Return the full path of a file
 
@@ -166,7 +173,8 @@ def full_path_and_check(file):
     if os.path.isfile(file):
         return os.path.abspath(file)
 
-    raise IOError("File cound not be founded :"+file)
+    raise IOError("File cound not be founded :" + file)
+
 
 def get_directory(file):
     """ Return the path of a file directory
@@ -182,6 +190,7 @@ def get_directory(file):
     if directory == "":
         directory = "."
     return directory
+
 
 class Command:
     """The Command class is a way to launch bash command and mainly gromacs
@@ -221,12 +230,10 @@ class Command:
         if kwargs is not None:
             # Use sorted to have same order of command in doctest
             for key, value in sorted(kwargs.items(), key=operator.itemgetter(0)):
-                #print(key, value )
-                self.cmd.append("-"+key)
+                # print(key, value )
+                self.cmd.append("-" + key)
                 self.cmd.append(value)
-        #print("Cmd:",self.cmd)
-
-        #sorted(x.items(), key=operator.itemgetter(1))
+        # print("Cmd:",self.cmd)
 
     def define_env(self, my_env):
         """ Define the environment of the ``Command`` object.
@@ -256,7 +263,7 @@ class Command:
 
     def display_raw(self):
         """ Show ``Command`` object that will be launch.
-        Show the full path of the command as well as the 
+        Show the full path of the command as well as the
         full path for files in the command.
         """
 
@@ -283,9 +290,9 @@ class Command:
         # Check if command is successfull
         if proc.returncode == 0:
             if out_data:
-                return {'returncode':proc.returncode,
-                        'stdout':stdout_data.decode('utf-8'),
-                        'stderr':stderr_data.decode('utf-8')}
+                return {'returncode': proc.returncode,
+                        'stdout': stdout_data.decode('utf-8'),
+                        'stderr': stderr_data.decode('utf-8')}
             return proc.returncode
 
         print("The following command could not be executed correctly :")

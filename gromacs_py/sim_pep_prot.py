@@ -7,8 +7,7 @@ __author__ = "Samuel Murail"
 
 import gromacs.gmx5 as gmx
 import argparse
-from glob import glob
-import os
+
 
 def parser_input():
 
@@ -57,44 +56,53 @@ if __name__ == "__main__":
     maxwarn     = args.maxwarn
 
     # Peptide args:
-    sequence    = args.seq
-    em_nsteps   = args.em_steps
-    pep_step    = 1000*args.pep_time/dt
+    sequence = args.seq
+    em_nsteps = args.em_steps
+    pep_step = 1000 * args.pep_time / dt
 
     # Create peptide:
-    peptide =  gmx.GmxSys(name='pep_'+sequence)
+    peptide = gmx.GmxSys(name='pep_' + sequence)
     peptide.nt = args.nt
     peptide.ntmpi = args.ntmpi
     if args.gpuid != "None":
         peptide.gpu_id = args.gpuid
 
-    peptide.create_peptide(sequence = sequence, out_folder = out_folder+"/"+sequence, em_nsteps = em_nsteps, equi_nsteps = pep_step, posre_post = "_pep")
+    peptide.create_peptide(sequence=sequence, out_folder=out_folder + "/" + sequence,
+                           em_nsteps=em_nsteps, equi_nsteps=pep_step, posre_post="_pep")
     peptide.display()
 
     # Starting system args:
-    coor_sys    = args.f_sys
-    top_sys     = args.p_sys
-    pep_num     = args.num_mol
+    coor_sys = args.f_sys
+    top_sys = args.p_sys
+    pep_num = args.num_mol
 
     # Insert peptide:
-    sys_pep_prot = gmx.GmxSys(name = sys_name, coor_file = coor_sys, top_file = top_sys, tpr = args.s_sys)
+    sys_pep_prot = gmx.GmxSys(name=sys_name, coor_file=coor_sys, top_file=top_sys, tpr=args.s_sys)
     sys_pep_prot.nt = args.nt
     sys_pep_prot.ntmpi = args.ntmpi
     if args.gpuid != "None":
         sys_pep_prot.gpu_id = args.gpuid
-    
-    sys_pep_prot.insert_mol_sys(mol_gromacs = peptide, mol_num = pep_num, new_name = sys_name+"_"+sequence, out_folder = out_folder+"/top_prot_"+sequence+"/")
+
+    sys_pep_prot.insert_mol_sys(mol_gromacs=peptide, mol_num=pep_num,
+                                new_name=sys_name + "_" + sequence,
+                                out_folder=out_folder + "/top_prot_" + sequence + "/")
 
     # Equilibration and production args
-    dt_HA       = args.dt_HA
-    HA_step     = 1000*args.HA_time/dt_HA
-    CA_step     = 1000*args.CA_time/dt
-    CA_LOW_step = 1000*args.CA_LOW_time/dt
-    PROD_step   = 1000*args.Prod_time/dt
+    dt_HA = args.dt_HA
+    HA_step = 1000 * args.HA_time / dt_HA
+    CA_step = 1000 * args.CA_time / dt
+    CA_LOW_step = 1000 * args.CA_LOW_time / dt
+    PROD_step = 1000 * args.Prod_time / dt
 
-    sys_pep_prot.em_2_steps(out_folder = out_folder+"/em_prot_"+sequence+"/", name = sys_name, no_constr_nsteps = em_nsteps, constr_nsteps = em_nsteps, create_box_flag = False)
-    sys_pep_prot.equi_three_step(out_folder = out_folder+"/equi_prot_"+sequence+"/", name = sys_name, nsteps_HA = HA_step,
-        nsteps_CA = CA_step, nsteps_CA_LOW = CA_LOW_step, dt = dt, dt_HA = dt_HA, maxwarn = maxwarn)
-    sys_pep_prot.production(out_folder = out_folder+"/prod_prot_"+sequence+"/", name = sys_name, nsteps = PROD_step, dt=dt, maxwarn=maxwarn)
-    
+    sys_pep_prot.em_2_steps(out_folder=out_folder + "/em_prot_" + sequence + "/",
+                            name=sys_name, no_constr_nsteps=em_nsteps, constr_nsteps=em_nsteps,
+                            create_box_flag=False)
+
+    sys_pep_prot.equi_three_step(out_folder=out_folder + "/equi_prot_" + sequence + "/",
+                                 name=sys_name, nsteps_HA=HA_step, nsteps_CA=CA_step,
+                                 nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA, maxwarn=maxwarn)
+
+    sys_pep_prot.production(out_folder=out_folder + "/prod_prot_" + sequence + "/",
+                            name=sys_name, nsteps=PROD_step, dt=dt, maxwarn=maxwarn)
+
     sys_pep_prot.display()

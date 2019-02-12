@@ -5,8 +5,7 @@ __author__ = "Samuel Murail"
 
 import gromacs.gmx5 as gmx
 import argparse
-from glob import glob
-import os
+
 
 def parser_input():
 
@@ -19,13 +18,15 @@ def parser_input():
     parser.add_argument('-C', action="store", dest="Conc", help='Ion concentration (mM), default = 0.15 (150mM)', type=float, default=0.15)
     return(parser)
 
+
 if __name__ == "__main__":
 
     parser = parser_input()
     args = parser.parse_args()
-    
-    sys_top = gmx.GmxSys(name = args.name, coor_file = args.f, top_file = args.p)
-    sys_top.solvate_add_ions(out_folder = args.o, name = args.name, ion_C = args.Conc)
-    
-    print("\n\nTopologie creation was sucessfull \n\tTopologie directorie :\t"+args.o)
+
+    sys_top = gmx.GmxSys(name=args.name, coor_file=args.f, top_file=args.p)
+
+    sys_top.solvate_add_ions(out_folder=args.o, name=args.name, ion_C=args.Conc)
+
+    print("\n\nTopologie creation was sucessfull \n\tTopologie directorie :\t" + args.o)
     sys_top.display()

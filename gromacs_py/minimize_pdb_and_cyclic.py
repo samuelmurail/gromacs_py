@@ -9,6 +9,7 @@ import gromacs.gmx5 as gmx
 
 __author__ = "Samuel Murail"
 
+
 def parser_input():
 
     # Parse arguments :
@@ -50,21 +51,20 @@ if __name__ == "__main__":
     if args.gpuid != "None":
         peptide.gpu_id = args.gpuid
 
-
     if args.cyclic_flag:
-        peptide.cyclic_peptide_top(out_folder=args.out_dir+'/top')
+        peptide.cyclic_peptide_top(out_folder=args.out_dir + '/top')
     else:
-        peptide.add_top(out_folder=args.out_dir+'/top',
-                        pdb2gmx_option_dict={'vsite':'no', 'ignh':'yes', 'ter':'no'})
+        peptide.add_top(out_folder=args.out_dir + '/top',
+                        pdb2gmx_option_dict={'vsite': 'no', 'ignh': 'yes', 'ter': 'no'})
 
-    peptide.em(out_folder=args.out_dir+'/em', name="min_"+args.name,
+    peptide.em(out_folder=args.out_dir + '/em', name="min_" + args.name,
                nsteps=args.min_steps, posres="", nstxout=1000, create_box_flag=True,
                constraints="none")
 
     peptide.convert_trj(traj=False)
 
     # Get the minimised structure:
-    shutil.copyfile(peptide.coor_file, args.name+'.pdb')
+    shutil.copyfile(peptide.coor_file, args.name + '.pdb')
 
     # Keep or not the intermediate files:
     if not args.keep_flag:

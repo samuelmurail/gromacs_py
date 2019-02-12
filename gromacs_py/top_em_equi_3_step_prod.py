@@ -6,13 +6,13 @@ __author__ = "Samuel Murail"
 
 import gromacs.gmx5 as gmx
 import argparse
-from glob import glob
-import os
+
 
 def parser_input():
 
     # Parse arguments :
-    parser = argparse.ArgumentParser(description="Equilibrate in 3 steps a system (coor+top), (i) first equilibration with heavy atoms position restraints, (ii)"\
+    parser = argparse.ArgumentParser(
+        description="Equilibrate in 3 steps a system (coor+top), (i) first equilibration with heavy atoms position restraints, (ii)"
         " second equilibration with alpha carbon position restraints and (iii) finaly equilibration with weak alpha carbon position restraints")
     parser.add_argument('-f', action="store", dest="f", help='Input PDB file', type=str, required=True)
     parser.add_argument('-o', action="store", dest="o", help='Output Directory', type=str, required=True)
@@ -31,6 +31,7 @@ def parser_input():
 
     return(parser)
 
+
 if __name__ == "__main__":
 
     parser = parser_input()
@@ -43,64 +44,58 @@ if __name__ == "__main__":
 
     dt_HA = args.dt_HA
     dt = args.dt
-    HA_step = 1000*args.HA_time/dt_HA
-    CA_step = 1000*args.CA_time/dt
-    CA_LOW_step = 1000*args.CA_LOW_time/dt
-    prod_steps = 1000*args.prod_time/dt
+    HA_step = 1000 * args.HA_time / dt_HA
+    CA_step = 1000 * args.CA_time / dt
+    CA_LOW_step = 1000 * args.CA_LOW_time / dt
+    prod_steps = 1000 * args.prod_time / dt
     sys_name = args.f.split("/")[-1][:-4]
 
     print("EM steps : {}\nEqui HA time : {}ns \nEqui CA time : {}ns \n Equi CA_LOW time :{}ns \n".
-        format(args.min_steps, args.HA_time, args.CA_time, args.CA_LOW_time, args.prod_time))
-    
-    top_dir = args.o+"/prot_top/"
+          format(args.min_steps, args.HA_time, args.CA_time, args.CA_LOW_time, args.prod_time))
 
-    md_sys = gmx.GmxSys(name = sys_name, coor_file = args.f)
+    top_dir = args.o + "/prot_top/"
+
+    md_sys = gmx.GmxSys(name=sys_name, coor_file=args.f)
     md_sys.nt = args.nt
     md_sys.ntmpi = args.ntmpi
     if args.gpuid != "None":
         md_sys.gpu_id = args.gpuid
 
     # TOPOLOGIE
-    md_sys.prepare_top(out_folder = top_dir, vsite = vsite)
-    md_sys.create_box(dist = 1.0, box_type = "dodecahedron", check_file_out = True)
-    print("\n\nTopologie creation was sucessfull \n\tTopologie directorie :\t"+top_dir)
+    md_sys.prepare_top(out_folder=top_dir, vsite=vsite)
+    md_sys.create_box(dist=1.0, box_type="dodecahedron", check_file_out=True)
+    print("\n\nTopologie creation was sucessfull \n\tTopologie directorie :\t" + top_dir)
     md_sys.display()
-
 
     # EM
-    em_dir = args.o+"/prot_em/"
-    md_sys.em_2_steps(out_folder = em_dir, no_constr_nsteps = args.min_steps, constr_nsteps = args.min_steps,
-        posres = "", create_box_flag = False)
-    print("\n\nMinimisation was sucessfull \n\tMinimzed directory :\t"+em_dir)
+    em_dir = args.o + "/prot_em/"
+    md_sys.em_2_steps(out_folder=em_dir, no_constr_nsteps=args.min_steps, constr_nsteps=args.min_steps,
+                      posres="", create_box_flag=False)
+    print("\n\nMinimisation was sucessfull \n\tMinimzed directory :\t" + em_dir)
     md_sys.display()
-
 
     # SOLVATION
-    solv_dir = args.o+"/sys_top/"
-    md_sys.solvate_add_ions(out_folder = solv_dir, name = sys_name, ion_C = args.Conc, create_box_flag=False)
-    print("\n\nSolvation was sucessfull \n\tTopologie directorie :\t"+solv_dir)
+    solv_dir = args.o + "/sys_top/"
+    md_sys.solvate_add_ions(out_folder=solv_dir, name=sys_name, ion_C=args.Conc, create_box_flag=False)
+    print("\n\nSolvation was sucessfull \n\tTopologie directorie :\t" + solv_dir)
     md_sys.display()
-
 
     # EM
-    em_dir = args.o+"/sys_em/"
-    md_sys.em_2_steps(out_folder = em_dir, no_constr_nsteps = args.min_steps, constr_nsteps = args.min_steps,
-        posres = "", create_box_flag = False)
-    print("\n\nMinimisation was sucessfull \n\tMinimzed directory :\t"+em_dir)
+    em_dir = args.o + "/sys_em/"
+    md_sys.em_2_steps(out_folder=em_dir, no_constr_nsteps=args.min_steps, constr_nsteps=args.min_steps,
+                      posres="", create_box_flag=False)
+    print("\n\nMinimisation was sucessfull \n\tMinimzed directory :\t" + em_dir)
     md_sys.display()
-
 
     # EQUI
-    equi_dir = args.o+"/sys_equi/"    
-    md_sys.equi_three_step(out_folder = equi_dir, name = sys_name, nsteps_HA = HA_step,
-        nsteps_CA = CA_step, nsteps_CA_LOW = CA_LOW_step, dt = dt, dt_HA = dt_HA)
-    print("\n\nEquilibration was sucessfull \n\tEquilibration directory :\t"+equi_dir)
+    equi_dir = args.o + "/sys_equi/"
+    md_sys.equi_three_step(out_folder=equi_dir, name=sys_name, nsteps_HA=HA_step,
+                           nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA)
+    print("\n\nEquilibration was sucessfull \n\tEquilibration directory :\t" + equi_dir)
     md_sys.display()
-
 
     # PROD
-    prod_dir = args.o+"/sys_prod/"    
-    md_sys.production(out_folder = prod_dir, name = sys_name, nsteps = prod_steps, dt=dt)
-    print("\n\nProductuion was sucessfull \n\tProduction directory :\t"+prod_dir)
+    prod_dir = args.o + "/sys_prod/"
+    md_sys.production(out_folder=prod_dir, name=sys_name, nsteps=prod_steps, dt=dt)
+    print("\n\nProductuion was sucessfull \n\tProduction directory :\t" + prod_dir)
     md_sys.display()
-

@@ -9,144 +9,142 @@ __author__ = "Samuel Murail"
 
 import os
 import sys
-# Needed for doctest
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import numpy as np
 from numpy.linalg import norm
 from numpy import sin, cos
 
 # Needed for doctest
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import tools.os_command as os_command
 
 # Test folder path
 PDB_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(PDB_LIB_DIR+"/../test/input/")
+TEST_PATH = os.path.abspath(PDB_LIB_DIR + "/../test/input/")
 TEST_OUT = 'gromacs_py_test_out/pdb_manip_test'
 
 # Global variables:
-AA_DICT = {'GLY':'G',
-           'HIS':'H',
-           'HSE':'H',
-           'HSD':'H',
-           'HSP':'H',
-           'ARG':'R',
-           'LYS':'K',
-           'ASP':'D',
-           'GLU':'E',
-           'SER':'S',
-           'THR':'T',
-           'ASN':'N',
-           'GLN':'Q',
-           'CYS':'C',
-           'SEC':'U',
-           'PRO':'P',
-           'ALA':'A',
-           'ILE':'I',
-           'PHE':'F',
-           'TYR':'Y',
-           'TRP':'W',
-           'VAL':'V',
-           'LEU':'L',
-           'MET':'M'}
+AA_DICT = {'GLY': 'G',
+           'HIS': 'H',
+           'HSE': 'H',
+           'HSD': 'H',
+           'HSP': 'H',
+           'ARG': 'R',
+           'LYS': 'K',
+           'ASP': 'D',
+           'GLU': 'E',
+           'SER': 'S',
+           'THR': 'T',
+           'ASN': 'N',
+           'GLN': 'Q',
+           'CYS': 'C',
+           'SEC': 'U',
+           'PRO': 'P',
+           'ALA': 'A',
+           'ILE': 'I',
+           'PHE': 'F',
+           'TYR': 'Y',
+           'TRP': 'W',
+           'VAL': 'V',
+           'LEU': 'L',
+           'MET': 'M'}
 
-AA_1_TO_3_DICT = {'G':'GLY',
-                  'H':'HIS',
-                  'R':'ARG',
-                  'K':'LYS',
-                  'D':'ASP',
-                  'E':'GLU',
-                  'S':'SER',
-                  'T':'THR',
-                  'N':'ASN',
-                  'Q':'GLN',
-                  'C':'CYS',
-                  'U':'SEC',
-                  'P':'PRO',
-                  'A':'ALA',
-                  'I':'ILE',
-                  'F':'PHE',
-                  'Y':'TYR',
-                  'W':'TRP',
-                  'V':'VAL',
-                  'L':'LEU',
-                  'M':'MET',
-                  'X':'ACE'}
+AA_1_TO_3_DICT = {'G': 'GLY',
+                  'H': 'HIS',
+                  'R': 'ARG',
+                  'K': 'LYS',
+                  'D': 'ASP',
+                  'E': 'GLU',
+                  'S': 'SER',
+                  'T': 'THR',
+                  'N': 'ASN',
+                  'Q': 'GLN',
+                  'C': 'CYS',
+                  'U': 'SEC',
+                  'P': 'PRO',
+                  'A': 'ALA',
+                  'I': 'ILE',
+                  'F': 'PHE',
+                  'Y': 'TYR',
+                  'W': 'TRP',
+                  'V': 'VAL',
+                  'L': 'LEU',
+                  'M': 'MET',
+                  'X': 'ACE'}
 
-#Atom names for each residues
+# Atom names for each residues
 BACK_ATOM = ['N', 'CA', 'C', 'O']
 
-AA_ATOM_DICT = {'X':['CH3', 'O', 'C'], # X:ACE
-                'G':BACK_ATOM,
-                'A':BACK_ATOM+['CB'],
-                'S':BACK_ATOM+['CB', 'OG'],
-                'C':BACK_ATOM+['CB', 'SG'],
-                'T':BACK_ATOM+['CB', 'OG1', 'CG2'],
-                'V':BACK_ATOM+['CB', 'CG1', 'CG2'],
-                'I':BACK_ATOM+['CB', 'CG1', 'CG2', 'CD'],
-                'L':BACK_ATOM+['CB', 'CG', 'CD1', 'CD2'],
-                'N':BACK_ATOM+['CB', 'CG', 'ND2', 'OD1'],
-                'D':BACK_ATOM+['CB', 'CG', 'OD1', 'OD2'],
-                'M':BACK_ATOM+['CB', 'CG', 'SD', 'CE'],
-                'Q':BACK_ATOM+['CB', 'CG', 'CD', 'NE2', 'OE1'],
-                'E':BACK_ATOM+['CB', 'CG', 'CD', 'OE1', 'OE2'],
-                'K':BACK_ATOM+['CB', 'CG', 'CD', 'CE', 'NZ'],
-                'R':BACK_ATOM+['CB', 'CG', 'CD', 'NE', 'CZ', 'NH1', 'NH2'],
-                'F':BACK_ATOM+['CB', 'CG', 'CD1', 'CE1', 'CZ', 'CD2', 'CE2'],
-                'Y':BACK_ATOM+['CB', 'CG', 'CD1', 'CE1', 'CZ', 'CD2', 'CE2', 'OH'],
-                'H':BACK_ATOM+['CB', 'CG', 'ND1', 'CE1', 'CD2', 'NE2'],
-                'W':BACK_ATOM+['CB', 'CG', 'CD1', 'NE1', 'CD2', 'CE2', 'CE3', 'CZ3', 'CH2', 'CZ2'],
-                'P':BACK_ATOM+['CB', 'CG', 'CD']}
+AA_ATOM_DICT = {'X': ['CH3', 'O', 'C'],  # X:ACE
+                'G': BACK_ATOM,
+                'A': BACK_ATOM + ['CB'],
+                'S': BACK_ATOM + ['CB', 'OG'],
+                'C': BACK_ATOM + ['CB', 'SG'],
+                'T': BACK_ATOM + ['CB', 'OG1', 'CG2'],
+                'V': BACK_ATOM + ['CB', 'CG1', 'CG2'],
+                'I': BACK_ATOM + ['CB', 'CG1', 'CG2', 'CD'],
+                'L': BACK_ATOM + ['CB', 'CG', 'CD1', 'CD2'],
+                'N': BACK_ATOM + ['CB', 'CG', 'ND2', 'OD1'],
+                'D': BACK_ATOM + ['CB', 'CG', 'OD1', 'OD2'],
+                'M': BACK_ATOM + ['CB', 'CG', 'SD', 'CE'],
+                'Q': BACK_ATOM + ['CB', 'CG', 'CD', 'NE2', 'OE1'],
+                'E': BACK_ATOM + ['CB', 'CG', 'CD', 'OE1', 'OE2'],
+                'K': BACK_ATOM + ['CB', 'CG', 'CD', 'CE', 'NZ'],
+                'R': BACK_ATOM + ['CB', 'CG', 'CD', 'NE', 'CZ', 'NH1', 'NH2'],
+                'F': BACK_ATOM + ['CB', 'CG', 'CD1', 'CE1', 'CZ', 'CD2', 'CE2'],
+                'Y': BACK_ATOM + ['CB', 'CG', 'CD1', 'CE1', 'CZ', 'CD2', 'CE2', 'OH'],
+                'H': BACK_ATOM + ['CB', 'CG', 'ND1', 'CE1', 'CD2', 'NE2'],
+                'W': BACK_ATOM + ['CB', 'CG', 'CD1', 'NE1', 'CD2', 'CE2', 'CE3', 'CZ3', 'CH2', 'CZ2'],
+                'P': BACK_ATOM + ['CB', 'CG', 'CD']}
 
 # Bond definition:
 # Note that order is important
 BACK_BOND = [['-C', 'N'], ['N', 'CA'], ['CA', 'C'], ['C', 'O']]
 # X is for ACE special case
 AA_BOND_DICT = {}
-AA_BOND_DICT['X'] = [['CH3', 'O'], ['O', 'C']] # Need to use a trick with unphysical bond
+AA_BOND_DICT['X'] = [['CH3', 'O'], ['O', 'C']]  # Need to use a trick with unphysical bond
 AA_BOND_DICT['G'] = BACK_BOND
-AA_BOND_DICT['A'] = BACK_BOND+[['CA', 'CB']]
-AA_BOND_DICT['S'] = BACK_BOND+[['CA', 'CB'], ['CB', 'OG']]
-AA_BOND_DICT['C'] = BACK_BOND+[['CA', 'CB'], ['CB', 'SG']]
-AA_BOND_DICT['T'] = BACK_BOND+[['CA', 'CB'], ['CB', 'OG1'], ['CB', 'CG2']]
-AA_BOND_DICT['V'] = BACK_BOND+[['CA', 'CB'], ['CB', 'CG1'], ['CB', 'CG2']]
-AA_BOND_DICT['I'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG1'], ['CG1', 'CD'], ['CB', 'CG2']]
-AA_BOND_DICT['L'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD1'], ['CG', 'CD2']]
-AA_BOND_DICT['N'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'ND2'], ['CG', 'OD1']]
-AA_BOND_DICT['D'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'OD1'], ['CG', 'OD2']]
-AA_BOND_DICT['M'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'SD'], ['SD', 'CE']]
-AA_BOND_DICT['Q'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD'], ['CD', 'NE2'],
-                 ['CD', 'OE1']]
-AA_BOND_DICT['E'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD'], ['CD', 'OE1'],
-                 ['CD', 'OE2']]
-AA_BOND_DICT['K'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD'], ['CD', 'CE'],
-                 ['CE', 'NZ']]
-AA_BOND_DICT['R'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD'], ['CD', 'NE'],
-                 ['NE', 'CZ'], ['CZ', 'NH1'], ['CZ', 'NH2']]
-AA_BOND_DICT['F'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD1'], ['CD1', 'CE1'],
-                 ['CE1', 'CZ'], ['CG', 'CD2'], ['CD2', 'CE2']]
-AA_BOND_DICT['Y'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD1'], ['CD1', 'CE1'],
-                 ['CE1', 'CZ'], ['CZ', 'OH'], ['CG', 'CD2'], ['CD2', 'CE2']]
-AA_BOND_DICT['H'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'ND1'], ['ND1', 'CE1'],
-                 ['CG', 'CD2'], ['CD2', 'NE2']]
-AA_BOND_DICT['W'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD1'], ['CD1', 'NE1'],
-                 ['CG', 'CD2'], ['CD2', 'CE2'], ['CD2', 'CE3'], ['CE3', 'CZ3'],
-                 ['CZ3', 'CH2'], ['CH2', 'CZ2']]
-AA_BOND_DICT['P'] = BACK_BOND+\
-                [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD']]
+AA_BOND_DICT['A'] = BACK_BOND + [['CA', 'CB']]
+AA_BOND_DICT['S'] = BACK_BOND + [['CA', 'CB'], ['CB', 'OG']]
+AA_BOND_DICT['C'] = BACK_BOND + [['CA', 'CB'], ['CB', 'SG']]
+AA_BOND_DICT['T'] = BACK_BOND + [['CA', 'CB'], ['CB', 'OG1'], ['CB', 'CG2']]
+AA_BOND_DICT['V'] = BACK_BOND + [['CA', 'CB'], ['CB', 'CG1'], ['CB', 'CG2']]
+AA_BOND_DICT['I'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG1'], ['CG1', 'CD'], ['CB', 'CG2']]
+AA_BOND_DICT['L'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD1'], ['CG', 'CD2']]
+AA_BOND_DICT['N'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'ND2'], ['CG', 'OD1']]
+AA_BOND_DICT['D'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'OD1'], ['CG', 'OD2']]
+AA_BOND_DICT['M'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'SD'], ['SD', 'CE']]
+AA_BOND_DICT['Q'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD'], ['CD', 'NE2'],
+     ['CD', 'OE1']]
+AA_BOND_DICT['E'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD'], ['CD', 'OE1'],
+     ['CD', 'OE2']]
+AA_BOND_DICT['K'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD'], ['CD', 'CE'],
+     ['CE', 'NZ']]
+AA_BOND_DICT['R'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD'], ['CD', 'NE'],
+     ['NE', 'CZ'], ['CZ', 'NH1'], ['CZ', 'NH2']]
+AA_BOND_DICT['F'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD1'], ['CD1', 'CE1'],
+     ['CE1', 'CZ'], ['CG', 'CD2'], ['CD2', 'CE2']]
+AA_BOND_DICT['Y'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD1'], ['CD1', 'CE1'],
+     ['CE1', 'CZ'], ['CZ', 'OH'], ['CG', 'CD2'], ['CD2', 'CE2']]
+AA_BOND_DICT['H'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'ND1'], ['ND1', 'CE1'],
+     ['CG', 'CD2'], ['CD2', 'NE2']]
+AA_BOND_DICT['W'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD1'], ['CD1', 'NE1'],
+     ['CG', 'CD2'], ['CD2', 'CE2'], ['CD2', 'CE3'], ['CE3', 'CZ3'],
+     ['CZ3', 'CH2'], ['CH2', 'CZ2']]
+AA_BOND_DICT['P'] = BACK_BOND +\
+    [['CA', 'CB'], ['CB', 'CG'], ['CG', 'CD']]
 
 # Distance, angle and dihedral angles parameters
 BACK_DIST = [['N', 'CA', 1.46],
@@ -164,8 +162,8 @@ BACK_DIHE = [['N', 'CA', 'C', 'O', 0],
              ['N', 'CA', 'C', 'N', 180.0],
              ['CA', 'N', 'C', 'CA', 180.0],
              ['C', 'CA', 'N', 'C', -180.0],
-             ['N', 'C', 'O', 'CH3', 180.0],# Only for ACE-connexion
-             ['CA', 'N', 'C', 'O', 0.0]] # Only for ACE-connexion
+             ['N', 'C', 'O', 'CH3', 180.0],  # Only for ACE-connexion
+             ['CA', 'N', 'C', 'O', 0.0]]  # Only for ACE-connexion
 
 DIST_DICT = {}
 ANGLE_DICT = {}
@@ -480,7 +478,7 @@ DIHE_DICT['P'] = [['N', 'CA', 'C', 'O', 0],
                   ['N', 'CA', 'C', 'N', 180.0],
                   ['CA', 'N', 'C', 'CA', 180.0],
                   ['C', 'CA', 'N', 'C', -70.0],
-                  ['N', 'C', 'O', 'CH3', 180.0],# Only for ACE-connexion
+                  ['N', 'C', 'O', 'CH3', 180.0],  # Only for ACE-connexion
                   ['CA', 'N', 'C', 'O', 0.0],
                   ['CB', 'CA', 'N', 'C', 168.6],
                   ['N', 'CA', 'CB', 'CG', 29.6],
@@ -615,18 +613,18 @@ class Coor:
                         uniq_resid += 1
                         old_res_num = res_num
 
-                    atom = {"field" : field,
-                            "num" : atom_num,
-                            "name" : atom_name,
-                            "alter_loc" : alter_loc,
-                            "res_name" : res_name,
-                            "chain" : chain,
-                            "res_num" : res_num,
+                    atom = {"field": field,
+                            "num": atom_num,
+                            "name": atom_name,
+                            "alter_loc": alter_loc,
+                            "res_name": res_name,
+                            "chain": chain,
+                            "res_num": res_num,
                             "uniq_resid": uniq_resid,
-                            "insert_res" : insert_res,
-                            "xyz" : xyz,
-                            "occ" : occ,
-                            "beta" : beta}
+                            "insert_res": insert_res,
+                            "xyz": xyz,
+                            "occ": occ,
+                            "beta": beta}
 
                     self.atom_dict[atom_index] = atom
                     atom_index += 1
@@ -657,7 +655,7 @@ class Coor:
         if self.crystal_pack is not None:
             filout.write(self.crystal_pack)
         for atom_num, atom in sorted(self.atom_dict.items()):
-            #print(pdb_dict[atom_num]["name"])
+            # print(pdb_dict[atom_num]["name"])
             filout.write("{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}\n".format(
                 atom["field"],
                 atom["num"],
@@ -677,7 +675,6 @@ class Coor:
 
         print("Succeed to save file", pdb_out)
         return
-
 
     def get_aa_seq(self):
         """Get the amino acid sequence from a coor object.
@@ -701,7 +698,7 @@ class Coor:
         """
 
         # Get CA atoms
-        CA_index_list = self.get_index_selection({"name" : ["CA"]})
+        CA_index_list = self.get_index_selection({"name": ["CA"]})
 
         seq = ""
         seq_dict = {}
@@ -720,7 +717,6 @@ class Coor:
         seq_dict[chain_first] = seq
 
         return seq_dict
-
 
     def get_aa_num(self):
         """Get the amino acid number of a coor object.
@@ -742,10 +738,9 @@ class Coor:
 
         """
 
-        CA_index_list = self.get_index_selection({"name" : ["CA"]})
+        CA_index_list = self.get_index_selection({"name": ["CA"]})
 
         return len(CA_index_list)
-
 
     def change_pdb_field(self, change_dict):
         """Change all atom field of a coor object,
@@ -806,7 +801,6 @@ class Coor:
 
         return self
 
-
     def select_part_dict(self, selec_dict):
         """Select atom of a coor object defined,
         the selection is based on the change_dict dictionnary.
@@ -843,16 +837,15 @@ class Coor:
         for atom_num, atom in self.atom_dict.items():
             selected = True
             for selection in selec_dict.keys():
-                #print("select",selection, selec_dict[selection],".")
-                #print("atom",atom[selection],".")
-                if  atom[selection] not in selec_dict[selection]:
+                # print("select",selection, selec_dict[selection],".")
+                # print("atom",atom[selection],".")
+                if atom[selection] not in selec_dict[selection]:
                     selected = False
                     break
             if selected:
                 coor_out.atom_dict[atom_num] = atom
 
         return coor_out
-
 
     def get_index_selection(self, selec_dict):
         """Select atom of a coor object based on the change_dict dictionnary.
@@ -879,21 +872,20 @@ class Coor:
 
         for atom_num, atom in self.atom_dict.items():
             selected = True
-            #print("atom_num:",atom_num,"atom:",atom)
+            # print("atom_num:",atom_num,"atom:",atom)
             for selection in selec_dict.keys():
-                #print("select",selection, selec_dict[selection],".")
-                #print("selection=",selection)
-                #print("atom:",atom)
-                #print("atom",atom[selection],".")
-                if  atom[selection] not in selec_dict[selection]:
+                # print("select",selection, selec_dict[selection],".")
+                # print("selection=",selection)
+                # print("atom:",atom)
+                # print("atom",atom[selection],".")
+                if atom[selection] not in selec_dict[selection]:
                     selected = False
                     break
             if selected:
-                #print(atom)
+                # print(atom)
                 index_list.append(atom_num)
 
         return index_list
-
 
     def get_attribute_selection(self, selec_dict={}, attribute='uniq_resid', index_list=None):
         """Select atom of a coor object based on the change_dict dictionnary.
@@ -921,25 +913,24 @@ class Coor:
         if index_list is None:
             index_list = self.atom_dict.keys()
 
-        #for atom_num, atom in sorted(self.atom_dict.items()):
-        for atom_num  in index_list:
+        # for atom_num, atom in sorted(self.atom_dict.items()):
+        for atom_num in index_list:
             atom = self.atom_dict[atom_num]
             selected = True
-            #print("atom_num:",atom_num,"atom:",atom)
+            # print("atom_num:",atom_num,"atom:",atom)
             for selection in selec_dict.keys():
-                #print("select",selection, selec_dict[selection],".")
-                #print("selection=",selection)
-                #print("atom:",atom)
-                #print("atom",atom[selection],".")
-                if  atom[selection] not in selec_dict[selection]:
+                # print("select",selection, selec_dict[selection],".")
+                # print("selection=",selection)
+                # print("atom:",atom)
+                # print("atom",atom[selection],".")
+                if atom[selection] not in selec_dict[selection]:
                     selected = False
                     break
             if selected:
-                #print(atom)
+                # print(atom)
                 attr_list.append(atom[attribute])
 
         return list(set(attr_list))
-
 
     def del_atom_index(self, index_list):
         """Delete atoms of a coor object defined by their ``index``.
@@ -964,7 +955,7 @@ class Coor:
         """
 
         for index in index_list:
-            #print(index, self.atom_dict[index])
+            # print(index, self.atom_dict[index])
             del self.atom_dict[index]
 
         return self
@@ -1000,7 +991,7 @@ class Coor:
 
         """
 
-        Ca_atom = self.select_part_dict({"name" : ["CA"]})
+        Ca_atom = self.select_part_dict({"name": ["CA"]})
         first_flag = True
         chain_res_list = []
         res_list = []
@@ -1012,11 +1003,11 @@ class Coor:
                 first_flag = False
             else:
                 distance = Coor.atom_dist(atom, old_atom)
-                #print(distance)
+                # print(distance)
                 if distance < Ca_cutoff:
                     old_atom = atom
                 else:
-                    #print("New chain")
+                    # print("New chain")
                     chain_res_list.append(res_list)
                     res_list = []
             res_list.append(atom['uniq_resid'])
@@ -1025,19 +1016,18 @@ class Coor:
 
         # Change chain ID :
 
-        #print(Ca_atom.atom_dict)
+        # print(Ca_atom.atom_dict)
 
-        for i, chain_res in  enumerate(chain_res_list):
-            print("Chain:", chr(65+i), " Residue:", chain_res[0], "to", chain_res[-1])
-            chain_index = self.get_index_selection({'uniq_resid' : chain_res})
-            #print(chain_index)
-            self.change_index_pdb_field(chain_index, {"chain" : chr(65+i)})
-            #pdb_dict_out.update(chain_dict)
+        for i, chain_res in enumerate(chain_res_list):
+            print("Chain:", chr(65 + i), " Residue:", chain_res[0], "to", chain_res[-1])
+            chain_index = self.get_index_selection({'uniq_resid': chain_res})
+            # print(chain_index)
+            self.change_index_pdb_field(chain_index, {"chain": chr(65 + i)})
+            # pdb_dict_out.update(chain_dict)
 
-        #print(pdb_dict_out)
+        # print(pdb_dict_out)
 
         return self
-
 
     def correct_his_name(self):
         """ Get his protonation state from pdb2pqr and replace HIS resname
@@ -1079,12 +1069,12 @@ class Coor:
         # FIND HISTIDINE res
 
         # HSD:
-        hsd_uniq_res = self.get_attribute_selection({"res_name" : ["HIS"],
-                                                     "name" : ["HD1"]},
+        hsd_uniq_res = self.get_attribute_selection({"res_name": ["HIS"],
+                                                     "name": ["HD1"]},
                                                     attribute='uniq_resid')
         # HSE:
-        hse_uniq_res = self.get_attribute_selection({"res_name" : ["HIS"],
-                                                     "name" : ["HE2"]},
+        hse_uniq_res = self.get_attribute_selection({"res_name": ["HIS"],
+                                                     "name": ["HE2"]},
                                                     attribute='uniq_resid')
         # HSP: find res in common with both hsd and hse
         hsp_uniq_res = [res for res in hsd_uniq_res if res in hse_uniq_res]
@@ -1108,7 +1098,6 @@ class Coor:
 
         return self
 
-
     def add_zinc_finger(self, ZN_pdb, cutoff=3.2):
         """ Chabge protonation state of cysteins and histidine coordinating Zinc atoms.
         To do after `correct_his_name` and `correct_cys_name`, in order that protonation is recognize by pdb2gmx.
@@ -1117,7 +1106,7 @@ class Coor:
 
         >>> import tools.pdb_manip as pdb_manip
         >>> import tools.pdb2pqr as pdb2pqr
-        >>> 
+        >>>
         >>> # Read the pdb 1jd4 and keep only chain A
         >>> input_pdb = pdb_manip.Coor()
         >>> input_pdb.read_pdb(TEST_PATH+'/1jd4.pdb') #doctest: +ELLIPSIS
@@ -1158,11 +1147,11 @@ class Coor:
         .. note::
             This function seems useless. Since last version of pdb2pqr residue name seems correct.
         """
-        
+
         # Check the number of ZN atoms:
         coor_pre_pqr = Coor()
         coor_pre_pqr.read_pdb(ZN_pdb)
-        Zinc_sel = coor_pre_pqr.select_part_dict(selec_dict = {'name' : ['ZN']})
+        Zinc_sel = coor_pre_pqr.select_part_dict(selec_dict={'name': ['ZN']})
         Zinc_num = len(Zinc_sel.atom_dict)
 
         if Zinc_num == 0:
@@ -1184,39 +1173,37 @@ class Coor:
             local_atom = self.atom_dict[atom]
             if local_atom['res_name'] in ['CYS']:
                 cys_uniq_res_list.append(local_atom['uniq_resid'])
-            if local_atom['res_name'] in ['HIS','HSD','HSE','HSP']:
+            if local_atom['res_name'] in ['HIS', 'HSD', 'HSE', 'HSP']:
                 his_uniq_res_list.append(local_atom['uniq_resid'])
 
         cys_uniq_res_list = list(set(cys_uniq_res_list))
         his_uniq_res_list = list(set(his_uniq_res_list))
 
-
         # Change CYS to CYN:
         print("change cystein residue(s) : {}".format(sorted(cys_uniq_res_list)))
-        to_change_cys = self.get_index_selection({'uniq_resid':cys_uniq_res_list})
-        self.change_index_pdb_field(to_change_cys, {'res_name':'CYN'})
-        
+        to_change_cys = self.get_index_selection({'uniq_resid': cys_uniq_res_list})
+        self.change_index_pdb_field(to_change_cys, {'res_name': 'CYN'})
+
         # Change Histidine to HSD or HSE
         # the non protonated nitrogen have to be the closest to the ZN atom:
         print("change histidine residue(s) : {}".format(sorted(his_uniq_res_list)))
         for his_uniq_res in his_uniq_res_list:
             # NE2 ND1
-            epsilon_his_index = self.get_index_selection({'uniq_resid':[his_uniq_res],
-                                                          'name':['NE2']})[0]
-            delta_his_index = self.get_index_selection({'uniq_resid':[his_uniq_res],
-                                                          'name':['ND1']})[0]
+            epsilon_his_index = self.get_index_selection({'uniq_resid': [his_uniq_res],
+                                                          'name': ['NE2']})[0]
+            delta_his_index = self.get_index_selection({'uniq_resid': [his_uniq_res],
+                                                        'name': ['ND1']})[0]
             for key, val in Zinc_sel.atom_dict.items():
 
                 epsilon_dist = Coor.atom_dist(val, self.atom_dict[epsilon_his_index])
                 delta_dist = Coor.atom_dist(val, self.atom_dict[delta_his_index])
 
                 if (epsilon_dist < cutoff or delta_dist < cutoff):
-                    to_change_his = self.get_index_selection({'uniq_resid':[his_uniq_res]})
+                    to_change_his = self.get_index_selection({'uniq_resid': [his_uniq_res]})
                     if (epsilon_dist < delta_dist):
-                        self.change_index_pdb_field(to_change_his, {'res_name':'HSD'})
+                        self.change_index_pdb_field(to_change_his, {'res_name': 'HSD'})
                     else:
-                        self.change_index_pdb_field(to_change_his, {'res_name':'HSE'})
-
+                        self.change_index_pdb_field(to_change_his, {'res_name': 'HSE'})
 
         return True
 
@@ -1247,9 +1234,9 @@ class Coor:
         """
 
         # FIND ISU res
-        isu_index_list = self.get_index_selection({"res_name" : ["ISU"]})
+        isu_index_list = self.get_index_selection({"res_name": ["ISU"]})
         if not isu_index_list:
-            #print("Nothing to Fix")
+            # print("Nothing to Fix")
             return self
 
         # Replace CYS resname :
@@ -1262,7 +1249,6 @@ class Coor:
                 self.atom_dict[atom_num]["name"] = "SG"
 
         return self
-
 
     def insert_mol(self, pdb_out, out_folder, mol_chain, check_file_out=True):
         """
@@ -1292,14 +1278,13 @@ class Coor:
         """
 
         # Create the out_folder:
-        pdb_out = out_folder+"/"+pdb_out
+        pdb_out = out_folder + "/" + pdb_out
         os_command.create_dir(out_folder)
 
         # Parameters for molecule insertion:
         cutoff_water_clash = 1.2
         cutoff_prot_off = 12.0
         cutoff_prot_in = 15.0
-
 
         print("\n\nInsert mol in system")
 
@@ -1309,20 +1294,20 @@ class Coor:
             return None
 
         # Select protein, water and molecule atoms :
-        prot_insert_CA = self.select_part_dict(selec_dict={'name' : ['CA']})
-        water = self.select_part_dict(selec_dict={'res_name' : ['SOL']})
-        water_O = self.select_part_dict(selec_dict={'res_name' : ['SOL'], 'name':['OW']})
-        insert = self.select_part_dict(selec_dict={'chain' : [mol_chain]})
-        insert_ACE_C = self.select_part_dict(selec_dict={'chain' : [mol_chain],
-                                                         'name' : ['C'],
-                                                         'res_name' : ['ACE']})
+        prot_insert_CA = self.select_part_dict(selec_dict={'name': ['CA']})
+        water = self.select_part_dict(selec_dict={'res_name': ['SOL']})
+        water_O = self.select_part_dict(selec_dict={'res_name': ['SOL'], 'name': ['OW']})
+        insert = self.select_part_dict(selec_dict={'chain': [mol_chain]})
+        insert_ACE_C = self.select_part_dict(selec_dict={'chain': [mol_chain],
+                                                         'name': ['C'],
+                                                         'res_name': ['ACE']})
 
         mol_num = len(insert_ACE_C.atom_dict)
         res_insert_list = insert.get_attribute_selection(attribute='uniq_resid')
-        # Need to sort the resid, to have consecutive residues 
+        # Need to sort the resid, to have consecutive residues
         res_insert_list.sort()
-        print("Residue list = ",res_insert_list)
-        mol_len = int(len(res_insert_list)/mol_num)
+        print("Residue list = ", res_insert_list)
+        mol_len = int(len(res_insert_list) / mol_num)
 
         print("Insert {} mol of {:d} residues each".format(mol_num, mol_len))
         # Insert one molecule at a time:
@@ -1333,11 +1318,11 @@ class Coor:
                                                               cutoff_min=cutoff_prot_off)
 
             print('insert mol {}, water mol {}'.format(i, len(water_good_index)))
-            insert_unique = insert.select_part_dict(selec_dict={'chain' : [mol_chain],
-                                                                'uniq_resid' : res_insert_list[(mol_len *i):(mol_len*(i+1))]})
+            insert_unique = insert.select_part_dict(selec_dict={'chain': [mol_chain],
+                                                                'uniq_resid': res_insert_list[(mol_len * i):(mol_len * (i + 1))]})
             com_insert = insert_unique.center_of_mass()
 
-            trans_vector = self.atom_dict[water_good_index[0]]['xyz']-com_insert
+            trans_vector = self.atom_dict[water_good_index[0]]['xyz'] - com_insert
 
             insert_unique.translate(trans_vector)
 
@@ -1347,13 +1332,12 @@ class Coor:
         water_res_to_del = water.get_attribute_selection(selec_dict={},
                                                          attribute='uniq_resid',
                                                          index_list=water_to_del_index)
-        water_to_del_index = water.get_index_selection(selec_dict={'uniq_resid':water_res_to_del})
+        water_to_del_index = water.get_index_selection(selec_dict={'uniq_resid': water_res_to_del})
         print("Delete {} water atoms".format(len(water_to_del_index)))
         self.del_atom_index(index_list=water_to_del_index)
 
         self.write_pdb(pdb_out)
         return self
-
 
     def translate(self, vector):
         """ Translate all atoms of a coor object by a given ``vector``
@@ -1379,7 +1363,6 @@ class Coor:
         for atom_num, atom in self.atom_dict.items():
             atom['xyz'] += vector
 
-
     def center_of_mass(self, selec_dict={}):
         """ Compute the center of mass of a selection
         Avoid using atoms with 2 letters atom name like NA Cl ...
@@ -1404,28 +1387,27 @@ class Coor:
         com_array = np.zeros(3)
         mass_tot = 0
 
-        atom_mass_dict = {'H':1, 'C':6, 'N':7, 'O':8, 'P':15, 'S':16}
+        atom_mass_dict = {'H': 1, 'C': 6, 'N': 7, 'O': 8, 'P': 15, 'S': 16}
 
         for atom_num, atom in self.atom_dict.items():
             selected = True
-            #print("atom_num:",atom_num,"atom:",atom)
+            # print("atom_num:",atom_num,"atom:",atom)
             for selection in selec_dict.keys():
-                #print("select",selection, selec_dict[selection],".")
-                #print("selection=",selection)
-                #print("atom:",atom)
-                #print("atom",atom[selection],".")
-                if  atom[selection] not in selec_dict[selection]:
+                # print("select",selection, selec_dict[selection],".")
+                # print("selection=",selection)
+                # print("atom:",atom)
+                # print("atom",atom[selection],".")
+                if atom[selection] not in selec_dict[selection]:
                     selected = False
                     break
             if selected:
-                #print(atom)
+                # print(atom)
                 if atom['name'][0] in atom_mass_dict:
                     mass = atom_mass_dict[atom['name'][0]]
                     com_array += atom['xyz'] * mass
                     mass_tot += mass
 
-        return com_array/mass_tot
-
+        return com_array / mass_tot
 
     def get_index_dist_between(self, atom_sel_2, cutoff_min=0, cutoff_max=10):
         """ Check is distance between atoms of self.atom_dict is under cutoff
@@ -1459,7 +1441,7 @@ class Coor:
         index_list = []
 
         for key_i, atom_i in self.atom_dict.items():
-            #print(key_i)
+            # print(key_i)
             select = True
             min_dist = float('inf')
 
@@ -1467,17 +1449,17 @@ class Coor:
                 dist = Coor.atom_dist(atom_i, atom_j)
                 if dist < min_dist:
                     min_dist = dist
-                if  dist < cutoff_min:
+                if dist < cutoff_min:
                     select = False
-                    #print(dist)
+                    # print(dist)
                     break
 
             if min_dist > cutoff_max:
                 select = False
             if select:
                 index_list.append(key_i)
-        return list(set(index_list))
 
+        return list(set(index_list))
 
     def dist_under_index(self, atom_sel_2, cutoff=10.0):
         """ Check is distance between atoms of self.coor is under cutoff with
@@ -1501,11 +1483,10 @@ class Coor:
                 if Coor.atom_dist(atom_i, atom_j) < cutoff:
                     index_list.append(key_i)
                     break
-                #print("atom_j:",atom_j)
-                #print(Coor.atom_dist(atom_i,atom_j))
+                # print("atom_j:",atom_j)
+                # print(Coor.atom_dist(atom_i,atom_j))
 
         return list(set(index_list))
-
 
     def make_peptide(self, sequence, pdb_out, check_file_out=True):
         """
@@ -1523,13 +1504,11 @@ class Coor:
 
         """
 
-
         # Create and go in out_folder:
         # This is necessary for the topologie creation
         out_folder = os.path.dirname(pdb_out)
-        #print(out_folder)
+        # print(out_folder)
         os_command.create_dir(out_folder)
-
 
         print("-Make peptide: {}".format(sequence))
 
@@ -1538,10 +1517,8 @@ class Coor:
             print("make_peptide", pdb_out, "already exist")
             return os.path.abspath(pdb_out)
 
-
-
         pep = Coor()
-        seq = 'X'+sequence
+        seq = 'X' + sequence
         atom_num = 0
         uniq_resid = 0
         connect_dict = {}
@@ -1553,7 +1530,7 @@ class Coor:
             res_name_index = {}
 
             for atom_name in AA_ATOM_DICT[res_name]:
-                #print("\tatom name:{}".format(atom_name))
+                # print("\tatom name:{}".format(atom_name))
 
                 if atom_num == 0:
                     xyz = np.zeros(3)
@@ -1576,10 +1553,10 @@ class Coor:
                                 connect_name = dist[0][1:]
                                 connect_index = prev_res_name_index[connect_name]
                             break
-                    #print("{} connect to {} for {}".format(
+                    # print("{} connect to {} for {}".format(
                     #    atom_name, connect_name, res_name))
                     bond_len = Coor.find_dist(res_name, atom_name, connect_name)
-                    #print("Bond : {}-{} = {} X".format(
+                    # print("Bond : {}-{} = {} X".format(
                     #    atom_name, connect_name, bond_len))
 
                     if atom_num == 1:
@@ -1591,24 +1568,24 @@ class Coor:
                         connect_2_name = pep.atom_dict[connect_2_index]['name']
                         angle = Coor.find_angle(res_name, atom_name, connect_name, connect_2_name)
                         angle_rad = np.deg2rad(angle)
-                        #print("Angle: {}-{}-{} = {}°".format(atom_name, connect_name, connect_2_name, angle))
+                        # print("Angle: {}-{}-{} = {}°".format(atom_name, connect_name, connect_2_name, angle))
                         if atom_num == 2:
-                            xyz = pep.atom_dict[connect_index]['xyz'] +\
-                                  [-bond_len*np.cos(np.deg2rad(angle)),
-                                   -bond_len*np.sin(np.deg2rad(angle)),
-                                   0]
+                            xyz = pep.atom_dict[connect_index]['xyz'] + [
+                                -bond_len * np.cos(np.deg2rad(angle)),
+                                -bond_len * np.sin(np.deg2rad(angle)),
+                                0]
 
                     if atom_num > 2:
                         if connect_2_index not in connect_dict:
-                            xyz = pep.atom_dict[connect_index]['xyz'] + [-bond_len*np.cos(np.deg2rad(angle)),
-                                                                         -bond_len*np.sin(np.deg2rad(angle)),
+                            xyz = pep.atom_dict[connect_index]['xyz'] + [-bond_len * np.cos(np.deg2rad(angle)),
+                                                                         -bond_len * np.sin(np.deg2rad(angle)),
                                                                          0]
                         else:
                             connect_3_index = connect_dict[connect_2_index]
                             connect_3_name = pep.atom_dict[connect_3_index]['name']
                             dihe = Coor.find_dihe_angle(res_name, atom_name, connect_name, connect_2_name, connect_3_name)
                             dihe_rad = np.deg2rad(dihe)
-                            #print("Dihedral Angle: {}-{}-{}-{} = {}°".format(atom_name, connect_name, connect_2_name, connect_3_name, dihe))
+                            # print("Dihedral Angle: {}-{}-{}-{} = {}°".format(atom_name, connect_name, connect_2_name, connect_3_name, dihe))
                             # From https://github.com/ben-albrecht/qcl/blob/master/qcl/ccdata_xyz.py#L208
                             vec_1 = pep.atom_dict[connect_index]['xyz'] - pep.atom_dict[connect_2_index]['xyz']
                             vec_2 = pep.atom_dict[connect_index]['xyz'] - pep.atom_dict[connect_3_index]['xyz']
@@ -1630,22 +1607,22 @@ class Coor:
                             vec_1 *= bond_len * cos(angle_rad)
 
                             xyz = pep.atom_dict[connect_index]['xyz'] + vec_3 - vec_1
-                            #print(xyz)
+                            # print(xyz)
 
-                atom = {"field" : 'ATOM',
-                        "num" : atom_num,
-                        "name" : atom_name,
-                        "alter_loc" : "",
-                        "res_name" : AA_1_TO_3_DICT[res_name],
-                        "chain" : "P",
-                        "res_num" : uniq_resid,
-                        "uniq_resid" : uniq_resid,
-                        "insert_res" : "",
-                        "xyz" : xyz,
-                        "occ" : 0.0,
-                        "beta" : 0.0}
+                atom = {"field": 'ATOM',
+                        "num": atom_num,
+                        "name": atom_name,
+                        "alter_loc": "",
+                        "res_name": AA_1_TO_3_DICT[res_name],
+                        "chain": "P",
+                        "res_num": uniq_resid,
+                        "uniq_resid": uniq_resid,
+                        "insert_res": "",
+                        "xyz": xyz,
+                        "occ": 0.0,
+                        "beta": 0.0}
                 res_name_index[atom_name] = atom_num
-                #print(atom)
+                # print(atom)
                 pep.atom_dict[atom_num] = atom
                 atom_num += 1
             prev_res_name_index = res_name_index
@@ -1677,7 +1654,6 @@ class Coor:
                 return angle[4]
         raise ValueError('Angle param {}-{}-{}-{} for {} not found !!'.format(name_a, name_b, name_c, name_d, aa_name))
 
-
     @staticmethod
     def atom_dist(atom_1, atom_2):
         """Compute the distance between 2 atoms.
@@ -1703,9 +1679,8 @@ class Coor:
         1.7320508075688772
         """
 
-        distance = np.linalg.norm(atom_1['xyz']-atom_2['xyz'])
+        distance = np.linalg.norm(atom_1['xyz'] - atom_2['xyz'])
         return distance
-
 
     @staticmethod
     def concat_pdb(*pdb_in_files, pdb_out):
@@ -1727,7 +1702,7 @@ class Coor:
         """
 
         if os_command.check_file_and_create_path(pdb_out):
-            print("File "+pdb_out+" already exist")
+            print("File " + pdb_out + " already exist")
             return
 
         filout = open(pdb_out, 'w')
@@ -1751,7 +1726,7 @@ if __name__ == "__main__":
     import shutil
 
     print("-Test pdb_manip module:")
-    print("tools.pdb_manip:\t",doctest.testmod())
+    print("tools.pdb_manip:\t", doctest.testmod())
 
     # Erase all test files
     shutil.rmtree('gromacs_py_test_out', ignore_errors=True)

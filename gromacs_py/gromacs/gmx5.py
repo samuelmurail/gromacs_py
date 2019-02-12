@@ -80,7 +80,7 @@ class TopSys:
 
         self.read_file(top_in)
         if self.include_itp:
-            print("Rewrite topologie: ", top_in)
+            print("Rewrite topologie:", top_in)
             self.write_file(top_in)
 
     def read_file(self, top_in):
@@ -133,7 +133,7 @@ class TopSys:
                         name_itp = os.path.basename(top_in)[:-3] + "itp"
 
                         print("Molecule topologie present in", top_in,
-                              ", extract the topologie in a separate file: ", name_itp)
+                              ", extract the topologie in a separate file:", name_itp)
                         # Store and write the itp file:
                         top_itp = Itp(name=name_itp, fullname=name_itp,
                                       path=os.path.abspath(top_in))
@@ -198,7 +198,7 @@ class TopSys:
             for local_itp in self.itp_list:
                 itp_charge = local_itp.charge(name)
                 if itp_charge is not None:
-                    print("Get charge of ", name, ": ", itp_charge, "total charge: ", itp_charge * num)
+                    print("Get charge of ", name, ":", itp_charge, "total charge:", itp_charge * num)
                     self._charge += num * itp_charge
                     break
         return self._charge
@@ -219,8 +219,8 @@ class TopSys:
                     # print(itp.name)
                     itp_res_num = itp.res_num(name)
                     if itp_res_num is not None:
-                        print("Get Res num of ", name, ": ", itp_res_num,
-                              "total charge: ", num * itp_res_num)
+                        print("Get Res num of ", name, ":", itp_res_num,
+                              "total charge:", num * itp_res_num)
                         self.res_num += num * itp_res_num
                         break
         return self.res_num
@@ -440,8 +440,8 @@ class Itp:
         filout.close()
 
     def display(self):
-        print('-ITP file: ', self.name)
-        print("-molecules defined in the itp file: ")
+        print('-ITP file:', self.name)
+        print("-molecules defined in the itp file:")
         for top_mol in self.top_mol_list:
             print("*", top_mol.name)
 
@@ -2034,7 +2034,7 @@ constraints="none")
             cation_num = int(-1 * sys_charge)
         anion_num = int(cation_num + sys_charge)
 
-        print("Add ions : ", pname, ": ", cation_num, " ", nname, ": ", anion_num)
+        print("Add ions :", pname, ":", cation_num, " ", nname, ":", anion_num)
 
         cmd_ions = os_command.Command([GMX_BIN, "genion",
                                        "-s", self.tpr,
@@ -2358,13 +2358,13 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         # Copy itp and posre files of mol_top to the new location
         top_mol = TopSys(mol_gromacs.top_file)
         old_name = top_mol.mol_comp[0]['name']
-        print("Old topologie name is: ", old_name)
+        print("Old topologie name is:", old_name)
         top_mol.change_mol_name(old_name, "Peptide")
         top_mol.copy_dependancies("./")
         # top_mol.display()
         # Get the new location of the peptide itp file:
         pep_itp = os.path.basename(top_mol.get_include_no_posre_file_list()[0])
-        print("Include: ", pep_itp)
+        print("Include:", pep_itp)
 
         # Get the system topologie:
         sys_topologie = TopSys(self.top_file)
@@ -2377,7 +2377,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         sys_dict.read_pdb(pdb_in=self.coor_file)
         water_res = sys_dict.get_attribute_selection(selec_dict={"res_name": ["SOL"]},
                                                      attribute='uniq_resid')
-        print("Water num: ", len(water_res))
+        print("Water num:", len(water_res))
         sys_topologie.change_mol_num(mol_name="SOL", mol_num=len(water_res))
         # save the top:
         sys_topologie.write_file(new_name + ".top")
@@ -2385,7 +2385,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         self.top_file = new_name + ".top"
 
         charge = sys_topologie.charge()
-        print("CHARGE: ", charge)
+        print("CHARGE:", charge)
         if charge != 0:
             if not os.path.isfile(new_name + "_neutral.pdb"):
                 print("Should neutralize the system")
@@ -2478,7 +2478,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         mol_coor.change_pdb_field({"chain": "Y"})
         mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
         mol_length = int(mol_coor.get_aa_num() / mol_num)
-        print("AA num: ", mol_length)
+        print("AA num:", mol_length)
 
         # Concat the two pdb sys_pdb and mol_pdb
         concat_sys = new_name + "_pre_mix.pdb"
@@ -2505,13 +2505,13 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         # Copy itp and posre files of mol_top to the new location
         top_mol = TopSys(mol_gromacs.top_file)
         old_name = top_mol.mol_comp[0]['name']
-        print("Old topologie name is: ", old_name)
+        print("Old topologie name is:", old_name)
         top_mol.change_mol_name(old_name, "Peptide")
         top_mol.copy_dependancies("./")
         # top_mol.display()
         # Get the new location of the peptide itp file:
         pep_itp = os.path.basename(top_mol.get_include_no_posre_file_list()[0])
-        print("Include: ", pep_itp)
+        print("Include:", pep_itp)
 
         # Get the system topologie:
         sys_topologie = TopSys(self.top_file)
@@ -2524,7 +2524,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         sys_dict.read_pdb(pdb_in=self.coor_file)
         water_res = sys_dict.get_attribute_selection(selec_dict={"res_name": ["SOL"]},
                                                      attribute='uniq_resid')
-        print("Water num: ", len(water_res))
+        print("Water num:", len(water_res))
         sys_topologie.change_mol_num(mol_name="SOL", mol_num=len(water_res))
         # save the top:
         sys_topologie.write_file(new_name + ".top")
@@ -2532,7 +2532,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         self.top_file = new_name + ".top"
 
         charge = sys_topologie.charge()
-        print("CHARGE: ", charge)
+        print("CHARGE:", charge)
         if charge != 0:
             if not os.path.isfile(new_name + "_neutral.pdb"):
                 print("Should neutralize the system")
@@ -2562,7 +2562,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         pdb_in_files = []
 
         for coor_in in coor_in_files:
-            print("File: ", coor_in)
+            print("File:", coor_in)
             if (coor_in[-3:]) == "pdb":
                 pdb_in_files.append(coor_in)
             elif (coor_in[-3:]) == "gro":
@@ -2571,7 +2571,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
                 pdb_in_files.append(tmp_gromacs.coor_file)
             else:
                 raise RuntimeError('Cannot concat the file, should be gro or pdb format')
-        print("CONCAT: ", pdb_in_files)
+        print("CONCAT:", pdb_in_files)
         return pdb_manip.Coor.concat_pdb(pdb_out=pdb_out, *pdb_in_files)
 
     def concat_traj(self, *xtc_files_list, concat_traj_out, check_file_out=True):
@@ -2702,7 +2702,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             # Print remaining options not founded is the mdp_template
             for key, value in local_mdp_opt.items():
                 line = "    " + key + "\t           = " + str(value) + "\n"
-                print("WARNING !!! ADDING unusual parameter : ", key, "in the mdp file", self.mdp)
+                print("WARNING !!! ADDING unusual parameter :", key, "in the mdp file", self.mdp)
                 filout.write(line)
 
         filout.close()
@@ -3380,7 +3380,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         """
 
         cpt_file = self.tpr[:-4] + ".cpt"
-        print("-Get simulation time from : ", cpt_file)
+        print("-Get simulation time from :", cpt_file)
 
         # Check if output files exist:
         if not os.path.isfile(cpt_file):
@@ -3434,7 +3434,7 @@ if __name__ == "__main__":
     import doctest
     import shutil
 
-    print("-Test gmx5 module: ")
+    print("-Test gmx5 module:")
     print("gromacs.gmx5:    \t", doctest.testmod())
 
     # Erase all test files

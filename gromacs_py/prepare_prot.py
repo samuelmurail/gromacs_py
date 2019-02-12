@@ -68,6 +68,7 @@ def parser_input():
 
     return parser
 
+
 if __name__ == "__main__":
 
     my_parser = parser_input()
@@ -86,16 +87,16 @@ if __name__ == "__main__":
     maxwarn = args.maxwarn
     dt_HA = args.dt_HA
     dt = args.dt
-    HA_step = 1000*args.HA_time/dt_HA
-    CA_step = 1000*args.CA_time/dt
-    CA_LOW_step = 1000*args.CA_LOW_time/dt
+    HA_step = 1000 * args.HA_time / dt_HA
+    CA_step = 1000 * args.CA_time / dt
+    CA_LOW_step = 1000 * args.CA_LOW_time / dt
 
-    prot_top_folder = args.o+"/top_prot/"
-    prot_min_folder = args.o+"/em_prot/"
+    prot_top_folder = args.o + "/top_prot/"
+    prot_min_folder = args.o + "/em_prot/"
 
-    sys_top_folder = args.o+"/top_sys/"
-    sys_min_folder = args.o+"/em_sys/"
-    sys_equi_folder = args.o+"/equi_sys/"
+    sys_top_folder = args.o + "/top_sys/"
+    sys_min_folder = args.o + "/em_sys/"
+    sys_equi_folder = args.o + "/equi_sys/"
 
     prot_sys = gmx.GmxSys(name=sys_name, coor_file=args.f)
     prot_sys.nt = args.nt
@@ -103,33 +104,30 @@ if __name__ == "__main__":
     if args.gpuid != "None":
         prot_sys.gpu_id = args.gpuid
 
-
-
     prot_sys.prepare_top(out_folder=prot_top_folder, vsite=vsite)
 
     prot_sys.create_box(dist=1.0, box_type="dodecahedron", check_file_out=True)
 
     prot_sys.em_2_steps(out_folder=prot_min_folder, name=sys_name,
-                       no_constr_nsteps=min_steps, constr_nsteps=min_steps,
-                       posres="", create_box_flag=False)
+                        no_constr_nsteps=min_steps, constr_nsteps=min_steps,
+                        posres="", create_box_flag=False)
 
     prot_sys.convert_trj(traj=False)
 
-    prot_sys.solvate_add_ions(out_folder = sys_top_folder, name = sys_name, ion_C = args.Conc)
+    prot_sys.solvate_add_ions(out_folder=sys_top_folder, name=sys_name, ion_C=args.Conc)
 
     prot_sys.em_2_steps(out_folder=sys_min_folder, name=sys_name,
-                       no_constr_nsteps=min_steps, constr_nsteps=min_steps,
-                       posres="", create_box_flag=False)
+                        no_constr_nsteps=min_steps, constr_nsteps=min_steps,
+                        posres="", create_box_flag=False)
 
     prot_sys.convert_trj(traj=False)
 
     prot_sys.equi_three_step(out_folder=sys_equi_folder, name=sys_name, nsteps_HA=HA_step,
-                             nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA, maxwarn = maxwarn)
-    
+                             nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt,
+                             dt_HA=dt_HA, maxwarn=maxwarn)
+
     prot_sys.convert_trj(traj=False)
 
-
-    print("\n\nSystem preparation was sucessfull \n\tOutput directory :\t"+args.o)
+    print("\n\nSystem preparation was sucessfull \n\tOutput directory :\t" + args.o)
 
     prot_sys.display()
-

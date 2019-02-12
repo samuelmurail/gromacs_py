@@ -5,8 +5,7 @@ __author__ = "Samuel Murail"
 
 import gromacs.gmx5 as gmx
 import argparse
-from glob import glob
-import os
+
 
 def parser_input():
 
@@ -23,29 +22,23 @@ def parser_input():
     parser.add_argument('-gpu_id', action="store", dest="gpuid", help='List of GPU device id-s to use, default=\"\" ', default="None")
     return(parser)
 
+
 if __name__ == "__main__":
 
     parser = parser_input()
     args = parser.parse_args()
-    
-    # mdrun options:
-    
-    #-nt 1 -ntmpi 1  -gpu_id 0
-    
+
     dt = args.dt
-    nsteps = 1000*args.time/dt
-    
-    sys_prod = gmx.GmxSys(name = args.name, coor_file = args.f, top_file = args.p)
+    nsteps = 1000 * args.time / dt
+
+    sys_prod = gmx.GmxSys(name=args.name, coor_file=args.f, top_file=args.p)
     sys_prod.nt = args.nt
     sys_prod.ntmpi = args.ntmpi
     if args.gpuid != "None":
         sys_prod.gpu_id = args.gpuid
-    
-    sys_prod.production(out_folder = args.o,	name = args.name, nsteps = nsteps, dt=args.dt)
-    
-    
-    print("\n\nProductuion was sucessfull \n\tProduction directory :\t"+args.o)
-    
+
+    sys_prod.production(out_folder=args.o, name=args.name, nsteps=nsteps, dt=args.dt)
+
+    print("\n\nProductuion was sucessfull \n\tProduction directory :\t" + args.o)
+
     sys_prod.display()
-
-
