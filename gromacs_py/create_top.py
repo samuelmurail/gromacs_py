@@ -8,6 +8,7 @@ import gromacs.gmx5 as gmx
 
 __author__ = "Samuel Murail"
 
+
 def parser_input():
 
     # Parse arguments :
@@ -21,6 +22,7 @@ def parser_input():
                         help='Use virtual site for hydrogens')
 
     return parser
+
 
 if __name__ == "__main__":
 
@@ -37,6 +39,6 @@ if __name__ == "__main__":
     md_sys.prepare_top(out_folder=args.o, vsite=vsite)
     md_sys.create_box(dist=1.0, box_type="dodecahedron", check_file_out=True)
 
-    print("\n\nTopologie creation was sucessfull \n\tTopologie directorie :\t"+args.o)
+    print("\n\nTopologie creation was sucessfull \n\tTopologie directorie :\t" + args.o)
 
     md_sys.display()

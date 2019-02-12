@@ -9,7 +9,6 @@ import gromacs.gmx5 as gmx
 __author__ = "Samuel Murail"
 
 
-
 def parser_input():
 
     # Parse arguments :
@@ -54,6 +53,5 @@ if __name__ == "__main__":
                        posres="", create_box_flag=args.box)
     sys_min.convert_trj(traj=False)
 
-
-    print("\n\nMinimisation was sucessfull \n\tMinimzed directory :\t"+args.o)
+    print("\n\nMinimisation was sucessfull \n\tMinimzed directory :\t" + args.o)
     sys_min.display()

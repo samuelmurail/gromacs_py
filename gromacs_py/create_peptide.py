@@ -32,14 +32,14 @@ if __name__ == "__main__":
     args = my_parser.parse_args()
 
     dt = 0.001
-    step = 1000*args.time/dt
+    step = 1000 * args.time / dt
     sequence = args.seq
     out_folder = args.o
     em_nsteps = args.min_steps
 
-    peptide = gmx.GmxSys(name='pep_'+sequence)
+    peptide = gmx.GmxSys(name='pep_' + sequence)
     peptide.create_peptide(sequence=sequence, out_folder=out_folder,
                            em_nsteps=em_nsteps, equi_nsteps=step)
 
-    print("\n\nPeptide Creation was sucessfull \n\tPeptide directorie :\t"+args.o)
+    print("\n\nPeptide Creation was sucessfull \n\tPeptide directorie :\t" + args.o)
     peptide.display()

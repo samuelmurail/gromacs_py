@@ -50,23 +50,22 @@ def parser_input():
 
     return parser
 
+
 if __name__ == "__main__":
 
     my_parser = parser_input()
     args = my_parser.parse_args()
 
-
     dt_HA = args.dt_HA
     dt = args.dt
     maxwarn = args.maxwarn
-    HA_step = 1000*args.HA_time/dt_HA
-    CA_step = 1000*args.CA_time/dt
-    CA_LOW_step = 1000*args.CA_LOW_time/dt
+    HA_step = 1000 * args.HA_time / dt_HA
+    CA_step = 1000 * args.CA_time / dt
+    CA_LOW_step = 1000 * args.CA_LOW_time / dt
 
     print("\nEqui HA time :", args.HA_time,
           "ns\nEqui CA time :", args.CA_time,
           "ns\nEqui CA_LOW time :", args.CA_LOW_time, "ns")
-
 
     sys_equi = gmx.GmxSys(name=args.name, coor_file=args.f, top_file=args.p)
     sys_equi.nt = args.nt
@@ -77,7 +76,6 @@ if __name__ == "__main__":
     sys_equi.equi_three_step(out_folder=args.o, name=args.name, nsteps_HA=HA_step,
                              nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA)
 
-
-    print("\n\nEquilibration was sucessfull \n\tEquilibration directory :\t"+args.o)
+    print("\n\nEquilibration was sucessfull \n\tEquilibration directory :\t" + args.o)
 
     sys_equi.display()

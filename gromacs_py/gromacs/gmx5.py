@@ -80,7 +80,7 @@ class TopSys:
 
         self.read_file(top_in)
         if self.include_itp:
-            print("Rewrite topologie:", top_in)
+            print("Rewrite topologie: ", top_in)
             self.write_file(top_in)
 
     def read_file(self, top_in):
@@ -90,7 +90,7 @@ class TopSys:
 
         with open(top_in) as topfile:
             for line in topfile:
-                # print("line:",line)
+                # print("line: ",line)
                 # Check #ifdef field:
                 if line[:6] == '#ifdef':
                     ifdef = True
@@ -104,8 +104,8 @@ class TopSys:
                     include = (file_name.split("/")[-1]).split(".")[0]
 
                     # Look if the itp is in the top path:
-                    # print("Path 1:",self.folder+"/"+file_name)
-                    # print("Path 2:",FORCEFIELD_PATH+"/"+file_name)
+                    # print("Path 1: ",self.folder+"/"+file_name)
+                    # print("Path 2: ",FORCEFIELD_PATH+"/"+file_name)
                     if os_command.check_file_exist(self.folder + "/" + file_name):
                         path = os.path.abspath(self.folder + "/" + file_name)
                     elif os_command.check_file_exist(FORCEFIELD_PATH + "/" + file_name):
@@ -133,7 +133,7 @@ class TopSys:
                         name_itp = os.path.basename(top_in)[:-3] + "itp"
 
                         print("Molecule topologie present in", top_in,
-                              ", extract the topologie in a separate file:", name_itp)
+                              ", extract the topologie in a separate file: ", name_itp)
                         # Store and write the itp file:
                         top_itp = Itp(name=name_itp, fullname=name_itp,
                                       path=os.path.abspath(top_in))
@@ -193,12 +193,12 @@ class TopSys:
         for mol in self.mol_comp:
             name = mol['name']
             num = int(mol['num'])
-            # print("Mol top info:",name,num)
+            # print("Mol top info: ",name,num)
             # Search mol name in itp:
             for local_itp in self.itp_list:
                 itp_charge = local_itp.charge(name)
                 if itp_charge is not None:
-                    print("Get charge of ", name, ":", itp_charge, "total charge:", itp_charge * num)
+                    print("Get charge of ", name, ": ", itp_charge, "total charge: ", itp_charge * num)
                     self._charge += num * itp_charge
                     break
         return self._charge
@@ -219,8 +219,8 @@ class TopSys:
                     # print(itp.name)
                     itp_res_num = itp.res_num(name)
                     if itp_res_num is not None:
-                        print("Get Res num of ", name, ":", itp_res_num,
-                              "total charge:", num * itp_res_num)
+                        print("Get Res num of ", name, ": ", itp_res_num,
+                              "total charge: ", num * itp_res_num)
                         self.res_num += num * itp_res_num
                         break
         return self.res_num
@@ -260,7 +260,7 @@ class TopSys:
 
     def get_include_file_list(self):
         file_list = []
-        # print("\n\nIncluded files:")
+        # print("\n\nIncluded files: ")
         for itp in self.itp_list:
             if self.forcefield['fullname'].split("/")[0] != itp.fullname.split("/")[0]:
                 # print(itp.path)
@@ -270,7 +270,7 @@ class TopSys:
 
     def get_include_no_posre_file_list(self):
         file_list = []
-        # print("\n\nIncluded files:")
+        # print("\n\nIncluded files: ")
         for itp in self.itp_list:
             if self.forcefield['fullname'].split("/")[0] != itp.fullname.split("/")[0]:
                 file_list.append(itp.path)
@@ -294,7 +294,7 @@ class TopSys:
         # print(file_to_copy)
         for file in file_to_copy:
             if os.path.abspath(os_command.get_directory(file)) != os.path.abspath(dest_folder):
-                # print("Copy:"+file+":to:"+dest_folder)
+                # print("Copy: "+file+":to: "+dest_folder)
                 copy(file, dest_folder)
 
     def change_mol_name(self, old_name, new_name):
@@ -339,7 +339,7 @@ class Itp:
         posre_def = ""
         with open(self.path) as file:
             for line in file:
-                # print("Itp line:", line)
+                # print("Itp line: ", line)
                 # Check posres include:
                 if line[:6] == '#ifdef':
                     ifdef = True
@@ -418,7 +418,7 @@ class Itp:
                         local_top.vs4_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al,
                                                    'am': am, 'funct': funct})
                     # else:
-                    #   raise ValueError('Unknown field :'+field)
+                    #   raise ValueError('Unknown field : '+field)
 
         # Needed for empty topologies like aditional ff parameters:
         if 'local_top' in locals():
@@ -440,8 +440,8 @@ class Itp:
         filout.close()
 
     def display(self):
-        print('-ITP file:', self.name)
-        print("-molecules defined in the itp file:")
+        print('-ITP file: ', self.name)
+        print("-molecules defined in the itp file: ")
         for top_mol in self.top_mol_list:
             print("*", top_mol.name)
 
@@ -466,7 +466,7 @@ class Itp:
                 index_posre = top_mol.get_selection_index(selec_dict=selec_dict)
                 if index_posre:
                     # Create the posre itp file :
-                    # print("Posre for :",top_mol.name)
+                    # print("Posre for : ",top_mol.name)
                     posre_file_name = (os.path.abspath(os_command.get_directory(self.path)) +
                                        "/" + self.name + "_posre_" + posre_name + ".itp")
                     # posre_file_name = self.name+"_posre_"+posre_name+".itp"
@@ -867,7 +867,7 @@ file: 1y0m_pdb2gmx.itp
         self._ndx = None
 
         # Simulation outputs:
-        self._mdp = None #: mdp(str)
+        self._mdp = None
         self._xtc = None
         self._edr = None
         self._log = None
@@ -969,7 +969,7 @@ file: 1y0m_pdb2gmx.itp
     def display(self):
         """Display defined attribute of the GmxSys object.
         """
-        # print("Coor :", self.coor_file, "\nTop :", self.top_file)
+        # print("Coor : ", self.coor_file, "\nTop : ", self.top_file)
 
         attr_list = [attr for attr in vars(self) if not attr.startswith('__')]
         for attr in attr_list:
@@ -1012,7 +1012,7 @@ file: 1y0m_pdb2gmx.itp
         :type check_file_out: bool, optional, default=True
 
         :param pdb2gmx_option_dict: dictionnary of option for pdb2gmx, for example if
-            you want to ignore input hydrogens use:``{'ignh':'yes'}``. The '-' before the option
+            you want to ignore input hydrogens use:``{'ignh': 'yes'}``. The '-' before the option
             is to avoid.
         :type pdb2gmx_option_dict: dict, optional, default=None
 
@@ -1047,13 +1047,13 @@ separate file: 1y0m_pdb2gmx.itp
         >>> #########################################
         >>> # Use of different options for pdb2gmx: #
         >>> #########################################
-        >>> # Ignore hydrogens:'ignh':'yes'
-        >>> # Define amino acid termini:'ter':'yes'
+        >>> # Ignore hydrogens: 'ignh': 'yes'
+        >>> # Define amino acid termini: 'ter': 'yes'
         >>> # Needs to answer pdb2gmx request concerning termini
         >>> # with: input_pdb2gmx ="1 \\n 0"
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/add_top/top_SH3_2/',
-        ...     pdb2gmx_option_dict={'ignh':'yes', 'ter':'yes'},
+        ...     pdb2gmx_option_dict={'ignh': 'yes', 'ter': 'yes'},
         ...     input_pdb2gmx="1 \\n 0") #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
@@ -1089,9 +1089,9 @@ separate file: 1y0m_pdb2gmx.itp
         # This is necessary for the topologie creation
         os_command.create_and_go_dir(out_folder)
 
-        new_coor = name+"_pdb2gmx.pdb"
-        top_file = name+"_pdb2gmx.top"
-        posre_file = name+"_posre.itp"
+        new_coor = name + "_pdb2gmx.pdb"
+        top_file = name + "_pdb2gmx.top"
+        posre_file = name + "_posre.itp"
 
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(new_coor):
@@ -1121,11 +1121,11 @@ separate file: 1y0m_pdb2gmx.itp
 
         # Now it can add posre files properly:
         top = TopSys(top_file)
-        top.add_posre(posre_name="HA_LOW"+posre_post, selec_dict={'atom_name':HA_NAME},
+        top.add_posre(posre_name="HA_LOW" + posre_post, selec_dict={'atom_name': HA_NAME},
                       fc=[100, 100, 100])
-        top.add_posre(posre_name="CA_LOW"+posre_post, selec_dict={'atom_name':['CA']},
+        top.add_posre(posre_name="CA_LOW" + posre_post, selec_dict={'atom_name': ['CA']},
                       fc=[100, 100, 100])
-        top.add_posre(posre_name="CA"+posre_post, selec_dict={'atom_name':['CA']},
+        top.add_posre(posre_name="CA" + posre_post, selec_dict={'atom_name': ['CA']},
                       fc=[1000, 1000, 1000])
 
         self.coor_file = new_coor
@@ -1133,8 +1133,7 @@ separate file: 1y0m_pdb2gmx.itp
 
         os.chdir(start_dir)
 
-
-    def prepare_top(self, out_folder, name=None, vsite="hydrogens", ignore_ZN = False):
+    def prepare_top(self, out_folder, name=None, vsite="hydrogens", ignore_ZN=False):
         """Prepare the topologie of a protein:
 
             1. compute hisdine protonation with ``pdb2pqr``
@@ -1212,30 +1211,30 @@ separate file: 1y0m_pdb2gmx.itp
 
         # Compute protonation:
         import tools.pdb2pqr as pdb2pqr
-        pdb2pqr.compute_pdb2pqr(self.coor_file, "00_"+name+".pqr", ff="CHARMM",
+        pdb2pqr.compute_pdb2pqr(self.coor_file, "00_" + name + ".pqr", ff="CHARMM",
                                 check_file_out=True)
 
         # Correct His resname
         coor_in = pdb_manip.Coor()
-        coor_in.read_pdb(pdb_in="00_"+name+".pqr", pqr_format=True)
+        coor_in.read_pdb(pdb_in="00_" + name + ".pqr", pqr_format=True)
         coor_in.correct_his_name()
         coor_in.correct_cys_name()
         coor_in.correct_chain()
         if not ignore_ZN:
             coor_in.add_zinc_finger(start_pdb)
 
-        coor_in.write_pdb(pdb_out="01_"+name+"_good_his.pdb")
+        coor_in.write_pdb(pdb_out="01_" + name + "_good_his.pdb")
 
-        self.coor_file = "01_"+name+"_good_his.pdb"
+        self.coor_file = "01_" + name + "_good_his.pdb"
 
         # Compute topology for system without zinc
-        if coor_in.add_zinc_finger(start_pdb)== False:
-            pdb2gmx_option_dict={'vsite':vsite, 'ignh':'yes'}
+        if coor_in.add_zinc_finger(start_pdb) is False:
+            pdb2gmx_option_dict = {'vsite': vsite, 'ignh': 'yes'}
         # Compute topology for system with zinc
         else:
-            pdb2gmx_option_dict={'vsite':vsite, 'ignh':'yes', 'merge':'all'}
+            pdb2gmx_option_dict = {'vsite': vsite, 'ignh': 'yes', 'merge': 'all'}
 
-        self.add_top(out_folder=".",check_file_out=True,
+        self.add_top(out_folder=".", check_file_out=True,
                      pdb2gmx_option_dict=pdb2gmx_option_dict)
         os.chdir(start_dir)
 
@@ -1305,27 +1304,24 @@ gromacs_py_test_out/gmx5/cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
             Has not been tested with special residues like GLY or PRO !!
         """
 
-        N_ter_dic = {"NH3+":"0", "NH2":"1", "5TER":"2", "None":"3"}
-        C_ter_dic = {"COO-":"0", "COOH":"1", "CT2":"2", "3TER":"3", "None":"4"}
+        N_ter_dic = {"NH3+": "0", "NH2": "1", "5TER": "2", "None": "3"}
+        C_ter_dic = {"COO-": "0", "COOH": "1", "CT2": "2", "3TER": "3", "None": "4"}
 
         # If name is not define use the object name
         if name is None:
             name = self.name
 
-
-        if check_file_out and \
-        os_command.check_file_and_create_path(out_folder+"/"+name+"_pdb2gmx.top"):
-            print("create_top not launched", out_folder+"/"+name+"_pdb2gmx.top", "already exist")
-            self.coor_file = out_folder+"/"+name+"_pdb2gmx.pdb"
-            self.top_file = out_folder+"/"+name+"_pdb2gmx.top"
+        if check_file_out and os_command.check_file_and_create_path(out_folder + "/" + name + "_pdb2gmx.top"):
+            print("create_top not launched", out_folder + "/" + name + "_pdb2gmx.top", "already exist")
+            self.coor_file = out_folder + "/" + name + "_pdb2gmx.pdb"
+            self.top_file = out_folder + "/" + name + "_pdb2gmx.top"
             return
 
-
         # Create peptide topologie with NH2 Cter and COO- Nter
-        self.add_top(out_folder=out_folder, name="no_cyclic_"+name,
+        self.add_top(out_folder=out_folder, name="no_cyclic_" + name,
                      water="tip3p", ff="charmm36-jul2017",
-                     pdb2gmx_option_dict={'vsite':'no', 'ignh':'yes', 'ter':'yes'},
-                     check_file_out=False, input_pdb2gmx=N_ter_dic["NH2"]+"\n"+C_ter_dic["COO-"])
+                     pdb2gmx_option_dict={'vsite': 'no', 'ignh': 'yes', 'ter': 'yes'},
+                     check_file_out=False, input_pdb2gmx=N_ter_dic["NH2"] + "\n" + C_ter_dic["COO-"])
 
         # Make the top clean:
         top_pep = TopSys(self.top_file)
@@ -1333,179 +1329,178 @@ gromacs_py_test_out/gmx5/cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         res_num = mol_top.get_res_num()
 
         # Delete useless ter atoms:
-        del_index = mol_top.get_selection_index(selec_dict={'atom_name':['H2'], 'res_num':[1]}) \
-                    + mol_top.get_selection_index(selec_dict={'atom_name':['OT2'],
-                                                              'res_num':[res_num]})
+        del_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H2'], 'res_num': [1]}) +\
+            mol_top.get_selection_index(selec_dict={'atom_name': ['OT2'], 'res_num': [res_num]})
         mol_top.delete_atom(index_list=del_index)
 
         # Change atom type, name and charge :
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name':['N'], 'res_num':[1]})[0]
+        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
         mol_top.atom_dict[chg_index]['atom_type'] = 'NH1'
         mol_top.atom_dict[chg_index]['charge'] = -0.470
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name':['H1'], 'res_num':[1]})[0]
+        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H1'], 'res_num': [1]})[0]
         mol_top.atom_dict[chg_index]['atom_name'] = 'HN'
         mol_top.atom_dict[chg_index]['charge'] = 0.310
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name':['CA'], 'res_num':[1]})[0]
+        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
         mol_top.atom_dict[chg_index]['charge'] = mol_top.atom_dict[chg_index]['charge'] - 0.12
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name':['OT1'],
-                                                            'res_num':[res_num]})[0]
+        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['OT1'],
+                                                            'res_num': [res_num]})[0]
         mol_top.atom_dict[chg_index]['atom_type'] = 'O'
         mol_top.atom_dict[chg_index]['atom_name'] = 'O'
         mol_top.atom_dict[chg_index]['charge'] = -0.51
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name':['C'],
-                                                            'res_num':[res_num]})[0]
+        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['C'],
+                                                            'res_num': [res_num]})[0]
         mol_top.atom_dict[chg_index]['atom_type'] = 'C'
         mol_top.atom_dict[chg_index]['charge'] = 0.51
         last_res_index = chg_index
 
         # Get index for residue i-2
-        prev_2_C_index = mol_top.get_selection_index(selec_dict={'atom_name':['C'],
-                                                                 'res_num':[res_num-1]})[0]
+        prev_2_C_index = mol_top.get_selection_index(selec_dict={
+            'atom_name': ['C'], 'res_num': [res_num - 1]})[0]
         # Get index for residue i-1
-        prev_C_index = mol_top.get_selection_index(selec_dict={'atom_name':['C'],
-                                                               'res_num':[res_num]})[0]
-        prev_O_index = mol_top.get_selection_index(selec_dict={'atom_name':['O'],
-                                                               'res_num':[res_num]})[0]
-        prev_CA_index = mol_top.get_selection_index(selec_dict={'atom_name':['CA'],
-                                                                'res_num':[res_num]})[0]
-        prev_N_index = mol_top.get_selection_index(selec_dict={'atom_name':['N'],
-                                                               'res_num':[res_num]})[0]
+        prev_C_index = mol_top.get_selection_index(selec_dict={
+            'atom_name': ['C'], 'res_num': [res_num]})[0]
+        prev_O_index = mol_top.get_selection_index(selec_dict={
+            'atom_name': ['O'], 'res_num': [res_num]})[0]
+        prev_CA_index = mol_top.get_selection_index(selec_dict={
+            'atom_name': ['CA'], 'res_num': [res_num]})[0]
+        prev_N_index = mol_top.get_selection_index(selec_dict={
+            'atom_name': ['N'], 'res_num': [res_num]})[0]
+
         # check if res is GLY:
         if mol_top.atom_dict[last_res_index]['res_name'] != 'GLY':
-            prev_HA_index = mol_top.get_selection_index(selec_dict={'atom_name':['HA'],
-                                                                    'res_num':[res_num]})[0]
-            prev_CB_index = mol_top.get_selection_index(selec_dict={'atom_name':['CB'],
-                                                                    'res_num':[res_num]})[0]
+            prev_HA_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['HA'], 'res_num': [res_num]})[0]
+            prev_CB_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['CB'], 'res_num': [res_num]})[0]
         else:
-            prev_HA_index = mol_top.get_selection_index(selec_dict={'atom_name':['HA1'],
-                                                                    'res_num':[res_num]})[0]
-            prev_CB_index = mol_top.get_selection_index(selec_dict={'atom_name':['HA2'],
-                                                                    'res_num':[res_num]})[0]
+            prev_HA_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['HA1'], 'res_num': [res_num]})[0]
+            prev_CB_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['HA2'], 'res_num': [res_num]})[0]
         # Get index for residue i
-        C_index = mol_top.get_selection_index(selec_dict={'atom_name':['C'], 'res_num':[1]})[0]
-        #O_index = mol_top.get_selection_index(selec_dict={'atom_name':['O'], 'res_num':[1]})[0]
-        CA_index = mol_top.get_selection_index(selec_dict={'atom_name':['CA'], 'res_num':[1]})[0]
-        N_index = mol_top.get_selection_index(selec_dict={'atom_name':['N'], 'res_num':[1]})[0]
+        C_index = mol_top.get_selection_index(selec_dict={'atom_name': ['C'], 'res_num': [1]})[0]
+        # O_index = mol_top.get_selection_index(selec_dict={'atom_name': ['O'], 'res_num': [1]})[0]
+        CA_index = mol_top.get_selection_index(selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
+        N_index = mol_top.get_selection_index(selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
         # check if res is PRO:
         if mol_top.atom_dict[1]['res_name'] != 'PRO':
-            HN_index = mol_top.get_selection_index(selec_dict={'atom_name':['HN'],
-                                                               'res_num':[1]})[0]
+            HN_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['HN'], 'res_num': [1]})[0]
         else:
-            HN_index = mol_top.get_selection_index(selec_dict={'atom_name':['CD'],
-                                                               'res_num':[1]})[0]
+            HN_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['CD'], 'res_num': [1]})[0]
         # check if res is GLY:
         if mol_top.atom_dict[1]['res_name'] != 'GLY':
-            HA_index = mol_top.get_selection_index(selec_dict={'atom_name':['HA'],
-                                                               'res_num':[1]})[0]
-            CB_index = mol_top.get_selection_index(selec_dict={'atom_name':['CB'],
-                                                               'res_num':[1]})[0]
+            HA_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['HA'], 'res_num': [1]})[0]
+            CB_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['CB'], 'res_num': [1]})[0]
         else:
-            HA_index = mol_top.get_selection_index(selec_dict={'atom_name':['HA1'],
-                                                               'res_num':[1]})[0]
-            CB_index = mol_top.get_selection_index(selec_dict={'atom_name':['HA2'],
-                                                               'res_num':[1]})[0]
+            HA_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['HA1'], 'res_num': [1]})[0]
+            CB_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['HA2'], 'res_num': [1]})[0]
         # Get index for residue i+1
-        next_N_index = mol_top.get_selection_index(selec_dict={'atom_name':['N'],
-                                                               'res_num':[2]})[0]
+        next_N_index = mol_top.get_selection_index(selec_dict={
+            'atom_name': ['N'], 'res_num': [2]})[0]
 
         # Add backbone bonds, angle, dihedral parameters:
         # Bond:
         # N-C
-        mol_top.bond_list.append({'ai':N_index, 'aj':prev_C_index, 'funct':1})
+        mol_top.bond_list.append({'ai': N_index, 'aj': prev_C_index, 'funct': 1})
 
         # Pairs
-        mol_top.pair_list.append({'ai':N_index, 'aj':prev_HA_index, 'funct':1})
-        mol_top.pair_list.append({'ai':N_index, 'aj':prev_N_index, 'funct':1})
-        mol_top.pair_list.append({'ai':N_index, 'aj':prev_CB_index, 'funct':1})
+        mol_top.pair_list.append({'ai': N_index, 'aj': prev_HA_index, 'funct': 1})
+        mol_top.pair_list.append({'ai': N_index, 'aj': prev_N_index, 'funct': 1})
+        mol_top.pair_list.append({'ai': N_index, 'aj': prev_CB_index, 'funct': 1})
 
-        mol_top.pair_list.append({'ai':HN_index, 'aj':prev_O_index, 'funct':1})
-        mol_top.pair_list.append({'ai':HN_index, 'aj':prev_CA_index, 'funct':1})
+        mol_top.pair_list.append({'ai': HN_index, 'aj': prev_O_index, 'funct': 1})
+        mol_top.pair_list.append({'ai': HN_index, 'aj': prev_CA_index, 'funct': 1})
 
-        mol_top.pair_list.append({'ai':CA_index, 'aj':prev_O_index, 'funct':1})
-        mol_top.pair_list.append({'ai':CA_index, 'aj':prev_CA_index, 'funct':1})
+        mol_top.pair_list.append({'ai': CA_index, 'aj': prev_O_index, 'funct': 1})
+        mol_top.pair_list.append({'ai': CA_index, 'aj': prev_CA_index, 'funct': 1})
 
-        mol_top.pair_list.append({'ai':HA_index, 'aj':prev_C_index, 'funct':1})
+        mol_top.pair_list.append({'ai': HA_index, 'aj': prev_C_index, 'funct': 1})
 
-        mol_top.pair_list.append({'ai':CB_index, 'aj':prev_C_index, 'funct':1})
+        mol_top.pair_list.append({'ai': CB_index, 'aj': prev_C_index, 'funct': 1})
 
         # Angle:
-        mol_top.angl_list.append({'ai':N_index, 'aj':prev_C_index, 'ak':prev_O_index, 'funct':5})
-        mol_top.angl_list.append({'ai':N_index, 'aj':prev_C_index, 'ak':prev_CA_index, 'funct':5})
+        mol_top.angl_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_O_index, 'funct': 5})
+        mol_top.angl_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index, 'funct': 5})
 
-        mol_top.angl_list.append({'ai':HN_index, 'aj':N_index, 'ak':prev_C_index, 'funct':5})
-        mol_top.angl_list.append({'ai':CA_index, 'aj':N_index, 'ak':prev_C_index, 'funct':5})
+        mol_top.angl_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index, 'funct': 5})
+        mol_top.angl_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index, 'funct': 5})
 
         # Dihed: type 9
-        mol_top.dihe_list.append({'ai':N_index, 'aj':prev_C_index, 'ak':prev_CA_index,
-                                  'al':prev_HA_index, 'funct':9})
-        mol_top.dihe_list.append({'ai':N_index, 'aj':prev_C_index, 'ak':prev_CA_index,
-                                  'al':prev_CB_index, 'funct':9})
-        mol_top.dihe_list.append({'ai':N_index, 'aj':prev_C_index, 'ak':prev_CA_index,
-                                  'al':prev_N_index, 'funct':9})
+        mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
+                                  'al': prev_HA_index, 'funct': 9})
+        mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
+                                  'al': prev_CB_index, 'funct': 9})
+        mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
+                                  'al': prev_N_index, 'funct': 9})
 
-        mol_top.dihe_list.append({'ai':HN_index, 'aj':N_index, 'ak':prev_C_index,
-                                  'al':prev_O_index, 'funct':9})
-        mol_top.dihe_list.append({'ai':HN_index, 'aj':N_index, 'ak':prev_C_index,
-                                  'al':prev_CA_index, 'funct':9})
+        mol_top.dihe_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index,
+                                  'al': prev_O_index, 'funct': 9})
+        mol_top.dihe_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index,
+                                  'al': prev_CA_index, 'funct': 9})
 
-        mol_top.dihe_list.append({'ai':CA_index, 'aj':N_index, 'ak':prev_C_index,
-                                  'al':prev_O_index, 'funct':9})
-        mol_top.dihe_list.append({'ai':CA_index, 'aj':N_index, 'ak':prev_C_index,
-                                  'al':prev_CA_index, 'funct':9})
+        mol_top.dihe_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index,
+                                  'al': prev_O_index, 'funct': 9})
+        mol_top.dihe_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index,
+                                  'al': prev_CA_index, 'funct': 9})
 
-        mol_top.dihe_list.append({'ai':HA_index, 'aj':CA_index, 'ak':N_index,
-                                  'al':prev_C_index, 'funct':9})
-        mol_top.dihe_list.append({'ai':CB_index, 'aj':CA_index, 'ak':N_index,
-                                  'al':prev_C_index, 'funct':9})
-        mol_top.dihe_list.append({'ai':C_index, 'aj':CA_index, 'ak':N_index,
-                                  'al':prev_C_index, 'funct':9})
+        mol_top.dihe_list.append({'ai': HA_index, 'aj': CA_index, 'ak': N_index,
+                                  'al': prev_C_index, 'funct': 9})
+        mol_top.dihe_list.append({'ai': CB_index, 'aj': CA_index, 'ak': N_index,
+                                  'al': prev_C_index, 'funct': 9})
+        mol_top.dihe_list.append({'ai': C_index, 'aj': CA_index, 'ak': N_index,
+                                  'al': prev_C_index, 'funct': 9})
 
         # Dihed: type 2
-        mol_top.dihe_list.append({'ai':prev_C_index, 'aj':prev_CA_index, 'ak':N_index,
-                                  'al':prev_O_index, 'funct':2})
-        mol_top.dihe_list.append({'ai':N_index, 'aj':prev_C_index, 'ak':CA_index,
-                                  'al':HN_index, 'funct':2})
+        mol_top.dihe_list.append({'ai': prev_C_index, 'aj': prev_CA_index, 'ak': N_index,
+                                  'al': prev_O_index, 'funct': 2})
+        mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': CA_index,
+                                  'al': HN_index, 'funct': 2})
 
         # Cmap
-        mol_top.cmap_list.append({'ai':prev_2_C_index, 'aj':prev_N_index, 'ak':prev_CA_index,
-                                  'al':prev_C_index, 'am':N_index, 'funct':1})
-        mol_top.cmap_list.append({'ai':prev_C_index, 'aj':N_index, 'ak':CA_index, 'al':C_index,
-                                  'am':next_N_index, 'funct':1})
+        mol_top.cmap_list.append({'ai': prev_2_C_index, 'aj': prev_N_index, 'ak': prev_CA_index,
+                                  'al': prev_C_index, 'am': N_index, 'funct': 1})
+        mol_top.cmap_list.append({'ai': prev_C_index, 'aj': N_index, 'ak': CA_index, 'al': C_index,
+                                  'am': next_N_index, 'funct': 1})
 
         # Save itp:
-        top_pep.itp_list[0].write_file(out_folder+"/"+name+"_pdb2gmx.itp")
-        top_pep.itp_list[0].name = name+"_pdb2gmx.itp"
-        top_pep.itp_list[0].fullname = name+"_pdb2gmx.itp"
-        top_pep.itp_list[0].path = os.path.abspath(out_folder+"/"+name+"_pdb2gmx.itp")
+        top_pep.itp_list[0].write_file(out_folder + "/" + name + "_pdb2gmx.itp")
+        top_pep.itp_list[0].name = name + "_pdb2gmx.itp"
+        top_pep.itp_list[0].fullname = name + "_pdb2gmx.itp"
+        top_pep.itp_list[0].path = os.path.abspath(out_folder + "/" + name + "_pdb2gmx.itp")
         # Save top:
-        top_pep.write_file(out_folder+"/"+name+"_pdb2gmx.top")
-        self.top_file = out_folder+"/"+name+"_pdb2gmx.top"
+        top_pep.write_file(out_folder + "/" + name + "_pdb2gmx.top")
+        self.top_file = out_folder + "/" + name + "_pdb2gmx.top"
 
         # Correct pdb file:
         coor_pep = pdb_manip.Coor()
         coor_pep.read_pdb(self.coor_file, pqr_format=False)
-        to_del_index = coor_pep.get_index_selection(selec_dict={'name':['H2'], 'res_num':[1]})\
-        + coor_pep.get_index_selection(selec_dict={'name':['OT2'], 'res_num':[res_num]})
+        to_del_index = coor_pep.get_index_selection(selec_dict={'name': ['H2'], 'res_num': [1]})\
+            + coor_pep.get_index_selection(selec_dict={'name': ['OT2'], 'res_num': [res_num]})
 
         coor_pep.del_atom_index(to_del_index)
 
         # Change atom name :
 
-        chg_index = coor_pep.get_index_selection(selec_dict={'name':['H1'], 'res_num':[1]})
-        coor_pep.change_index_pdb_field(chg_index, {'name':'HN'})
+        chg_index = coor_pep.get_index_selection(selec_dict={'name': ['H1'], 'res_num': [1]})
+        coor_pep.change_index_pdb_field(chg_index, {'name': 'HN'})
 
-        chg_index = coor_pep.get_index_selection(selec_dict={'name':['OT1'], 'res_num':[res_num]})
-        coor_pep.change_index_pdb_field(chg_index, {'name':'O'})
+        chg_index = coor_pep.get_index_selection(selec_dict={'name': ['OT1'], 'res_num': [res_num]})
+        coor_pep.change_index_pdb_field(chg_index, {'name': 'O'})
 
         # save pdb:
-        coor_pep.write_pdb(pdb_out=out_folder+"/"+name+"_pdb2gmx.pdb")
-        self.coor_file = out_folder+"/"+name+"_pdb2gmx.pdb"
+        coor_pep.write_pdb(pdb_out=out_folder + "/" + name + "_pdb2gmx.pdb")
+        self.coor_file = out_folder + "/" + name + "_pdb2gmx.pdb"
 
 
     #######################################################
     #############  SYSTEM CREATION FUNCTIONS  #############
     #######################################################
-
 
     def create_box(self, name=None, dist=1.0, box_type="dodecahedron",
                    check_file_out=True):
@@ -1564,11 +1559,10 @@ gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedro
 
         # If name is not define use the object coor name and add _box.pdb
         if name is None:
-            box_coor = self.coor_file[:-4]+"_box.pdb"
+            box_coor = self.coor_file[:-4] + "_box.pdb"
         # If not use the coor_path Path and add name and _box.pdb
         else:
-            box_coor = "/".join(self.coor_file.split("/")[:-1])+"/"+name+"_box.pdb"
-
+            box_coor = "/".join(self.coor_file.split("/")[:-1]) + "/" + name + "_box.pdb"
 
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(box_coor):
@@ -1587,9 +1581,8 @@ gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedro
 
         self.coor_file = box_coor
 
-
     def convert_trj(self, name=None, ur="compact", pbc="mol", select="System", traj=True,
-                    specific_coor_out = None, check_file_out=True, **cmd_args):
+                    specific_coor_out=None, check_file_out=True, **cmd_args):
         """Convert a trajectory or coordinate file using the commande ``gmx trjconv``.
 
         This is specially usefull when the protein is break across pbc. Using \
@@ -1677,15 +1670,15 @@ gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
         if traj:
             coor_in = self.xtc
             if name is None:
-                coor_out = self.xtc[:-4]+"_compact.xtc"
+                coor_out = self.xtc[:-4] + "_compact.xtc"
             else:
-                coor_out = os_command.get_directory(self.xtc)+name+"_compact.xtc"
+                coor_out = os_command.get_directory(self.xtc) + name + "_compact.xtc"
         else:
             coor_in = self.coor_file
             if name is None:
-                coor_out = self.coor_file[:-4]+"_compact.pdb"
+                coor_out = self.coor_file[:-4] + "_compact.pdb"
             else:
-                coor_out = os_command.get_directory(self.coor_file)+name+"_compact.pdb"
+                coor_out = os_command.get_directory(self.coor_file) + name + "_compact.pdb"
 
         if specific_coor_out is not None:
             coor_out = specific_coor_out
@@ -1704,7 +1697,7 @@ gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
             raise Error("tpr file is missing")
 
         if self.ndx is not None:
-            cmd_args.update({'n':self.ndx})
+            cmd_args.update({'n': self.ndx})
 
         cmd_convert = os_command.Command([GMX_BIN, "trjconv",
                                           "-f", coor_in,
@@ -1721,7 +1714,6 @@ gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
             self.xtc = coor_out
         else:
             self.coor_file = coor_out
-
 
     def copy_box(self, nbox, name=None, check_file_out=True, **cmd_args):
         """Copy images of a given corrdinates in x, y, and z directions using ``gmx genconf``.
@@ -1781,12 +1773,13 @@ gromacs_py_test_out/gmx5/copy_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron 
         """
 
         print("-Copy pbc box using genconf")
-            # If name is not define use the object coor name and add _box.pdb
+        # If name is not define use the object coor name and add _box.pdb
         if name is None:
-            copy_coor = self.coor_file[:-4]+"_copy_box.pdb"
+            copy_coor = self.coor_file[:-4] + "_copy_box.pdb"
         # If not use the coor_path Path and add name and _box.pdb
         else:
-            copy_coor = "/".join(self.coor_file.split("/")[:-1])+"/"+name+"_copy_box.pdb"
+            copy_coor = "/".join(self.coor_file.split("/")[:-1]) +\
+                "/" + name + "_copy_box.pdb"
 
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(copy_coor):
@@ -1806,7 +1799,6 @@ gromacs_py_test_out/gmx5/copy_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron 
         cmd_copy.run()
 
         self.coor_file = copy_coor
-
 
     def solvate_box(self, out_folder, name=None, radius=0.21, cs=WATER_GRO, check_file_out=True):
         """Solvate the pbc box with water or another mol defined with ``cs``
@@ -1875,10 +1867,10 @@ gromacs_py_test_out/gmx5/solv_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron 
         os_command.create_and_go_dir(out_folder)
 
         if name is None:
-            name = self.name+"_water"
+            name = self.name + "_water"
 
-        pdb_out = name+".pdb"
-        top_out = name+".top"
+        pdb_out = name + ".pdb"
+        top_out = name + ".top"
 
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(pdb_out):
@@ -1890,7 +1882,7 @@ gromacs_py_test_out/gmx5/solv_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron 
 
         # Copy the top file to the new directorie:
         topologie = TopSys(self.top_file)
-        #topologie.display()
+        # topologie.display()
         topologie.copy_top_and_dependancies(top_out)
 
         cmd_solvate = os_command.Command([GMX_BIN, "solvate",
@@ -1900,14 +1892,13 @@ gromacs_py_test_out/gmx5/solv_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron 
                                           "-o", pdb_out,
                                           "-radius", str(radius)])
 
-        #cmd_solvate.display()
+        # cmd_solvate.display()
         cmd_solvate.run()
 
         self.coor_file = pdb_out
         self.top_file = top_out
 
         os.chdir(start_dir)
-
 
     def add_ions(self, out_folder, name=None, ion_C=0.15, pname="NA", nname="CL", solv_name="SOL",
                  check_file_out=True):
@@ -2003,7 +1994,7 @@ constraints="none")
         """
 
         if name is None:
-            name = self.name+"_ion"
+            name = self.name + "_ion"
 
         # Create the out dir:
         start_dir = os.path.abspath(".")
@@ -2011,23 +2002,23 @@ constraints="none")
         os_command.create_and_go_dir(out_folder)
 
         # Check if output files exist:
-        if check_file_out and os_command.check_file_and_create_path(name+".gro"):
-            print("add ions not launched", name+".gro", "already exist")
-            self.coor_file = name+".gro"
-            self.top_file = name+".top"
+        if check_file_out and os_command.check_file_and_create_path(name + ".gro"):
+            print("add ions not launched", name + ".gro", "already exist")
+            self.coor_file = name + ".gro"
+            self.top_file = name + ".top"
             os.chdir(start_dir)
             return
 
         # Copy the top file to the new directorie:
-        #if not os_command.check_file_and_create_path(out_folder+"/"+sys_name+".top"):
+        # if not os_command.check_file_and_create_path(out_folder+"/"+sys_name+".top"):
         topologie = TopSys(self.top_file)
-        topologie.copy_top_and_dependancies(name+".top")
+        topologie.copy_top_and_dependancies(name + ".top")
 
-        self.top_file = name+".top"
+        self.top_file = name + ".top"
 
         # Create tpr:
-        self.mdp = GROMACS_MOD_DIRNAME+"/template/mini.mdp"
-        self.add_tpr(name="genion_"+name, maxwarn=1)
+        self.mdp = GROMACS_MOD_DIRNAME + "/template/mini.mdp"
+        self.add_tpr(name="genion_" + name, maxwarn=1)
 
         # Get charge:
         top = TopSys(self.top_file)
@@ -2036,19 +2027,19 @@ constraints="none")
         print("-Add ions to the system with an ionic concentration of",
               ion_C, "M , sytem charge =", sys_charge, "water num=", water_num)
 
-        cation_num = int(ion_C /55.5 * water_num)
+        cation_num = int(ion_C / 55.5 * water_num)
         # Check if anion_num (cation_num  + sys_charge) is negative,
         # raise the canion_num to the sys_charge absolute value
-        if (cation_num  + sys_charge) < 0:
+        if (cation_num + sys_charge) < 0:
             cation_num = int(-1 * sys_charge)
-        anion_num = int(cation_num  + sys_charge)
+        anion_num = int(cation_num + sys_charge)
 
-        print("Add ions :", pname, ":", cation_num, " ", nname, ":", anion_num)
+        print("Add ions : ", pname, ": ", cation_num, " ", nname, ": ", anion_num)
 
         cmd_ions = os_command.Command([GMX_BIN, "genion",
                                        "-s", self.tpr,
                                        "-p", self.top_file,
-                                       "-o", name+".gro",
+                                       "-o", name + ".gro",
                                        "-np", str(cation_num),
                                        "-pname", pname,
                                        "-nn", str(anion_num),
@@ -2057,10 +2048,9 @@ constraints="none")
         cmd_ions.display()
         cmd_ions.run(com_input=solv_name)
 
-        self.coor_file = name+".gro"
+        self.coor_file = name + ".gro"
 
         os.chdir(start_dir)
-
 
     def solvate_add_ions(self, out_folder, name=None, ion_C=0.15, create_box_flag=True, box_dist=1.1):
         """Solvate a system with three succesive steps:
@@ -2153,13 +2143,12 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
 
         # Solvate box:
         self.solvate_box(out_folder=out_folder,
-                         name=name+"_water")
+                         name=name + "_water")
 
         # Add ions:
         self.add_ions(out_folder=out_folder,
-                      name=name+"_water_ion",
+                      name=name + "_water_ion",
                       ion_C=ion_C)
-
 
     def create_peptide(self, sequence, out_folder, N_ter="None", C_ter="COOH",
                        em_nsteps=1000, equi_nsteps=10000, posre_post="_pep"):
@@ -2232,46 +2221,43 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         """
 
-        N_ter_dic = {"NH3+":"0", "NH2":"1", "5TER":"2", "None":"3"}
-        C_ter_dic = {"COO-":"0", "COOH":"1", "CT2":"2", "3TER":"3", "None":"4"}
+        N_ter_dic = {"NH3+": "0", "NH2": "1", "5TER": "2", "None": "3"}
+        C_ter_dic = {"COO-": "0", "COOH": "1", "CT2": "2", "3TER": "3", "None": "4"}
 
-        #Create a peptide with pymol with one more residue G at the beginning of the peptide
-        #This residue will then be change to an ACE
+        # Create a peptide with pymol with one more residue G at the beginning of the peptide
+        # This residue will then be change to an ACE
         # NH2 terminaison raise some issue with virtual sites and cannot be used.
-        #import tools.pymol as pymol
+        # import tools.pymol as pymol
         pep_coor = pdb_manip.Coor()
-        pep_coor.make_peptide(sequence, out_folder+"/"+sequence+".pdb")
-        self.coor_file = out_folder+"/"+sequence+".pdb"
+        pep_coor.make_peptide(sequence, out_folder + "/" + sequence + ".pdb")
+        self.coor_file = out_folder + "/" + sequence + ".pdb"
 
-
-        self.add_top(out_folder=out_folder+"/00_top",
+        self.add_top(out_folder=out_folder + "/00_top",
                      name=sequence, water="tip3p",
                      ff="charmm36-jul2017",
-                     pdb2gmx_option_dict={'vsite':'hydrogens',
-                                          'ignh':'yes', 'ter':'yes'},
+                     pdb2gmx_option_dict={'vsite': 'hydrogens',
+                                          'ignh': 'yes', 'ter': 'yes'},
                      check_file_out=False,
-                     input_pdb2gmx=N_ter_dic[N_ter]+"\n"+C_ter_dic[C_ter],
+                     input_pdb2gmx=N_ter_dic[N_ter] + "\n" + C_ter_dic[C_ter],
                      posre_post=posre_post)
 
         # Minimize the peptide:
-        self.em(out_folder=out_folder+"/01_mini", nsteps=em_nsteps, constraints="none",
+        self.em(out_folder=out_folder + "/01_mini", nsteps=em_nsteps, constraints="none",
                 create_box_flag=True)
-
 
         # Do sa short equi:
         if equi_nsteps > 0:
-            self.run_md_sim(out_folder=out_folder+"/02_equi_vacuum",
-                            name="equi_vacuum_"+sequence,
+            self.run_md_sim(out_folder=out_folder + "/02_equi_vacuum",
+                            name="equi_vacuum_" + sequence,
                             pdb_restr=None,
-                            mdp_template=GROMACS_MOD_DIRNAME+"/template/equi.mdp",
+                            mdp_template=GROMACS_MOD_DIRNAME + "/template/equi.mdp",
                             maxwarn=1,
-                            mdp_options={'nsteps':int(equi_nsteps),
-                                         'dt':0.001,
-                                         'tc_grps':'System',
-                                         'tau_t':0.1,
-                                         'ref_t':310,
-                                         'pcoupl':'no'})
-
+                            mdp_options={'nsteps': int(equi_nsteps),
+                                         'dt': 0.001,
+                                         'tc_grps': 'System',
+                                         'tau_t': 0.1,
+                                         'ref_t': 310,
+                                         'pcoupl': 'no'})
 
     def insert_mol_sys_vmd(self, mol_gromacs, mol_num, new_name, out_folder, check_file_out=True):
         """Insert a new molecule in a system:
@@ -2322,15 +2308,15 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         """
 
         # Check if output files exist:
-        if check_file_out and os_command.check_file_and_create_path(out_folder+"/"+new_name+".top"):
-            print("insert_mol_sys not launched", out_folder+"/"+new_name+".top", "already exist")
-            if os_command.check_file_and_create_path(out_folder+"/"+new_name+"_neutral.pdb"):
-                self.coor_file = out_folder+"/"+new_name+"_neutral.pdb"
-                self.top_file = out_folder+"/"+new_name+".top"
+        if check_file_out and os_command.check_file_and_create_path(out_folder + "/" + new_name + ".top"):
+            print("insert_mol_sys not launched", out_folder + "/" + new_name + ".top", "already exist")
+            if os_command.check_file_and_create_path(out_folder + "/" + new_name + "_neutral.pdb"):
+                self.coor_file = out_folder + "/" + new_name + "_neutral.pdb"
+                self.top_file = out_folder + "/" + new_name + ".top"
                 return
-            elif os_command.check_file_and_create_path(out_folder+"/"+new_name+".pdb"):
-                self.coor_file = out_folder+"/"+new_name+".pdb"
-                self.top_file = out_folder+"/"+new_name+".top"
+            elif os_command.check_file_and_create_path(out_folder + "/" + new_name + ".pdb"):
+                self.coor_file = out_folder + "/" + new_name + ".pdb"
+                self.top_file = out_folder + "/" + new_name + ".top"
                 return
             else:
                 print('Error top file exist but not coor file')
@@ -2349,13 +2335,13 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         # for vmd to reognize the inserted mol
         mol_coor = pdb_manip.Coor()
         mol_coor.read_pdb(mol_gromacs.coor_file)
-        mol_coor.change_pdb_field({"chain":"Y"})
+        mol_coor.change_pdb_field({"chain": "Y"})
         mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
-        mol_length = int(mol_coor.get_aa_num()/mol_num)
-        print("AA num:", mol_length)
+        mol_length = int(mol_coor.get_aa_num() / mol_num)
+        print("AA num: ", mol_length)
 
         # Concat the two pdb sys_pdb and mol_pdb
-        concat_sys = new_name+"_pre_mix.pdb"
+        concat_sys = new_name + "_pre_mix.pdb"
         # Get a compact pdb for the sys pdb
         self.add_tpr(name='tmp')
         self.convert_trj(traj=False)
@@ -2363,50 +2349,49 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         # Do the molecule insertion with a vmd script:
         import tools.vmd as vmd
-        vmd.insert_mol(pdb_in=concat_sys, pdb_out=new_name+".pdb", out_folder="./",
-                       mol_chain="Y", mol_length=mol_length+1, check_file_out=check_file_out)
+        vmd.insert_mol(pdb_in=concat_sys, pdb_out=new_name + ".pdb", out_folder="./",
+                       mol_chain="Y", mol_length=mol_length + 1, check_file_out=check_file_out)
 
-        self.coor_file = new_name+".pdb"
+        self.coor_file = new_name + ".pdb"
 
         # Insert the peptide top in the prot_sys top
         # Copy itp and posre files of mol_top to the new location
         top_mol = TopSys(mol_gromacs.top_file)
         old_name = top_mol.mol_comp[0]['name']
-        print("Old topologie name is:", old_name)
+        print("Old topologie name is: ", old_name)
         top_mol.change_mol_name(old_name, "Peptide")
         top_mol.copy_dependancies("./")
-        #top_mol.display()
+        # top_mol.display()
         # Get the new location of the peptide itp file:
         pep_itp = os.path.basename(top_mol.get_include_no_posre_file_list()[0])
-        print("Include:", pep_itp)
+        print("Include: ", pep_itp)
 
         # Get the system topologie:
         sys_topologie = TopSys(self.top_file)
-        #sys_topologie.display()
+        # sys_topologie.display()
         # Add the peptide in the sys topologie and update the water num:
         sys_topologie.add_mol(mol_name="Peptide", mol_itp_file=pep_itp, mol_num=mol_num)
 
         # Get the new water num after peptide insertion:
         sys_dict = pdb_manip.Coor()
         sys_dict.read_pdb(pdb_in=self.coor_file)
-        water_res = sys_dict.get_attribute_selection(selec_dict={"res_name":["SOL"]},
+        water_res = sys_dict.get_attribute_selection(selec_dict={"res_name": ["SOL"]},
                                                      attribute='uniq_resid')
-        print("Water num:", len(water_res))
+        print("Water num: ", len(water_res))
         sys_topologie.change_mol_num(mol_name="SOL", mol_num=len(water_res))
         # save the top:
-        sys_topologie.write_file(new_name+".top")
+        sys_topologie.write_file(new_name + ".top")
 
-        self.top_file = new_name+".top"
+        self.top_file = new_name + ".top"
 
         charge = sys_topologie.charge()
-        print("CHARGE:", charge)
+        print("CHARGE: ", charge)
         if charge != 0:
-            if not os.path.isfile(new_name+"_neutral.pdb"):
+            if not os.path.isfile(new_name + "_neutral.pdb"):
                 print("Should neutralize the system")
-                self.add_ions(out_folder=".", name=new_name+"_neutral", ion_C=0)
+                self.add_ions(out_folder=".", name=new_name + "_neutral", ion_C=0)
 
         os.chdir(start_dir)
-
 
     def insert_mol_sys(self, mol_gromacs, mol_num, new_name,
                        out_folder, check_file_out=True):
@@ -2464,15 +2449,15 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         """
 
         # Check if output files exist:
-        if check_file_out and os_command.check_file_and_create_path(out_folder+"/"+new_name+".top"):
-            print("insert_mol_sys not launched", out_folder+"/"+new_name+".top", "already exist")
-            if os_command.check_file_and_create_path(out_folder+"/"+new_name+"_neutral.pdb"):
-                self.coor_file = out_folder+"/"+new_name+"_neutral.pdb"
-                self.top_file = out_folder+"/"+new_name+".top"
+        if check_file_out and os_command.check_file_and_create_path(out_folder + "/" + new_name + ".top"):
+            print("insert_mol_sys not launched", out_folder + "/" + new_name + ".top", "already exist")
+            if os_command.check_file_and_create_path(out_folder + "/" + new_name + "_neutral.pdb"):
+                self.coor_file = out_folder + "/" + new_name + "_neutral.pdb"
+                self.top_file = out_folder + "/" + new_name + ".top"
                 return
-            elif os_command.check_file_and_create_path(out_folder+"/"+new_name+".pdb"):
-                self.coor_file = out_folder+"/"+new_name+".pdb"
-                self.top_file = out_folder+"/"+new_name+".top"
+            elif os_command.check_file_and_create_path(out_folder + "/" + new_name + ".pdb"):
+                self.coor_file = out_folder + "/" + new_name + ".pdb"
+                self.top_file = out_folder + "/" + new_name + ".top"
                 return
             print('Error top file exist but not coor file')
             raise IOError('coor file not found')
@@ -2490,73 +2475,71 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         # for vmd to reognize the inserted mol
         mol_coor = pdb_manip.Coor()
         mol_coor.read_pdb(mol_gromacs.coor_file)
-        mol_coor.change_pdb_field({"chain":"Y"})
+        mol_coor.change_pdb_field({"chain": "Y"})
         mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
-        mol_length = int(mol_coor.get_aa_num()/mol_num)
-        print("AA num:", mol_length)
+        mol_length = int(mol_coor.get_aa_num() / mol_num)
+        print("AA num: ", mol_length)
 
         # Concat the two pdb sys_pdb and mol_pdb
-        concat_sys = new_name+"_pre_mix.pdb"
+        concat_sys = new_name + "_pre_mix.pdb"
         # Get a compact pdb for the sys pdb
 
         self.sim_name = "tmp"
-        mini_template_mdp = GROMACS_MOD_DIRNAME+"/template/mini.mdp"
+        mini_template_mdp = GROMACS_MOD_DIRNAME + "/template/mini.mdp"
         self.add_mdp(mdp_template=mini_template_mdp, mdp_options={})
         self.add_tpr(name="tmp")
         self.convert_trj(traj=False)
         GmxSys.concat_coor(self.coor_file, mol_gromacs.coor_file, pdb_out=concat_sys)
-
 
         # Do the molecule insertion with the pdb_manip module:
 
         sys_pdb = pdb_manip.Coor()
         sys_pdb.read_pdb(concat_sys)
 
-        sys_pdb.insert_mol(pdb_out=new_name+".pdb", out_folder=".", mol_chain="Y",
+        sys_pdb.insert_mol(pdb_out=new_name + ".pdb", out_folder=".", mol_chain="Y",
                            check_file_out=check_file_out)
 
-        self.coor_file = new_name+".pdb"
+        self.coor_file = new_name + ".pdb"
         self.display()
         # Insert the peptide top in the prot_sys top
         # Copy itp and posre files of mol_top to the new location
         top_mol = TopSys(mol_gromacs.top_file)
         old_name = top_mol.mol_comp[0]['name']
-        print("Old topologie name is:", old_name)
+        print("Old topologie name is: ", old_name)
         top_mol.change_mol_name(old_name, "Peptide")
         top_mol.copy_dependancies("./")
-        #top_mol.display()
+        # top_mol.display()
         # Get the new location of the peptide itp file:
         pep_itp = os.path.basename(top_mol.get_include_no_posre_file_list()[0])
-        print("Include:", pep_itp)
+        print("Include: ", pep_itp)
 
         # Get the system topologie:
         sys_topologie = TopSys(self.top_file)
-        #sys_topologie.display()
+        # sys_topologie.display()
         # Add the peptide in the sys topologie and update the water num:
         sys_topologie.add_mol(mol_name="Peptide", mol_itp_file=pep_itp, mol_num=mol_num)
 
         # Get the new water num after peptide insertion:
         sys_dict = pdb_manip.Coor()
         sys_dict.read_pdb(pdb_in=self.coor_file)
-        water_res = sys_dict.get_attribute_selection(selec_dict={"res_name":["SOL"]},
+        water_res = sys_dict.get_attribute_selection(selec_dict={"res_name": ["SOL"]},
                                                      attribute='uniq_resid')
-        print("Water num:", len(water_res))
+        print("Water num: ", len(water_res))
         sys_topologie.change_mol_num(mol_name="SOL", mol_num=len(water_res))
         # save the top:
-        sys_topologie.write_file(new_name+".top")
+        sys_topologie.write_file(new_name + ".top")
 
-        self.top_file = new_name+".top"
+        self.top_file = new_name + ".top"
 
         charge = sys_topologie.charge()
-        print("CHARGE:", charge)
+        print("CHARGE: ", charge)
         if charge != 0:
-            if not os.path.isfile(new_name+"_neutral.pdb"):
+            if not os.path.isfile(new_name + "_neutral.pdb"):
                 print("Should neutralize the system")
-                self.add_ions(out_folder=".", name=new_name+"_neutral", ion_C=0)
+                self.add_ions(out_folder=".", name=new_name + "_neutral", ion_C=0)
 
         os.chdir(start_dir)
         self.display()
-
 
     @staticmethod
     def concat_coor(*coor_in_files, pdb_out):
@@ -2579,7 +2562,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         pdb_in_files = []
 
         for coor_in in coor_in_files:
-            print("File:", coor_in)
+            print("File: ", coor_in)
             if (coor_in[-3:]) == "pdb":
                 pdb_in_files.append(coor_in)
             elif (coor_in[-3:]) == "gro":
@@ -2588,9 +2571,8 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
                 pdb_in_files.append(tmp_gromacs.coor_file)
             else:
                 raise RuntimeError('Cannot concat the file, should be gro or pdb format')
-        print("CONCAT:", pdb_in_files)
+        print("CONCAT: ", pdb_in_files)
         return pdb_manip.Coor.concat_pdb(pdb_out=pdb_out, *pdb_in_files)
-
 
     def concat_traj(self, *xtc_files_list, concat_traj_out, check_file_out=True):
         """Concat a list of trajectory file in one trajectory file:
@@ -2612,7 +2594,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             print("XTC files not created, ", concat_traj_out, "already exist")
             self.xtc = concat_traj_out
             return
-
 
         cmd_list = [GMX_BIN, "trjcat",
                     "-o", concat_traj_out,
@@ -2667,7 +2648,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         """Create the MD simulation input mdp file.
 
         Read a template mdp file and replace define fields in mdp_options with the new value.
-        In case the field name has a '-' , repalce it by :'_'.
+        In case the field name has a '-' , repalce it by : '_'.
 
         :param mdp_template: mdp file template
         :type mdp_template: str
@@ -2692,11 +2673,10 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         """
 
-
-        mdp_out = self.sim_name+".mdp"
+        mdp_out = self.sim_name + ".mdp"
 
         if folder_out != "":
-            mdp_out = folder_out+"/"+mdp_out
+            mdp_out = folder_out + "/" + mdp_out
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(mdp_out):
@@ -2713,22 +2693,21 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             for line in filein:
                 if line.split():
                     line_split = line.split()
-                    for  key, value in  local_mdp_opt.items():
+                    for key, value in local_mdp_opt.items():
                         if line_split[0] == key.replace("_", "-") or line_split[0] == key:
-                            line = "    "+key+"\t           = "+str(value)+"\n"
+                            line = "    " + key + "\t           = " + str(value) + "\n"
                             del local_mdp_opt[key]
                             break
                 filout.write(line)
             # Print remaining options not founded is the mdp_template
-            for  key, value in  local_mdp_opt.items():
-                line = "    "+key+"\t           = "+str(value)+"\n"
-                print("WARNING !!! ADDING unusual parameter :", key, "in the mdp file", self.mdp)
+            for key, value in local_mdp_opt.items():
+                line = "    " + key + "\t           = " + str(value) + "\n"
+                print("WARNING !!! ADDING unusual parameter : ", key, "in the mdp file", self.mdp)
                 filout.write(line)
 
         filout.close()
 
         self.mdp = mdp_out
-
 
     def add_ndx(self, ndx_cmd_input, ndx_name=None, folder_out="", check_file_out=True):
         """Create a ndx file using ``gmx make_ndx``
@@ -2759,12 +2738,12 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         """
 
         if ndx_name is not None:
-            ndx_out = ndx_name+".ndx"
+            ndx_out = ndx_name + ".ndx"
         else:
-            ndx_out = self.name+".ndx"
+            ndx_out = self.name + ".ndx"
 
         if folder_out != "":
-            ndx_out = folder_out+"/"+ndx_out
+            ndx_out = folder_out + "/" + ndx_out
 
         print("-Create the ndx file ", ndx_out)
 
@@ -2788,7 +2767,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         cmd_ndx.run(com_input=ndx_cmd_input, display=False)
 
         self.ndx = ndx_out
-
 
     def add_tpr(self, name, r=None, po=None, folder_out="",
                 check_file_out=True, **grompp_options):
@@ -2828,12 +2806,11 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         """
 
-
         self.sim_name = name
-        tpr_out = self.sim_name+".tpr"
+        tpr_out = self.sim_name + ".tpr"
 
         if folder_out != "":
-            tpr_out = folder_out+"/"+tpr_out
+            tpr_out = folder_out + "/" + tpr_out
 
         print("-Create the tpr file ", tpr_out)
 
@@ -2848,7 +2825,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             r = self.coor_file
 
         if po is None:
-            po = "./out_"+self.mdp.split("/")[-1]
+            po = "./out_" + self.mdp.split("/")[-1]
 
         cmd_list = [GMX_BIN, "grompp",
                     "-f", self.mdp,
@@ -2858,8 +2835,8 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
                     "-po", po,
                     "-o", tpr_out]
 
-        for  key, value in  grompp_options.items():
-            cmd_list = cmd_list + ["-"+key, str(value)]
+        for key, value in grompp_options.items():
+            cmd_list = cmd_list + ["-" + key, str(value)]
 
         # Add ndx if defined in the object
         if self.ndx is not None:
@@ -2868,13 +2845,12 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         cmd_tpr = os_command.Command(cmd_list)
 
         cmd_tpr.display()
-        #cmd_tpr.define_env(my_env={**os.environ, 'GMXLIB': FORCEFIELD_PATH})
+        # cmd_tpr.define_env(my_env={**os.environ, 'GMXLIB': FORCEFIELD_PATH})
         cmd_tpr.define_env(my_env=os.environ.update({'GMXLIB': FORCEFIELD_PATH}))
 
         cmd_tpr.run(display=False)
 
         self.tpr = tpr_out
-
 
     def run_simulation(self, check_file_out=True, cpi=None, nsteps=-2, rerun=False):
         """
@@ -2925,14 +2901,14 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         print("-Launch the simulation", self.tpr)
 
         # Check if output files exist:
-        if check_file_out and os.path.isfile(self.sim_name+".gro"):
-            print("Simulation not launched", self.sim_name+".gro", "already exist")
-            self.coor_file = self.sim_name+".gro"
+        if check_file_out and os.path.isfile(self.sim_name + ".gro"):
+            print("Simulation not launched", self.sim_name + ".gro", "already exist")
+            self.coor_file = self.sim_name + ".gro"
             return
 
-        if rerun and check_file_out and os.path.isfile(self.sim_name+".edr"):
-            print("Simulation not launched", self.sim_name+".edr", "already exist")
-            self.edr = self.sim_name+".edr"
+        if rerun and check_file_out and os.path.isfile(self.sim_name + ".edr"):
+            print("Simulation not launched", self.sim_name + ".edr", "already exist")
+            self.edr = self.sim_name + ".edr"
             return
 
         cmd_list = [GMX_BIN, "mdrun",
@@ -2945,19 +2921,18 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         # Don't add gpu_id if not specified
         if self.gpu_id is not None:
-            cmd_list = cmd_list +["-gpu_id", self.gpu_id]
+            cmd_list = cmd_list + ["-gpu_id", self.gpu_id]
         if rerun:
-            cmd_list = cmd_list +["-rerun", self.xtc]
+            cmd_list = cmd_list + ["-rerun", self.xtc]
 
         # If cpi file is included, do a restart from the cpi and don't append xtc, log, edr, ...
         # If cpi option is not defined and the cpt exist, do a restart with append
         if cpi is not None:
-            cmd_list = cmd_list +["-noappend"]
-            cmd_list = cmd_list +["-cpi", cpi]
-        elif os.path.isfile(self.sim_name+".cpt"):
-            cmd_list = cmd_list +["-append"]
-            cmd_list = cmd_list +["-cpi", self.sim_name+".cpt"]
-
+            cmd_list = cmd_list + ["-noappend"]
+            cmd_list = cmd_list + ["-cpi", cpi]
+        elif os.path.isfile(self.sim_name + ".cpt"):
+            cmd_list = cmd_list + ["-append"]
+            cmd_list = cmd_list + ["-cpi", self.sim_name + ".cpt"]
 
         cmd_run = os_command.Command(cmd_list)
 
@@ -2966,16 +2941,15 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         # If it's not a rerun, assign all output to the object variables xtc, edr, log
         if not rerun:
-            self.coor_file = self.sim_name+".gro"
-            if os_command.check_file_exist(self.sim_name+".xtc"):
-                self.xtc = self.sim_name+".xtc"
+            self.coor_file = self.sim_name + ".gro"
+            if os_command.check_file_exist(self.sim_name + ".xtc"):
+                self.xtc = self.sim_name + ".xtc"
             else:
-                self.xtc = self.sim_name+".trr"
-            self.edr = self.sim_name+".edr"
-            self.log = self.sim_name+".log"
+                self.xtc = self.sim_name + ".trr"
+            self.edr = self.sim_name + ".edr"
+            self.log = self.sim_name + ".log"
         else:
-            self.edr = self.sim_name+".edr"
-
+            self.edr = self.sim_name + ".edr"
 
     def run_md_sim(self, out_folder, name, mdp_template, mdp_options,
                    pdb_restr=None, maxwarn=0):
@@ -3028,7 +3002,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         # Create and go in out_folder:
         os_command.create_and_go_dir(out_folder)
 
-        #Create mdp :
+        # Create mdp :
         self.sim_name = name
         self.add_mdp(mdp_template=mdp_template, mdp_options=mdp_options)
         self.add_tpr(name=name, r=pdb_restr, maxwarn=maxwarn)
@@ -3036,7 +3010,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         # Get absolute path:
         os.chdir(start_dir)
-
 
     def em(self, out_folder, name=None, nsteps=1000, posres="",
            create_box_flag=False, **mdp_options):
@@ -3082,12 +3055,11 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         if name is None:
             name = self.name
         # mdp :
-        mini_template_mdp = GROMACS_MOD_DIRNAME+"/template/mini.mdp"
-        mdp_options.update({'nsteps':int(nsteps), 'define':posres})
+        mini_template_mdp = GROMACS_MOD_DIRNAME + "/template/mini.mdp"
+        mdp_options.update({'nsteps': int(nsteps), 'define': posres})
 
         self.run_md_sim(out_folder=out_folder, name=name, mdp_template=mini_template_mdp,
                         mdp_options=mdp_options, maxwarn=1)
-
 
     def em_2_steps(self, out_folder, name=None, no_constr_nsteps=1000, constr_nsteps=1000,
                    posres="", create_box_flag=False, **mdp_options):
@@ -3137,12 +3109,11 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         if name is None:
             name = self.name
 
-        self.em(out_folder=out_folder, name="Init_em_"+name, nsteps=int(no_constr_nsteps),
+        self.em(out_folder=out_folder, name="Init_em_" + name, nsteps=int(no_constr_nsteps),
                 posres=posres, create_box_flag=create_box_flag, constraints="none", **mdp_options)
 
         self.em(out_folder=out_folder, name=name, nsteps=int(constr_nsteps),
                 posres=posres, create_box_flag=False, constraints="all-bonds", **mdp_options)
-
 
     def equi_three_step(self, out_folder, name=None, pdb_restr=None, nsteps_HA=100000,
                         nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.005, dt_HA=0.002,
@@ -3202,25 +3173,24 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         if pdb_restr is None:
             pdb_restr = self.coor_file
 
-        equi_template_mdp = GROMACS_MOD_DIRNAME+"/template/equi.mdp"
+        equi_template_mdp = GROMACS_MOD_DIRNAME + "/template/equi.mdp"
 
-        mdp_options.update({'nsteps':int(nsteps_HA), 'define':'-DPOSRES', 'dt':dt_HA})
-        self.run_md_sim(out_folder=out_folder+"/00_equi_HA", name="equi_HA_"+name,
+        mdp_options.update({'nsteps': int(nsteps_HA), 'define': '-DPOSRES', 'dt': dt_HA})
+        self.run_md_sim(out_folder=out_folder + "/00_equi_HA", name="equi_HA_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn)
 
-        mdp_options.update({'nsteps':int(nsteps_CA), 'define':'-DPOSRES_CA', 'dt':dt})
-        self.run_md_sim(out_folder=out_folder+"/01_equi_CA", name="equi_CA_"+name,
-                        pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options, maxwarn = maxwarn)
-
-        mdp_options.update({'nsteps':int(nsteps_CA_LOW), 'define':'-DPOSRES_CA_LOW', 'dt':dt})
-        self.run_md_sim(out_folder=out_folder+"/02_equi_CA_LOW", name="equi_CA_LOW_"+name,
+        mdp_options.update({'nsteps': int(nsteps_CA), 'define': '-DPOSRES_CA', 'dt': dt})
+        self.run_md_sim(out_folder=out_folder + "/01_equi_CA", name="equi_CA_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn)
 
+        mdp_options.update({'nsteps': int(nsteps_CA_LOW), 'define': '-DPOSRES_CA_LOW', 'dt': dt})
+        self.run_md_sim(out_folder=out_folder + "/02_equi_CA_LOW", name="equi_CA_LOW_" + name,
+                        pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
+                        mdp_options=mdp_options, maxwarn=maxwarn)
 
-    def production(self, out_folder, name=None, nsteps=400000, dt=0.005, 
+    def production(self, out_folder, name=None, nsteps=400000, dt=0.005,
                    maxwarn=0, **mdp_options):
         """Run a production run.
 
@@ -3258,12 +3228,11 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         if name is None:
             name = self.name
 
-        equi_template_mdp = GROMACS_MOD_DIRNAME+"/template/equi.mdp"
+        equi_template_mdp = GROMACS_MOD_DIRNAME + "/template/equi.mdp"
 
-        mdp_options.update({'nsteps':int(nsteps), 'dt':dt, 'define':''})
+        mdp_options.update({'nsteps': int(nsteps), 'dt': dt, 'define': ''})
         self.run_md_sim(out_folder=out_folder, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options, name="prod_"+name, maxwarn = maxwarn)
-
+                        mdp_options=mdp_options, name="prod_" + name, maxwarn=maxwarn)
 
     def extend_equi_prod(self, tpr_file=None, nsteps=200000, dt=0.005):
         """Extend a simulation run.
@@ -3301,13 +3270,13 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             self.tpr = tpr_file
         else:
             if self.tpr is None:
-                print("self.tpr or tpr_file is not define \n"+\
+                print("self.tpr or tpr_file is not define \n" +
                       " Could not restart the simulation using extend_equi_prod() ")
                 raise Error()
 
         # Get simulation time :
         sim_time = self.get_simulation_time()
-        nsteps_to_run = int(nsteps-sim_time/dt)
+        nsteps_to_run = int(nsteps - sim_time / dt)
         if nsteps_to_run <= 0:
             print("Simulation", self.tpr[:-4], "has already run",
                   sim_time, "ps, extending simulation is useless.")
@@ -3321,12 +3290,11 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         os_command.create_and_go_dir(out_folder)
 
-        self.run_simulation(cpi=self.sim_name+".cpt", nsteps=int(nsteps_to_run),
+        self.run_simulation(cpi=self.sim_name + ".cpt", nsteps=int(nsteps_to_run),
                             check_file_out=False)
         self.get_last_output()
 
         os.chdir(start_dir)
-
 
     def get_last_output(self):
         """In a case of a simulation restart, outputs edr, log, gro and xtc files
@@ -3350,7 +3318,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         import glob
         # Get all edr files name :
-        edr_file_list = glob.glob(self.sim_name+'.part*.edr')
+        edr_file_list = glob.glob(self.sim_name + '.part*.edr')
 
         index_list = [int(file[-8:-4]) for file in edr_file_list]
 
@@ -3378,11 +3346,11 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         import glob
         # Get all edr files name :
-        edr_file_list = glob.glob(self.sim_name+'*.edr')
+        edr_file_list = glob.glob(self.sim_name + '*.edr')
 
         index_list = [file[:-4] for file in edr_file_list]
 
-        output_dict = {'edr':[], 'log':[], 'gro':[], 'xtc':[]}
+        output_dict = {'edr': [], 'log': [], 'gro': [], 'xtc': []}
 
         for index in index_list:
             output_dict['edr'].append('{}.edr'.format(index))
@@ -3391,7 +3359,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             output_dict['xtc'].append('{}.xtc'.format(index))
 
         return(output_dict)
-
 
     def get_simulation_time(self):
         """In a case of a simulation restart simulation, one would like to know how much \
@@ -3412,8 +3379,8 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         """
 
-        cpt_file = self.tpr[:-4]+".cpt"
-        print("-Get simulation time from :", cpt_file)
+        cpt_file = self.tpr[:-4] + ".cpt"
+        print("-Get simulation time from : ", cpt_file)
 
         # Check if output files exist:
         if not os.path.isfile(cpt_file):
@@ -3428,7 +3395,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         cmd_run.display()
         output = cmd_run.run(out_data=True)
 
-        #Search in all line, if it start with "Last frame"
+        # Search in all line, if it start with "Last frame"
         for line in output['stderr'].splitlines():
             if line[:10] == "Last frame":
                 time = float(line.split()[4])
@@ -3436,7 +3403,6 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         print("Last Frame not found in gmx check output")
         raise Error()
-
 
     def get_ener(self, output_xvg, selection, skip=0, check_file_out=True):
         """Get enrgy of a system using ``gmx energy``.
@@ -3468,7 +3434,7 @@ if __name__ == "__main__":
     import doctest
     import shutil
 
-    print("-Test gmx5 module:")
+    print("-Test gmx5 module: ")
     print("gromacs.gmx5:    \t", doctest.testmod())
 
     # Erase all test files

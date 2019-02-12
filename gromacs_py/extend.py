@@ -35,7 +35,7 @@ if __name__ == "__main__":
     args = my_parser.parse_args()
 
     dt = args.dt
-    nsteps = 1000*args.time/dt
+    nsteps = 1000 * args.time / dt
 
     sys_prod = gmx.GmxSys()
     sys_prod.nt = args.nt
@@ -44,7 +44,6 @@ if __name__ == "__main__":
         sys_prod.gpu_id = args.gpuid
 
     sys_prod.extend_equi_prod(args.tpr, nsteps=nsteps)
-
 
     print("\n\nProduction extension was sucessfull ")
 
