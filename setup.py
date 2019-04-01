@@ -25,7 +25,8 @@ setup(
 		"Topic :: MD simulation",
     ],
     install_requires=[
-    	"numpy"
+    	"numpy",
+    	"scipy"
     ],
     include_package_data=True,
 )
