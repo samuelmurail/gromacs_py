@@ -9,9 +9,11 @@ __author__ = "Samuel Murail"
 
 import os
 import sys
+import time
 import numpy as np
 from numpy.linalg import norm
 from numpy import sin, cos
+from scipy.spatial import distance_matrix
 
 # Needed for doctest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -1310,18 +1312,18 @@ class Coor:
         mol_len = int(len(res_insert_list) / mol_num)
 
         print("Insert {} mol of {:d} residues each".format(mol_num, mol_len))
+        start_time = time.time()
         # Insert one molecule at a time:
         for i in range(mol_num):
-
+            start_time = time.time()
             water_good_index = water_O.get_index_dist_between(prot_insert_CA,
                                                               cutoff_max=cutoff_prot_in,
                                                               cutoff_min=cutoff_prot_off)
-
+            print("Get index, time = {:.2f} s".format(time.time() - start_time))
             print('insert mol {}, water mol {}'.format(i, len(water_good_index)))
             insert_unique = insert.select_part_dict(selec_dict={'chain': [mol_chain],
                                                                 'uniq_resid': res_insert_list[(mol_len * i):(mol_len * (i + 1))]})
             com_insert = insert_unique.center_of_mass()
-
             trans_vector = self.atom_dict[water_good_index[0]]['xyz'] - com_insert
 
             insert_unique.translate(trans_vector)
@@ -1438,28 +1440,18 @@ class Coor:
 
         """
 
-        index_list = []
+        coor_array = np.array([atom['xyz'] for key, atom in self.atom_dict.items()])
+        index_array = np.array([key for key, atom in self.atom_dict.items()])
 
-        for key_i, atom_i in self.atom_dict.items():
-            # print(key_i)
-            select = True
-            min_dist = float('inf')
+        coor_array_2 = np.array([atom['xyz'] for key, atom in atom_sel_2.atom_dict.items()])
+        
+        #Compute distance matrix
+        dist_mat = distance_matrix(coor_array, coor_array_2)
 
-            for key_j, atom_j in atom_sel_2.atom_dict.items():
-                dist = Coor.atom_dist(atom_i, atom_j)
-                if dist < min_dist:
-                    min_dist = dist
-                if dist < cutoff_min:
-                    select = False
-                    # print(dist)
-                    break
-
-            if min_dist > cutoff_max:
-                select = False
-            if select:
-                index_list.append(key_i)
-
-        return list(set(index_list))
+        # Compute index of matrix column under cutoff_max and over cutoff_min: 
+        dist_mat_good =  np.where( (dist_mat.min(1) < cutoff_max) &  (dist_mat.min(1) > cutoff_min) )[0]
+        
+        return index_array[dist_mat_good]
 
     def dist_under_index(self, atom_sel_2, cutoff=10.0):
         """ Check is distance between atoms of self.coor is under cutoff with
@@ -1476,17 +1468,18 @@ class Coor:
         :type cutoff: float, default=10.0
         """
 
-        index_list = []
+        coor_array = np.array([atom['xyz'] for key, atom in self.atom_dict.items()])
+        index_array = np.array([key for key, atom in self.atom_dict.items()])
 
-        for key_i, atom_i in self.atom_dict.items():
-            for key_j, atom_j in atom_sel_2.atom_dict.items():
-                if Coor.atom_dist(atom_i, atom_j) < cutoff:
-                    index_list.append(key_i)
-                    break
-                # print("atom_j:",atom_j)
-                # print(Coor.atom_dist(atom_i,atom_j))
+        coor_array_2 = np.array([atom['xyz'] for key, atom in atom_sel_2.atom_dict.items()])
 
-        return list(set(index_list))
+        #Compute distance matrix
+        dist_mat = distance_matrix(coor_array, coor_array_2)
+
+        # Compute index of matrix column under cutoff_max and over cutoff_min: 
+        dist_mat_good =  np.where( (dist_mat.min(1) < cutoff))[0]
+
+        return index_array[dist_mat_good]
 
     def make_peptide(self, sequence, pdb_out, check_file_out=True):
         """
