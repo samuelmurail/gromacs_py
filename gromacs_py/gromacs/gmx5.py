@@ -16,7 +16,11 @@ from shutil import copy
 
 __author__ = "Samuel Murail"
 
-GMX_BIN = os_command.which('gmx')
+try:
+    GMX_BIN = os_command.which('gmx')
+except OSError:
+    GMX_BIN = ""
+
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
 WATER_GRO = GMX_PATH + "/share/gromacs/top/spc216.gro"
 
