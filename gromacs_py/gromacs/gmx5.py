@@ -16,9 +16,12 @@ from shutil import copy
 
 __author__ = "Samuel Murail"
 
+
+# Add the try/except only for readthedocs compilation
 try:
     GMX_BIN = os_command.which('gmx')
 except OSError:
+    print("Gromacs cannot be found")
     GMX_BIN = ""
 
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
