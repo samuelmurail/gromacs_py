@@ -2,4 +2,4 @@ numpy
 argparse
 scipy
 m2r
-sphinxarg
+sphinx-argparse
