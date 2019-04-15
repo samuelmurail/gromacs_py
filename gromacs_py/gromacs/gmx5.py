@@ -346,7 +346,7 @@ class Itp:
         posre_def = ""
         with open(self.path) as file:
             for line in file:
-                # print("Itp line: ", line)
+                #print("Itp line: \"{}\" ".format(line))
                 # Check posres include:
                 if line[:6] == '#ifdef':
                     ifdef = True
@@ -397,6 +397,9 @@ class Itp:
                     # Read only indexes not the parameters (c0, c1 ...)
                     # May need some modifications :
                     elif field == 'bonds':
+                        #for i in range(3):
+                        #    print("val:{} #{}#".format(i, line[i*5:(i+1)*5]))
+                        #ai, aj, funct = [int(line[i*5:(i+1)*5]) for i in range(3)]
                         ai, aj, funct = [int(col) for col in line_list[:3]]
                         local_top.bond_list.append({'ai': ai, 'aj': aj, 'funct': funct})
                     elif field == 'constraints':
@@ -580,47 +583,47 @@ class TopMol:
         filout.write("\n[ bonds ]\n;  ai    aj funct            c0            c1            " +
                      "c2            c3\n")
         for param in self.bond_list:
-            filout.write("{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'], param['funct']))
+            filout.write("{:>6}{:>6}{:>6}\n".format(param['ai'], param['aj'], param['funct']))
         # Print constraints field
         filout.write("\n[ constraints ]\n;  ai    aj funct            c0            c1\n")
         for param in self.cons_list:
-            filout.write("{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'], param['funct']))
+            filout.write("{:>6}{:>6}{:>6}\n".format(param['ai'], param['aj'], param['funct']))
         # Print pairs field
         filout.write("\n[ pairs ]\n;  ai    aj funct            c0            c1" +
                      "            c2            c3\n")
         for param in self.pair_list:
-            filout.write("{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'], param['funct']))
+            filout.write("{:>6}{:>6}{:>6}\n".format(param['ai'], param['aj'], param['funct']))
         # Print angles field
         filout.write("\n[ angles ]\n;  ai    aj    ak funct            c0            c1" +
                      "            c2            c3\n")
         for param in self.angl_list:
-            filout.write("{:>5}{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'],
+            filout.write("{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['aj'],
                                                          param['ak'], param['funct']))
         # Print dihedrals field
         filout.write("\n[ dihedrals ]\n;  ai    aj    ak    al funct            c0" +
                      "            c1            c2            c3            c4            c5\n")
         for param in self.dihe_list:
-            filout.write("{:>5}{:>5}{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'],
+            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['aj'],
                                                               param['ak'], param['al'],
                                                               param['funct']))
         # Print virtual_sites3 field
         filout.write("\n[ cmap ]\n;  ai    aj    ak    al    am funct\n")
         for param in self.cmap_list:
-            filout.write("{:>5}{:>5}{:>5}{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'],
+            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['aj'],
                                                                    param['ak'], param['al'],
                                                                    param['am'], param['funct']))
         # Print virtual_sites3 field
         filout.write("\n[ virtual_sites3 ]\n;  ai    aj    ak    al funct            c0" +
                      "            c1\n")
         for param in self.vs3_list:
-            filout.write("{:>5}{:>5}{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'],
+            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['aj'],
                                                               param['ak'], param['al'],
                                                               param['funct']))
         # Print virtual_sites3 field
         filout.write("\n[ virtual_sites4 ]\n;  ai    aj    ak    al    am funct            c0" +
                      "            c1            c2\n")
         for param in self.vs4_list:
-            filout.write("{:>5}{:>5}{:>5}{:>5}{:>5}{:>5}\n".format(param['ai'], param['aj'],
+            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['aj'],
                                                                    param['ak'], param['al'],
                                                                    param['am'], param['funct']))
 
