@@ -7,12 +7,20 @@
 
 import sys
 import os
-# Needed for doctest
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-import tools.os_command as os_command
-import tools.pdb_manip as pdb_manip
 from shutil import copy
+
+
+#import tools.os_command as os_command
+#import tools.pdb_manip as pdb_manip
+
+#sys.path.insert(0, '..')
+
+# Needed because relative imports ..tools don't work
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from ..tools import os_command
+from ..tools import pdb_manip
+from ..tools import pdb2pqr
+
 
 __author__ = "Samuel Murail"
 
@@ -811,7 +819,7 @@ class GmxSys:
 
     :Example:
 
-    >>> import gromacs.gmx5 as gmx
+    >>> import gromacs_py.gromacs.gmx5 as gmx
     >>> # Create the topologie of a protein and do a minimisation:
     >>> prot = gmx.GmxSys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
     >>> prot.prepare_top(out_folder = TEST_OUT+'/class/top_SH3') #doctest: +ELLIPSIS
@@ -1040,7 +1048,7 @@ file: 1y0m_pdb2gmx.itp
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> #Basic usage :
         >>> prot.add_top(out_folder=TEST_OUT+'/add_top/top_SH3') #doctest: +ELLIPSIS
@@ -1176,7 +1184,7 @@ separate file: 1y0m_pdb2gmx.itp
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> # Create the topologie of a protein and do a minimisation:
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_SH3/') #doctest: +ELLIPSIS
@@ -1220,7 +1228,6 @@ separate file: 1y0m_pdb2gmx.itp
         start_pdb = self.coor_file
 
         # Compute protonation:
-        import tools.pdb2pqr as pdb2pqr
         pdb2pqr.compute_pdb2pqr(self.coor_file, "00_" + name + ".pqr", ff="CHARMM",
                                 check_file_out=True)
 
@@ -1278,7 +1285,7 @@ separate file: 1y0m_pdb2gmx.itp
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> cyclic_pep = gmx.GmxSys(name='5vav', coor_file=TEST_PATH+'/5vav.pdb')
         >>>
         >>> #Basic usage :
@@ -1540,7 +1547,7 @@ gromacs_py_test_out/gmx5/cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/create_box/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
@@ -1634,7 +1641,7 @@ gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedro
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/convert_trj/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
@@ -1755,7 +1762,7 @@ gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/copy_box/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
@@ -1843,7 +1850,7 @@ gromacs_py_test_out/gmx5/copy_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron 
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/solv_box/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
@@ -1955,7 +1962,7 @@ gromacs_py_test_out/gmx5/solv_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron 
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/add_ions/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
@@ -2090,7 +2097,7 @@ constraints="none")
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/solvate_add_ions/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
@@ -2191,7 +2198,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
 
         :Example:
 
-        >>> import gromacs.gmx5 as gmx
+        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> pep = gmx.GmxSys(name='SAM_pep')
         >>> pep.create_peptide(sequence='SAM', out_folder=TEST_OUT+'/peptide/', \
 em_nsteps=100, equi_nsteps=100)
@@ -2447,7 +2454,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         :Example:
 
-        #>>> import gromacs.gmx5 as gmx
+        #>>> import gromacs_py.gromacs.gmx5 as gmx
         #>>> prot = gmx.GmxSys(name='5vav', coor_file='5vav.pdb')
         #>>>
         #>>> #Basic usage :

@@ -9,8 +9,11 @@ import os
 # Needed for doctest
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import tools.os_command as os_command
-import tools.pdb_manip as pdb_manip
+from . import os_command
+from . import pdb_manip
+
+#import tools.os_command as os_command
+#import tools.pdb_manip as pdb_manip
 
 PDB2PQR_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
 PDB2PQR_BIN = 'pdb2pqr.py'
