@@ -9,16 +9,16 @@
    :alt: Documentation Status
 
 
-**********
 Gromacs_py
-**********
+=======================================
+
 
 Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software. Gromacs_py can build topologie based on a pdb file, create the simulation system (box, add water and ions) and run minimisation, equilibration and production run.
 One of the main objective of the gromacs_py wrapper is to automatize routine operations for MD simulation of multiple systems.
 
 
 Quick install
-=============
+---------------------------------------
 
 Get gromacs_py library from `github`_.
 
@@ -28,12 +28,13 @@ Get gromacs_py library from `github`_.
    cd gromacs_py
    ./setup.py install
 
-see the `INSTALL.rst`_ file for details.
+see the `INSTALL.rst`__ file for details.
 
 .. _github: https://github.com/samuelmurail/gromacs_py
+__ install.rst
 
 Tutorial
-========
+---------------------------------------
 
 Here is an example of a short simulation of the SH3 domain of phsopholipase Cγ1.
 Seven successive steps are used:
@@ -74,14 +75,14 @@ Seven successive steps are used:
 
 
 Authors
-=======
+---------------------------------------
 
 * **Samuel Murail**, Maitre de conférence - `Université Paris Diderot <https://www.univ-paris-diderot.fr>`_, `CMPLI <http://bfa.univ-paris-diderot.fr/equipe-8/>`_.
 
 See also the list of `contributors <https://github.com/samuelmurail/gromacs_py/contributors>`_ who participated in this project.
 
 License
-=======
+---------------------------------------
 
 This project is licensed under the GNU General Public License v2.0 - see the `LICENSE`_ file for details.
 

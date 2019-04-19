@@ -1202,7 +1202,7 @@ separate file: 1y0m_pdb2gmx.itp
         .. note::
             No options are allowed (forcefield, water model, termini capping) except for vsites.
 
-        .. note2::
+        .. note::
             Starting file need to be a pdb, this should be changed.
         """
 

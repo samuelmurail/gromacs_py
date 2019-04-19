@@ -1,6 +1,9 @@
 
-Getting Started
+Installation
 =======================================
+
+Getting Started
+---------------------------------------
 
 Get the gromacs_py from `github`_.
 
@@ -12,7 +15,7 @@ Get the gromacs_py from `github`_.
 .. _github: https://github.com/samuelmurail/gromacs_py
 
 Prerequisites
-=======================================
+---------------------------------------
 
 1. python 3 librairies:  
 	* sys, os, shutil, glob, argparse, subprocess, operator
@@ -32,7 +35,7 @@ Prerequisites
 
 
 Installing
-=======================================
+---------------------------------------
 
 Need to add path of gmx and pdb2pqr to the environment variable ``$PATH``.
 Add in your ~/.bashrc :
@@ -46,7 +49,7 @@ Add in your ~/.bashrc :
 
 
 Make the documentation
-=======================================
+---------------------------------------
 
 Need sphinx install with argparse sphinx module.
 
@@ -59,7 +62,7 @@ Need sphinx install with argparse sphinx module.
 	sphinx-build -M latexpdf . _build/
 
 Test installation
-=======================================
+---------------------------------------
 
 Launch test with `doctest`__, will check that module’s docstrings are up-to-date by verifying that all interactive examples still work as documented.
 
