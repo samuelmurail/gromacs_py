@@ -25,8 +25,7 @@ setup(
     ],
     install_requires=[
         "numpy",
-        "scipy",
-        "sklearn"
+        "scipy"
     ],
     include_package_data=True,
 )
