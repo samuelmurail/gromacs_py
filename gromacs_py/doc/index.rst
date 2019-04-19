@@ -15,7 +15,7 @@ Welcome to gromacs_py's documentation!
    :caption: Table of Contents:
 
    readme
-   install
+   INSTALL
    gmx_sys
    gmx_top
    tools
