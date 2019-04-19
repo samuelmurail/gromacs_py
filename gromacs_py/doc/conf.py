@@ -48,7 +48,6 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
     'sphinxarg.ext',
-    'm2r'
 ]
 
 

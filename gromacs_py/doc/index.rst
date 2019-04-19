@@ -7,13 +7,14 @@ Welcome to gromacs_py's documentation!
 =======================================
 
 
-.. mdinclude:: ../../README.md
+.. include:: ../../README.rst
 
 
 .. toctree::
    :maxdepth: 2
    :caption: Table of Contents:
 
+   readme
    install
    gmx_sys
    gmx_top
