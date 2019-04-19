@@ -16,6 +16,12 @@ Gromacs_py
 Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software. Gromacs_py can build topologie based on a pdb file, create the simulation system (box, add water and ions) and run minimisation, equilibration and production run.
 One of the main objective of the gromacs_py wrapper is to automatize routine operations for MD simulation of multiple systems.
 
+* Online Documentation:
+   https://gromacs-py.readthedocs.io
+
+* Source code repository:
+   https://github.com/samuelmurail/gromacs_py
+
 
 Quick install
 ---------------------------------------
@@ -32,20 +38,19 @@ see the :ref:`install-label` file for details.
 
 .. _github: https://github.com/samuelmurail/gromacs_py
 
-
 Tutorial
 ---------------------------------------
 
 Here is an example of a short simulation of the SH3 domain of phsopholipase Cγ1.
 Seven successive steps are used:
 
-1. Topologie creation using `create_top.py`.
-2. Minimisation of the structure using `minimize_pdb.py`.
-3. Solvation of the system using `solvate_ions.py`.
-4. Minimisation of the system using `minimize_pdb.py`.
-5. Equilibration of the system using `equi_3_step.py`.
-6. Production run using `production.py`.
-7. Extension of the production run using `extend.py`.
+1. Topologie creation using ``create_top.py``.
+2. Minimisation of the structure using ``minimize_pdb.py``.
+3. Solvation of the system using ``solvate_ions.py``.
+4. Minimisation of the system using ``minimize_pdb.py``.
+5. Equilibration of the system using ``equi_3_step.py``.
+6. Production run using ``production.py``.
+7. Extension of the production run using ``extend.py``.
 
 .. code-block:: bash
 
@@ -84,6 +89,4 @@ See also the list of `contributors <https://github.com/samuelmurail/gromacs_py/c
 License
 ---------------------------------------
 
-This project is licensed under the GNU General Public License v2.0 - see the `LICENSE`_ file for details.
-
-.. _relative link: LICENCE
+This project is licensed under the GNU General Public License v2.0 - see the ``LICENSE`` file for details.
