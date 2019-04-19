@@ -20,7 +20,7 @@ One of the main objective of the gromacs_py wrapper is to automatize routine ope
 Quick install
 =============
 
-Get gromacs_py library from `github`__.
+Get gromacs_py library from `github`_.
 
 .. code-block:: bash
 
@@ -28,10 +28,10 @@ Get gromacs_py library from `github`__.
    cd gromacs_py
    ./setup.py install
 
-see the `INSTALL`__ file for details.
+see the `INSTALL`_ file for details.
 
-__ https://github.com/samuelmurail/gromacs_py
-__ INSTALL.md
+.. _github: https://github.com/samuelmurail/gromacs_py
+.. _INSTALL: INSTALL.rst
 
 Tutorial
 ========
@@ -84,6 +84,6 @@ See also the list of `contributors <https://github.com/samuelmurail/gromacs_py/c
 License
 =======
 
-This project is licensed under the GNU General Public License v2.0 - see the `LICENSE`__ file for details.
+This project is licensed under the GNU General Public License v2.0 - see the `LICENSE`_ file for details.
 
-__ LICENSE
+.. _relative link: LICENCE
