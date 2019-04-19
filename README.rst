@@ -28,10 +28,10 @@ Get gromacs_py library from `github`_.
    cd gromacs_py
    ./setup.py install
 
-see the `INSTALL.rst`__ file for details.
+see the :ref:`install-label` file for details.
 
 .. _github: https://github.com/samuelmurail/gromacs_py
-__ install.rst
+
 
 Tutorial
 ---------------------------------------
