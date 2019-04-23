@@ -10,7 +10,7 @@ setup(
     version=gromacs_py.__version__,
     packages=find_packages(),
     description='Gromacs wrapper library',
-    long_description=open('README.md', encoding='utf-8').read(),
+    long_description=open('README.rst', encoding='utf-8').read(),
     author='Samuel Murail',
     author_email='samuel.murail at univ-paris-diderot.fr',
     url='https://github.com/samuelmurail/gromacs_py',
