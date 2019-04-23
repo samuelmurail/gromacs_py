@@ -15,10 +15,6 @@ from numpy.linalg import norm
 from numpy import sin, cos
 from scipy.spatial import distance_matrix
 
-# Needed for doctest
-#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-#import tools.os_command as os_command
-
 from . import os_command
 
 # Test folder path

@@ -9,14 +9,11 @@ import sys
 import os
 from shutil import copy
 
-
-#import tools.os_command as os_command
-#import tools.pdb_manip as pdb_manip
-
-#sys.path.insert(0, '..')
-
 # Needed because relative imports ..tools don't work
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Need to define package to gromacs_py to import ..tools
+# Otherwise package will be gromacs and won't know gromacs_py.tools
+__package__ = 'gromacs_py.gromacs'
+
 from ..tools import os_command
 from ..tools import pdb_manip
 from ..tools import pdb2pqr
@@ -32,13 +29,12 @@ except OSError:
     print("Gromacs cannot be found")
     GMX_BIN = ""
 
+
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
 WATER_GRO = GMX_PATH + "/share/gromacs/top/spc216.gro"
 
 GROMACS_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
 FORCEFIELD_PATH = os.path.abspath(GROMACS_MOD_DIRNAME + "/template/")
-
-# GMX_BIN = 'gmx'
 
 # Test folder path
 GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -828,9 +824,7 @@ class GmxSys:
     pdb2pqr.py --ff CHARMM --ffout CHARMM --chain tmp_pdb2pqr.pdb 00_1y0m.pqr
     Succeed to read file 00_1y0m.pqr ,  996 atoms found
     Chain: A  Residue: 0 to 60
-    Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file 01_1y0m_good_his.pdb
-    Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     -Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -vsite hydrogens
@@ -1193,9 +1187,7 @@ separate file: 1y0m_pdb2gmx.itp
         pdb2pqr.py --ff CHARMM --ffout CHARMM --chain tmp_pdb2pqr.pdb 00_1y0m.pqr
         Succeed to read file 00_1y0m.pqr ,  996 atoms found
         Chain: A  Residue: 0 to 60
-        Succeed to read file .../input/1y0m.pdb ,  648 atoms found
         Succeed to save file 01_1y0m_good_his.pdb
-        Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
         -Create topologie
         gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -vsite hydrogens
@@ -1238,14 +1230,16 @@ separate file: 1y0m_pdb2gmx.itp
         coor_in.correct_cys_name()
         coor_in.correct_chain()
         if not ignore_ZN:
-            coor_in.add_zinc_finger(start_pdb)
+            zinc_in = coor_in.add_zinc_finger(start_pdb)
+        else:
+            zinc_in = False
 
         coor_in.write_pdb(pdb_out="01_" + name + "_good_his.pdb")
 
         self.coor_file = "01_" + name + "_good_his.pdb"
 
         # Compute topology for system without zinc
-        if coor_in.add_zinc_finger(start_pdb) is False:
+        if not zinc_in:
             pdb2gmx_option_dict = {'vsite': vsite, 'ignh': 'yes'}
         # Compute topology for system with zinc
         else:
