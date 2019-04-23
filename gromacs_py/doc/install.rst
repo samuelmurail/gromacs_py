@@ -28,13 +28,37 @@ Prerequisites
 
 	git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
 	cd apbs-pdb2pqr/pdb2pqr/
-	python scons/scons.py install --user
+	python scons/scons.py install --prefix=$HOME
 
 3.  `Gromacs`_
 
+Get source code from `gromacs website`__ and follow the following command for a quick and dirty install (for more details see `gromacs 2019 install guide`__)
+
+In my case I add to change few options to ``cmake``:
+	* ``-DCMAKE_C_COMPILER=gcc-6``, as gcc versions later than 6 are not supported.
+	* ``-DGMX_GPU=on`` to use GPU acceleration
+	* ``-DCMAKE_INSTALL_PREFIX=../../local-gromacs-2019.2/`` to install gromacs in a non-standard location
+
+.. code-block:: bash
+
+	tar -xfz gromacs-2019.2.tar.gz
+	cd gromacs-2019.2
+	mkdir build
+	cd build
+	cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON -DCMAKE_C_COMPILER=gcc-6 -DGMX_GPU=on -DCMAKE_INSTALL_PREFIX=../../local-gromacs-2019.2/ 
+
+	# the option -j 4 allow using 4 processor for compilation
+	make -j 4
+	make check -j 4
+	make install -j 4
+	
+	source ../../local-gromacs-2019.2/bin/GMXRC
+
+
 .. _pdb2pqr: http://www.poissonboltzmann.org/
 .. _Gromacs: http://www.gromacs.org/
-
+__ http://manual.gromacs.org/documentation/
+__ http://manual.gromacs.org/documentation/2019/install-guide/index.html
 
 Installing
 ---------------------------------------
@@ -53,7 +77,14 @@ Add in your ~/.bashrc :
 Make the documentation
 ---------------------------------------
 
-Need sphinx install with argparse sphinx module.
+Need `sphinx`_ installed with the argparse sphinx module:
+
+.. code-block:: bash
+
+	pip3 install Sphinx --user
+	pip3 install sphinx-argparse --user
+
+You can then build the documentation either in html format or pdf.
 
 .. code-block:: bash
 
@@ -63,10 +94,12 @@ Need sphinx install with argparse sphinx module.
 	# For pdf documentation:
 	sphinx-build -M latexpdf . _build/
 
+.. _sphinx: http://www.sphinx-doc.org
+
 Test installation
 ---------------------------------------
 
-Launch test with `doctest`__, will check that module’s docstrings are up-to-date by verifying that all interactive examples still work as documented.
+Launch test with `doctest`_, will check that module’s docstrings are up-to-date by verifying that all interactive examples still work as documented.
 
 .. code-block:: bash
 
@@ -76,4 +109,4 @@ Launch test with `doctest`__, will check that module’s docstrings are up-to-da
 	tools.pdb2pqr:  	 TestResults(failed=0, attempted=11)
 	gromacs.gmx5:    	 TestResults(failed=0, attempted=52)
 
-__  https://docs.python.org/3/library/doctest.html
+.. _doctest: https://docs.python.org/3/library/doctest.html
