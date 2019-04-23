@@ -7,7 +7,7 @@ Installation
 Getting Started
 ---------------------------------------
 
-Get the gromacs_py from `github`_.
+Get the gromacs_py library from `github`_.
 
 .. code-block:: bash
 
@@ -19,8 +19,10 @@ Get the gromacs_py from `github`_.
 Prerequisites
 ---------------------------------------
 
-1. python 3 librairies:  
-	* sys, os, shutil, glob, argparse, subprocess, operator
+1. python 3 libraries:  
+	* numpy
+	* scipy
+	* Sphinx and sphinx-argparse (only for building documentation)
 
 2. `pdb2pqr`_:
 
@@ -30,11 +32,12 @@ Prerequisites
 	cd apbs-pdb2pqr/pdb2pqr/
 	python scons/scons.py install --prefix=$HOME
 
-3.  `Gromacs`_
+3. `Gromacs`_
 
 Get source code from `gromacs website`__ and follow the following command for a quick and dirty install (for more details see `gromacs 2019 install guide`__)
 
 In my case I add to change few options to ``cmake``:
+
 	* ``-DCMAKE_C_COMPILER=gcc-6``, as gcc versions later than 6 are not supported.
 	* ``-DGMX_GPU=on`` to use GPU acceleration
 	* ``-DCMAKE_INSTALL_PREFIX=../../local-gromacs-2019.2/`` to install gromacs in a non-standard location
