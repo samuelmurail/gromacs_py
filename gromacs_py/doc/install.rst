@@ -12,7 +12,7 @@ Get the gromacs_py from `github`_.
 .. code-block:: bash
 
 	git clone https://github.com/samuelmurail/gromacs_py.git
-	./setup.py install
+	./setup.py install --user
 
 .. _github: https://github.com/samuelmurail/gromacs_py
 
@@ -28,7 +28,7 @@ Prerequisites
 
 	git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
 	cd apbs-pdb2pqr/pdb2pqr/
-	python scons/scons.py install
+	python scons/scons.py install --user
 
 3.  `Gromacs`_
 

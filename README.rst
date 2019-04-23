@@ -32,7 +32,7 @@ Get gromacs_py library from `github`_.
 
    git clone https://github.com/samuelmurail/gromacs_py.git
    cd gromacs_py
-   ./setup.py install
+   ./setup.py install --user
 
 see the :ref:`install-label` file for details.
 
