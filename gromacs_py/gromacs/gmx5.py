@@ -2154,7 +2154,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
 
         # Solvate box:
         self.solvate_box(out_folder=out_folder,
-                         name=name + "_water")
+                         name=name + "_water", radius=0.25)
 
         # Add ions:
         self.add_ions(out_folder=out_folder,
