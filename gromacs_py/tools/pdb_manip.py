@@ -1262,8 +1262,8 @@ class Coor:
         >>> import tools.pdb_manip as pdb_manip
         >>> import tools.pdb2pqr as pdb2pqr
         >>> prot_coor = pdb_manip.Coor()
-        >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb')
-        Succeed to read file gromacs_py/gromacs_py/test/input/1dpx.pdb ,  1192 atoms found
+        >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb') #doctest: +ELLIPSIS
+        Succeed to read file .../test/input/1dpx.pdb ,  1192 atoms found
         >>> hetatm_index = prot_coor.get_index_selection({'field':['HETATM']})
         >>> print(len(hetatm_index))
         179
@@ -1293,8 +1293,8 @@ class Coor:
         >>> import tools.pdb_manip as pdb_manip
         >>> import tools.pdb2pqr as pdb2pqr
         >>> prot_coor = pdb_manip.Coor()
-        >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb')
-        Succeed to read file gromacs_py/gromacs_py/test/input/1dpx.pdb ,  1192 atoms found
+        >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb') #doctest: +ELLIPSIS
+        Succeed to read file .../test/input/1dpx.pdb ,  1192 atoms found
         >>> prot_coor.water_to_ATOM() #doctest: +ELLIPSIS
         <tools.pdb_manip.Coor object at 0x...
         >>> prot_coor.write_pdb(TEST_OUT+'/1dpx_water.pdb')
