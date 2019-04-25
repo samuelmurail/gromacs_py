@@ -1220,7 +1220,9 @@ separate file: 1y0m_pdb2gmx.itp
         start_pdb = self.coor_file
 
         # Compute protonation:
-        pdb2pqr.compute_pdb2pqr(self.coor_file, "00_" + name + ".pqr", ff="CHARMM",
+        pdb2pqr.compute_pdb2pqr(self.coor_file,
+                                "00_" + name + ".pqr",
+                                ff="CHARMM",
                                 check_file_out=True)
 
         # Correct His resname
@@ -1228,6 +1230,7 @@ separate file: 1y0m_pdb2gmx.itp
         coor_in.read_pdb(pdb_in="00_" + name + ".pqr", pqr_format=True)
         coor_in.correct_his_name()
         coor_in.correct_cys_name()
+        coor_in.correct_water_name()
         coor_in.correct_chain()
         if not ignore_ZN:
             zinc_in = coor_in.add_zinc_finger(start_pdb)
