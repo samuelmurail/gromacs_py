@@ -7,7 +7,9 @@
 
 import sys
 import os
-from shutil import copy
+import copy
+
+from shutil import copy as shutil_copy
 
 # Needed because relative imports ..tools don't work
 # Need to define package to gromacs_py to import ..tools
@@ -293,7 +295,7 @@ class TopSys:
         print("Copy topologie file and dependancies")
 
         if self.path != os.path.abspath(dest_file):
-            copy(self.path, os.path.abspath(dest_file))
+            shutil_copy(self.path, os.path.abspath(dest_file))
 
         self.copy_dependancies(dest_folder)
 
@@ -306,7 +308,7 @@ class TopSys:
         for file in file_to_copy:
             if os.path.abspath(os_command.get_directory(file)) != os.path.abspath(dest_folder):
                 # print("Copy: "+file+":to: "+dest_folder)
-                copy(file, dest_folder)
+                shutil_copy(file, dest_folder)
 
     def change_mol_name(self, old_name, new_name):
 
@@ -3203,6 +3205,101 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         self.run_md_sim(out_folder=out_folder + "/02_equi_CA_LOW", name="equi_CA_LOW_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn)
+
+
+    def em_equi_three_step_iter_error(self, out_folder, name=None,
+                        no_constr_nsteps=1000, constr_nsteps=1000,
+                        pdb_restr=None, nsteps_HA=100000,
+                        nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.005, dt_HA=0.002,
+                        maxwarn=0, iter_num=3, **mdp_options):
+        """ Minimize a system in 2 steps:
+
+        1. minimisation without bond constraints
+        2. minimisation using bond constraint for bonds involving hydrogen
+
+        Equilibrate a system in 3 steps:
+
+        1. equilibration of nsteps_HA with position restraints on Heavy Atoms with dt = dt_HA
+        2. equilibration of nsteps_CA with position restraints on Carbon Alpha with dt = dt
+        3. equilibration of nsteps_CA_LOW with position restraints on Carbon Alpha with Low \
+        restraints with dt = dt
+
+        In case this process will crash (eg. LINCS WARNING ...), the process will be rerun for `iter_num` time.
+
+        :param out_folder: path of the output file folder
+        :type out_folder: str
+
+        :param name: name of the simulation to run
+        :type name: str, default=None
+
+        :param no_constr_nsteps: number of minimisation steps in the first step
+        :type no_constr_nsteps: int, default=1000
+
+        :param constr_nsteps: number of minimisation steps in the second step
+        :type constr_nsteps: int, default=1000
+
+        :param pdb_restr: reference coordinate file for position restraints
+        :type pdb_restr: str, default=None
+
+        :param nsteps_HA: number of equilibration steps with HA constraints
+        :type nsteps_HA: int, default=100000
+
+        :param nsteps_CA: number of equilibration steps with CA constraints
+        :type nsteps_CA: int, default=200000
+
+        :param nsteps_CA_LOW: number of equilibration steps with CA_LOW constraints
+        :type nsteps_CA_LOW: int, default=400000
+
+        :param dt_HA: integration time step for HA equilibration
+        :type dt_HA: float, default=0.002
+
+        :param dt: integration time step for CA and CA_LOW equilibration
+        :type dt: float, default=0.005
+
+        :param mdp_options: Additional mdp parameters to use
+        :type mdp_options: dict
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+            * self.nt
+            * self.ntmpi
+            * self.gpu_id
+
+        **Object field(s) changed:**
+
+            * self.mdp
+            * self.tpr
+            * self.coor_file
+            * self.xtc
+        """
+
+        start_sys = copy.deepcopy(self)
+        start_dir = os.path.abspath(".")
+
+        for iter in range(iter_num):
+            try:
+                local_out_folder = out_folder+"/sys_em/"
+                self.em_2_steps(local_out_folder, name=name, no_constr_nsteps=no_constr_nsteps, constr_nsteps=constr_nsteps,
+                                posres="", create_box_flag=False, **mdp_options)
+
+                local_out_folder = out_folder+"/sys_equi/"
+                self.equi_three_step(local_out_folder, name=name, pdb_restr=pdb_restr, nsteps_HA=nsteps_HA,
+                                     nsteps_CA=nsteps_CA, nsteps_CA_LOW=nsteps_CA_LOW, dt=dt, dt_HA=dt_HA,
+                                     maxwarn=maxwarn, **mdp_options)
+                break
+
+            except RuntimeError as e:
+                print('Run {}/{} failed because of: {}'.format(iter+1, iter_num, e.args))
+                os.chdir(start_dir)
+                # Remove directories
+                for dir_to_del in [out_folder+"/sys_em/", out_folder+"/sys_equi/"]:
+                    if os_command.check_directory_exist(dir_to_del):
+                        os_command.delete_directory(dir_to_del)
+                self = copy.deepcopy(start_sys)
+
+        os.chdir(start_dir)
 
     def production(self, out_folder, name=None, nsteps=400000, dt=0.005,
                    maxwarn=0, **mdp_options):
