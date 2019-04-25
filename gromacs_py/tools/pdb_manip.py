@@ -588,15 +588,19 @@ class Coor:
                     field = line[:6].strip()
                     atom_num = int(line[6:11])
                     atom_name = line[12:16].strip()
-                    alter_loc = line[16:17]
+                    
                     res_name = line[17:20].strip()
                     chain = line[21]
                     res_num = int(line[22:26])
                     insert_res = line[26:27]
                     xyz = np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])])
                     if pqr_format:
+                        alter_loc = ""
+                        res_name = line[16:20].strip()
                         occ, beta = line[54:62].strip(), line[62:70].strip()
                     else:
+                        alter_loc = line[16:17]
+                        res_name = line[17:20].strip()
                         occ, beta = line[54:60].strip(), line[60:66].strip()
 
                     if occ == "":
@@ -1223,18 +1227,18 @@ class Coor:
         >>> prot_coor = pdb_manip.Coor()
         >>> prot_coor.read_pdb(TEST_OUT+'/1dpx.pqr', pqr_format = True)
         Succeed to read file gromacs_py_test_out/pdb_manip_test/1dpx.pqr ,  1960 atoms found
-        >>> Isu_index = prot_coor.get_index_selection({'res_name' : ['ISU']})
+        >>> Isu_index = prot_coor.get_index_selection({'res_name' : ['DISU']})
         >>> print(len(Isu_index))
         16
         >>> prot_coor.correct_cys_name() #doctest: +ELLIPSIS
         <tools.pdb_manip.Coor object at 0x...
-        >>> Isu_index = prot_coor.get_index_selection({'res_name' : ['ISU']})
+        >>> Isu_index = prot_coor.get_index_selection({'res_name' : ['DISU']})
         >>> print(len(Isu_index))
         0
         """
 
         # FIND ISU res
-        isu_index_list = self.get_index_selection({"res_name": ["ISU"]})
+        isu_index_list = self.get_index_selection({"res_name": ["DISU"]})
         if not isu_index_list:
             # print("Nothing to Fix")
             return self
@@ -1247,6 +1251,84 @@ class Coor:
                 self.atom_dict[atom_num]["name"] = "CB"
             if self.atom_dict[atom_num]["name"] == "1SG":
                 self.atom_dict[atom_num]["name"] = "SG"
+
+        return self
+
+    def water_to_ATOM(self):
+        """ Change `HETATM` field of water to `ATOM`, as pdb2pqr only use ATOM field.
+
+        :Example:
+
+        >>> import tools.pdb_manip as pdb_manip
+        >>> import tools.pdb2pqr as pdb2pqr
+        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb')
+        Succeed to read file gromacs_py/gromacs_py/test/input/1dpx.pdb ,  1192 atoms found
+        >>> hetatm_index = prot_coor.get_index_selection({'field':['HETATM']})
+        >>> print(len(hetatm_index))
+        179
+        >>> prot_coor.water_to_ATOM() #doctest: +ELLIPSIS
+        <tools.pdb_manip.Coor object at 0x...
+        >>> hetatm_index = prot_coor.get_index_selection({'field':['HETATM']})
+        >>> print(len(hetatm_index))
+        2
+        >>> water_index = prot_coor.get_index_selection({'res_name':['HOH']})
+        >>> print(len(water_index))
+        177
+        """
+
+        # FIND Water res
+        water_index_list = self.get_index_selection({'res_name':['HOH'], 'field':['HETATM']})
+        if not water_index_list:
+            return self
+        else:
+            self.change_index_pdb_field(water_index_list, {'field':'ATOM'})
+            return self
+
+    def correct_water_name(self):
+        """ Correct the water resname from pdb2pqr
+
+        :Example:
+
+        >>> import tools.pdb_manip as pdb_manip
+        >>> import tools.pdb2pqr as pdb2pqr
+        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb')
+        Succeed to read file gromacs_py/gromacs_py/test/input/1dpx.pdb ,  1192 atoms found
+        >>> prot_coor.water_to_ATOM() #doctest: +ELLIPSIS
+        <tools.pdb_manip.Coor object at 0x...
+        >>> prot_coor.write_pdb(TEST_OUT+'/1dpx_water.pdb')
+        Succeed to save file gromacs_py_test_out/pdb_manip_test/1dpx_water.pdb
+        >>> # Compute protonation with pdb2pqr:
+        >>> pdb2pqr.compute_pdb2pqr(TEST_OUT+'/1dpx_water.pdb', TEST_OUT+'/1dpx_water.pqr') #doctest: +ELLIPSIS
+        Succeed to read file ...pdb_manip_test/1dpx_water.pdb ,  1192 atoms found
+        Succeed to save file ...pdb_manip_test/tmp_pdb2pqr.pdb
+        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/1dpx_water.pqr
+        0
+        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor.read_pdb(TEST_OUT+'/1dpx_water.pqr', pqr_format = True)
+        Succeed to read file gromacs_py_test_out/pdb_manip_test/1dpx_water.pqr ,  2491 atoms found
+        >>> water_index = prot_coor.get_index_selection({'res_name':['TP3M'], 'name':['OH2']})
+        >>> print(len(water_index))
+        177
+        """
+
+        # FIND Water res
+        water_index_list = self.get_index_selection({"res_name": ["TP3M"]})
+        if not water_index_list:
+            #print("Nothing no water to fix")
+            return self
+
+        # Replace SOL resname :
+
+        for atom_num in water_index_list:
+            self.atom_dict[atom_num]["res_name"] = "SOL"
+            if self.atom_dict[atom_num]["name"] == "OH2":
+                self.atom_dict[atom_num]["name"] = "OW"
+            if self.atom_dict[atom_num]["name"] == "H1":
+                self.atom_dict[atom_num]["name"] = "HW1"
+            if self.atom_dict[atom_num]["name"] == "H2":
+                self.atom_dict[atom_num]["name"] = "HW2"
 
         return self
 
