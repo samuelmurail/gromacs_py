@@ -7,6 +7,7 @@
 import os
 import subprocess
 import operator
+import shutil
 
 __author__ = "Samuel Murail"
 
@@ -127,6 +128,28 @@ def check_file_exist(file):
     file = os.path.expanduser(file)
     return os.path.isfile(file)
 
+def check_directory_exist(directory):
+    """ Check is a directory exist.
+
+    :param directory: directory path
+    :type directory: str
+
+    :return: if the file exist
+    :rtype: bool
+
+    :Example:
+
+    >>> import tools.os_command as os_command
+    >>> test_exist = check_directory_exist(TEST_PATH)
+    >>> print("Directory {} exist: {}".format(TEST_PATH, test_exist)) #doctest: +ELLIPSIS
+    Directory ...test/input exist: True
+    >>> test_exist = check_directory_exist(TEST_PATH+'/no_way')
+    >>> print("Directory {} exist: {}".format(TEST_PATH+'/no_way', test_exist)) #doctest: +ELLIPSIS
+    Directory ...test/input/no_way exist: False
+    """
+
+    directory = os.path.expanduser(directory)
+    return os.path.isdir(directory)
 
 def delete_file(file):
     """ Delete a file.
@@ -140,6 +163,19 @@ def delete_file(file):
 
     file = os.path.expanduser(file)
     return os.remove(file)
+
+def delete_directory(directory):
+    """ Delete a file.
+
+    :param directory: directory path
+    :type directory: str
+
+    :return: operation sucess
+    :rtype: bool
+    """
+
+    directory = os.path.expanduser(directory)
+    return shutil.rmtree(directory)
 
 
 def check_file_and_create_path(file):
@@ -299,7 +335,7 @@ class Command:
         self.display()
         print(stdout_data.decode('utf-8'))
         print(stderr_data.decode('utf-8'))
-        raise RuntimeError('Command fails')
+        raise RuntimeError('Following Command Fails : {}'.format(" ".join(self.cmd)))
 
 
 if __name__ == "__main__":
