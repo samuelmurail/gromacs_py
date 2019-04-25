@@ -299,7 +299,7 @@ class Command:
         self.display()
         print(stdout_data.decode('utf-8'))
         print(stderr_data.decode('utf-8'))
-        raise Error()
+        raise RuntimeError('Command fails')
 
 
 if __name__ == "__main__":
