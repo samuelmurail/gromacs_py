@@ -263,7 +263,7 @@ class Command:
         # Add supplementary argument for the command
         # Mainly usefull for gromacs
         # Add "-" to the key, eg ter -> -ter
-        if kwargs is not None:
+        if kwargs is not None and len(kwargs) != 0:
             # Use sorted to have same order of command in doctest
             for key, value in sorted(kwargs.items(), key=operator.itemgetter(0)):
                 # print(key, value )
