@@ -22,6 +22,31 @@ One of the main objective of the gromacs_py wrapper is to automatize routine ope
 * Source code repository:
    https://github.com/samuelmurail/gromacs_py
 
+Main features:
+---------------------------------------
+
+* Python Scriptable simulation:
+   - Topologie creation
+   - Solvation
+   - Ion insertion
+   - Energy minimisation
+   - Equilibration with position restraints
+   - Production
+   - **GPU** acceleration
+
+* Topologie manipulation starting from a raw ``PDB``:
+   - Amino acid protonation and pKa calculation using apbs/pdb2pqr
+   - Position constraints file ``.itp`` creation
+   - Cyclic petide topologie
+
+* Coordinate manipulation:
+   - Changing atom names, chain, coordinates, ...
+   - Insertion of *N* copy of a molecule in a system for *flooding* simulation
+   - Linear peptide creation
+
+* Advanced simulation tools:
+   - Monitor a simulation while running
+   - Interrupt a simulation if a criterion is met
 
 Quick install
 ---------------------------------------
