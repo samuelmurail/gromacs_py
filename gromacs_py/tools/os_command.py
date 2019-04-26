@@ -128,6 +128,7 @@ def check_file_exist(file):
     file = os.path.expanduser(file)
     return os.path.isfile(file)
 
+
 def check_directory_exist(directory):
     """ Check is a directory exist.
 
@@ -151,6 +152,7 @@ def check_directory_exist(directory):
     directory = os.path.expanduser(directory)
     return os.path.isdir(directory)
 
+
 def delete_file(file):
     """ Delete a file.
 
@@ -163,6 +165,7 @@ def delete_file(file):
 
     file = os.path.expanduser(file)
     return os.remove(file)
+
 
 def delete_directory(directory):
     """ Delete a file.
@@ -308,6 +311,18 @@ class Command:
     def run(self, com_input="", display=False, out_data=False):
         """ Launch ``Command`` object that will be launch.
         return programm output is `out_data` is set to `True`
+
+        :param com_input: input for the command
+        :type com_input: str
+
+        :param display: option to display output
+        :type display: bool
+
+        :param out_data: option to return output data
+        :type out_data: bool
+
+        :return: Return Code or output dict
+        :rtype: bool/dict
         """
 
         proc = subprocess.Popen(self.cmd,
@@ -315,6 +330,61 @@ class Command:
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 env=self.env)
+
+        (stdout_data, stderr_data) = proc.communicate(com_input.encode())
+
+        if display:
+            print(self.display())
+            print(stdout_data.decode('utf-8'))
+            print(stderr_data.decode('utf-8'))
+
+        # Check if command is successfull
+        if proc.returncode == 0:
+            if out_data:
+                return {'returncode': proc.returncode,
+                        'stdout': stdout_data.decode('utf-8'),
+                        'stderr': stderr_data.decode('utf-8')}
+            return proc.returncode
+
+        print("The following command could not be executed correctly :")
+        self.display()
+        print(stdout_data.decode('utf-8'))
+        print(stderr_data.decode('utf-8'))
+        raise RuntimeError('Following Command Fails : {}'.format(" ".join(self.cmd)))
+
+    def run_background(self, function, func_input_dict, com_input="", display=False, out_data=False):
+        """ Launch ``Command`` object that will be launch.
+        Will the command is running launch the `function` using `func_input_dict`
+        as argument.
+        return programm output is `out_data` is set to `True`
+
+        :param function: function to be launch
+        :type function: function
+
+        :param func_input_dict: input for the function
+        :type func_input_dict: dict
+
+        :param com_input: input for the command
+        :type com_input: str
+
+        :param display: option to display output
+        :type display: bool
+
+        :param out_data: option to return output data
+        :type out_data: bool
+
+        :return: Return Code or output dict
+        :rtype: bool/dict
+        """
+
+        proc = subprocess.Popen(self.cmd,
+                                stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                env=self.env)
+
+        # Launch function while self.cmd is running
+        function(proc, func_input_dict)
 
         (stdout_data, stderr_data) = proc.communicate(com_input.encode())
 
