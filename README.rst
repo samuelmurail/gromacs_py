@@ -103,6 +103,10 @@ Seven successive steps are used:
    # Remove simulation files
    rm -r ./tmp
 
+Or simply use one command to do all previous commands:
+
+.. code-block:: bash
+   gromacs_py/top_em_equi_3_step_prod.py -f gromacs_py/test/input/1y0m.pdb o tmp/1y0m -vsite -HA_time 0.1 -CA_time 0.1 -CA_LOW_time 0.1 -prod_time 0.3
 
 Authors
 ---------------------------------------

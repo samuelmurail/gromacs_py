@@ -17,7 +17,7 @@ import gromacs.gmx5
 __author__ = "Samuel Murail"
 
 
-print("gromacs location package :",gromacs.__file__)
+print("gromacs location package :",gromacs.gmx5.__file__)
 print("tools.os_command:  \t", doctest.testmod(tools.os_command))
 print("tools.pdb_manip:\t", doctest.testmod(tools.pdb_manip))
 print("tools.pdb2pqr:  \t", doctest.testmod(tools.pdb2pqr))
