@@ -14,6 +14,7 @@ from shutil import copy as shutil_copy
 # Needed because relative imports ..tools don't work
 # Need to define package to gromacs_py to import ..tools
 # Otherwise package will be gromacs and won't know gromacs_py.tools
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 __package__ = 'gromacs_py.gromacs'
 
 from ..tools import os_command
