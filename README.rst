@@ -66,7 +66,7 @@ see the :ref:`install-label` file for details.
 Tutorial
 ---------------------------------------
 
-Here is an example of a short simulation of the SH3 domain of phsopholipase Cγ1.
+Here is an example of a short simulation of the SH3 domain of phospholipase Cγ1.
 Seven successive steps are used:
 
 1. Topologie creation using ``create_top.py``.
@@ -106,7 +106,7 @@ Seven successive steps are used:
 Or simply use one command to do all previous commands:
 
 .. code-block:: bash
-   gromacs_py/top_em_equi_3_step_prod.py -f gromacs_py/test/input/1y0m.pdb o tmp/1y0m -vsite -HA_time 0.1 -CA_time 0.1 -CA_LOW_time 0.1 -prod_time 0.3
+   gromacs_py/top_em_equi_3_step_prod.py -f gromacs_py/test/input/1y0m.pdb -o tmp/1y0m -vsite -HA_time 0.1 -CA_time 0.1 -CA_LOW_time 0.1 -prod_time 0.3
 
 Authors
 ---------------------------------------
