@@ -2868,7 +2868,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         self.tpr = tpr_out
 
-    def run_simulation(self, check_file_out=True, cpi=None, nsteps=-2, rerun=False):
+    def run_simulation(self, check_file_out=True, cpi=None, nsteps=-2, rerun=False, monitor=None):
         """
         Launch the simulation using ``gmx mdrun``
 
@@ -2882,8 +2882,12 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         :param nsteps: Number of steps to run, (-2 : will use mdp parameter)
         :type nsteps: int, default=-2
 
-        :param rerun: option to rerun a simulation (recompute energy)
+        :param rerun: option to rerun a simulation (eg. recompute energy)
         :type rerun: bool, default=False
+
+        :param monitor: option to monitor a simulation, if not none monitor should contains two values: 
+        ``function`` the function to be ran while simulation is running and ``input`` parameters for the function  
+        :type rerun: dict, default=None
 
         **Object requirement(s):**
 
@@ -2953,7 +2957,10 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         cmd_run = os_command.Command(cmd_list)
 
         cmd_run.display()
-        cmd_run.run()
+        if monitor is None:
+            cmd_run.run()
+        else:
+            cmd_run.run_background(monitor['function'], monitor['input'])
 
         # If it's not a rerun, assign all output to the object variables xtc, edr, log
         if not rerun:
@@ -2968,7 +2975,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             self.edr = self.sim_name + ".edr"
 
     def run_md_sim(self, out_folder, name, mdp_template, mdp_options,
-                   pdb_restr=None, maxwarn=0):
+                   pdb_restr=None, maxwarn=0, monitor=None):
         """Run a simulation using 3 steps:
 
         1. Create a mdp file
@@ -2992,6 +2999,10 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         :param maxwarn: Maximum number of warnings when using ``gmx grompp``
         :type maxwarn: int, default=0
+
+        :param monitor: option to monitor a simulation, if not none monitor should contains two values: 
+        ``function`` the function to be ran while simulation is running and ``input`` parameters for the function  
+        :type rerun: dict, default=None
 
         **Object requirement(s):**
 
@@ -3022,13 +3033,13 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         self.sim_name = name
         self.add_mdp(mdp_template=mdp_template, mdp_options=mdp_options)
         self.add_tpr(name=name, r=pdb_restr, maxwarn=maxwarn)
-        self.run_simulation()
+        self.run_simulation(monitor=monitor)
 
         # Get absolute path:
         os.chdir(start_dir)
 
     def em(self, out_folder, name=None, nsteps=1000, posres="",
-           create_box_flag=False, **mdp_options):
+           create_box_flag=False, monitor=None, **mdp_options):
         """Minimize a system.
 
         :param out_folder: path of the output file folder
@@ -3075,10 +3086,10 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         mdp_options.update({'nsteps': int(nsteps), 'define': posres})
 
         self.run_md_sim(out_folder=out_folder, name=name, mdp_template=mini_template_mdp,
-                        mdp_options=mdp_options, maxwarn=1)
+                        monitor=monitor, mdp_options=mdp_options, maxwarn=1)
 
     def em_2_steps(self, out_folder, name=None, no_constr_nsteps=1000, constr_nsteps=1000,
-                   posres="", create_box_flag=False, **mdp_options):
+                   posres="", create_box_flag=False, monitor=None, **mdp_options):
         """Minimize a system in two steps:
 
         1. minimisation without bond constraints
@@ -3126,14 +3137,16 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             name = self.name
 
         self.em(out_folder=out_folder, name="Init_em_" + name, nsteps=int(no_constr_nsteps),
-                posres=posres, create_box_flag=create_box_flag, constraints="none", **mdp_options)
+                posres=posres, create_box_flag=create_box_flag, constraints="none",
+                monitor=monitor, **mdp_options)
 
         self.em(out_folder=out_folder, name=name, nsteps=int(constr_nsteps),
-                posres=posres, create_box_flag=False, constraints="all-bonds", **mdp_options)
+                posres=posres, create_box_flag=False, constraints="all-bonds",
+                monitor=monitor, **mdp_options)
 
     def equi_three_step(self, out_folder, name=None, pdb_restr=None, nsteps_HA=100000,
                         nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.005, dt_HA=0.002,
-                        maxwarn=0, **mdp_options):
+                        maxwarn=0, monitor=None, **mdp_options):
         """Equilibrate a system in 3 steps:
 
         1. equilibration of nsteps_HA with position restraints on Heavy Atoms with dt = dt_HA
@@ -3194,24 +3207,24 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         mdp_options.update({'nsteps': int(nsteps_HA), 'define': '-DPOSRES', 'dt': dt_HA})
         self.run_md_sim(out_folder=out_folder + "/00_equi_HA", name="equi_HA_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options, maxwarn=maxwarn)
+                        mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
 
         mdp_options.update({'nsteps': int(nsteps_CA), 'define': '-DPOSRES_CA', 'dt': dt})
         self.run_md_sim(out_folder=out_folder + "/01_equi_CA", name="equi_CA_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options, maxwarn=maxwarn)
+                        mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
 
         mdp_options.update({'nsteps': int(nsteps_CA_LOW), 'define': '-DPOSRES_CA_LOW', 'dt': dt})
         self.run_md_sim(out_folder=out_folder + "/02_equi_CA_LOW", name="equi_CA_LOW_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options, maxwarn=maxwarn)
+                        mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
 
 
     def em_equi_three_step_iter_error(self, out_folder, name=None,
                         no_constr_nsteps=1000, constr_nsteps=1000,
                         pdb_restr=None, nsteps_HA=100000,
                         nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.005, dt_HA=0.002,
-                        maxwarn=0, iter_num=3, **mdp_options):
+                        maxwarn=0, iter_num=3, monitor=None, **mdp_options):
         """ Minimize a system in 2 steps:
 
         1. minimisation without bond constraints
@@ -3283,11 +3296,12 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
                 local_out_folder = out_folder+"/sys_em/"
                 self.em_2_steps(local_out_folder, name=name, no_constr_nsteps=no_constr_nsteps, constr_nsteps=constr_nsteps,
                                 posres="", create_box_flag=False, **mdp_options)
+                self.convert_trj(traj=False)
 
                 local_out_folder = out_folder+"/sys_equi/"
                 self.equi_three_step(local_out_folder, name=name, pdb_restr=pdb_restr, nsteps_HA=nsteps_HA,
                                      nsteps_CA=nsteps_CA, nsteps_CA_LOW=nsteps_CA_LOW, dt=dt, dt_HA=dt_HA,
-                                     maxwarn=maxwarn, **mdp_options)
+                                     maxwarn=maxwarn, monitor=monitor, **mdp_options)
                 break
 
             except RuntimeError as e:
@@ -3302,7 +3316,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         os.chdir(start_dir)
 
     def production(self, out_folder, name=None, nsteps=400000, dt=0.005,
-                   maxwarn=0, **mdp_options):
+                   maxwarn=0, monitor=None, **mdp_options):
         """Run a production run.
 
         :param out_folder: path of the output file folder
@@ -3343,9 +3357,10 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         mdp_options.update({'nsteps': int(nsteps), 'dt': dt, 'define': ''})
         self.run_md_sim(out_folder=out_folder, mdp_template=equi_template_mdp,
-                        mdp_options=mdp_options, name="prod_" + name, maxwarn=maxwarn)
+                        mdp_options=mdp_options, name="prod_" + name,
+                        monitor=monitor, maxwarn=maxwarn)
 
-    def extend_equi_prod(self, tpr_file=None, nsteps=200000, dt=0.005):
+    def extend_equi_prod(self, tpr_file=None, nsteps=200000, dt=0.005, monitor=None):
         """Extend a simulation run.
 
         :param tpr_file: path of the tpr file
@@ -3402,7 +3417,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         os_command.create_and_go_dir(out_folder)
 
         self.run_simulation(cpi=self.sim_name + ".cpt", nsteps=int(nsteps_to_run),
-                            check_file_out=False)
+                            check_file_out=False, monitor=monitor)
         self.get_last_output()
 
         os.chdir(start_dir)
