@@ -377,6 +377,10 @@ class Command:
         :rtype: bool/dict
         """
 
+        # stderr to NULL solve some issue with backgound running
+        # probably redirecting stderr to file or NULL should be done
+        # However I'd like to find an other solution
+
         proc = subprocess.Popen(self.cmd,
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,

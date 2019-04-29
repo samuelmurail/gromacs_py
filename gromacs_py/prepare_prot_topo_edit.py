@@ -7,6 +7,8 @@ restraints and (iii) finaly equilibration with weak alpha carbon position restra
 import argparse
 import gromacs.gmx5 as gmx
 
+print(gmx.__file__)
+
 __author__ = "Samuel Murail"
 
 
@@ -93,8 +95,7 @@ if __name__ == "__main__":
     prot_min_folder = args.o + "/em_prot/"
 
     sys_top_folder = args.o + "/top_sys/"
-    sys_min_folder = args.o + "/em_sys/"
-    sys_equi_folder = args.o + "/equi_sys/"
+    sys_em_equi_folder = args.o + "/em_equi_sys/"
 
     if args.p != "None":
         prot_sys = gmx.GmxSys(name=sys_name, coor_file=args.f, top_file=args.p)
@@ -118,14 +119,7 @@ if __name__ == "__main__":
 
     prot_sys.solvate_add_ions(out_folder=sys_top_folder, name=sys_name, ion_C=args.Conc)
 
-    prot_sys.em_2_steps(out_folder=sys_min_folder, name=sys_name,
-                        no_constr_nsteps=min_steps, constr_nsteps=min_steps,
-                        posres="", create_box_flag=False)
-
-    prot_sys.convert_trj(traj=False)
-
-    prot_sys.equi_three_step(out_folder=sys_equi_folder, name=sys_name, nsteps_HA=HA_step,
-                             nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA, maxwarn=maxwarn)
+    prot_sys.em_equi_three_step_iter_error(out_folder=sys_em_equi_folder, name=sys_name, nsteps_HA=HA_step, nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, maxwarn=maxwarn)
 
     prot_sys.convert_trj(traj=False)
 

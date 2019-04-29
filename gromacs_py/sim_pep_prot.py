@@ -94,13 +94,7 @@ if __name__ == "__main__":
     CA_LOW_step = 1000 * args.CA_LOW_time / dt
     PROD_step = 1000 * args.Prod_time / dt
 
-    sys_pep_prot.em_2_steps(out_folder=out_folder + "/em_prot_" + sequence + "/",
-                            name=sys_name, no_constr_nsteps=em_nsteps, constr_nsteps=em_nsteps,
-                            create_box_flag=False)
-
-    sys_pep_prot.equi_three_step(out_folder=out_folder + "/equi_prot_" + sequence + "/",
-                                 name=sys_name, nsteps_HA=HA_step, nsteps_CA=CA_step,
-                                 nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA, maxwarn=maxwarn)
+    sys_pep_prot.em_equi_three_step_iter_error(out_folder=out_folder + "/em_equi_prot_" + sequence + "/", name=sys_name, nsteps_HA=HA_step, nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, maxwarn=maxwarn)
 
     sys_pep_prot.production(out_folder=out_folder + "/prod_prot_" + sequence + "/",
                             name=sys_name, nsteps=PROD_step, dt=dt, maxwarn=maxwarn)
