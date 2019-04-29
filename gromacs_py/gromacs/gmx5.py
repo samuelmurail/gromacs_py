@@ -2931,6 +2931,9 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             self.edr = self.sim_name + ".edr"
             return
 
+        # Removing the "-v" option, seems to be harmless, I keep it for subproccess reason
+        # I prefer to get error with short test because of std output size than with very long run
+        # after a long time and not seeing an error is going one 
         cmd_list = [GMX_BIN, "mdrun",
                     "-s", self.tpr,
                     "-deffnm", self.sim_name,
