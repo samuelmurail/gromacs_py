@@ -7,9 +7,9 @@ __author__ = "Samuel Murail"
 # Needed because relative imports ..tools don't work
 # Need to define package to gromacs_py to import ..tools
 # Otherwise package will be gromacs and won't know gromacs_py.tools
-__package__ = 'gromacs_py.gromacs'
+#__package__ = 'gromacs_py.gromacs'
 
-import gromacs_py.gromacs.gmx5 as gmx
+import gromacs.gmx5 as gmx
 import argparse
 
 
