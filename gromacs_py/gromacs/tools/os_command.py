@@ -412,9 +412,6 @@ if __name__ == "__main__":
     import doctest
     import shutil
 
-    print(os.path.join(os.path.dirname(__file__), '../../..'))
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
-
     print("-Test os_command module:")
 
     print("os_command:  \t", doctest.testmod())
