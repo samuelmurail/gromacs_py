@@ -23,7 +23,7 @@ try:
     from .tools import pdb_manip
     from .tools import pdb2pqr
 except ImportError:
-    print("Relive import from .tools fails, use absolute import instead")
+    print("Relative import from .tools fails, use absolute import instead")
     import tools.os_command as os_command
     import tools.pdb_manip as pdb_manip
     import tools.pdb2pqr as pdb2pqr
@@ -825,9 +825,8 @@ class GmxSys:
 
     :Example:
 
-    >>> import gromacs_py.gromacs.gmx5 as gmx
     >>> # Create the topologie of a protein and do a minimisation:
-    >>> prot = gmx.GmxSys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
+    >>> prot = GmxSys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
     >>> prot.prepare_top(out_folder = TEST_OUT+'/class/top_SH3') #doctest: +ELLIPSIS
     Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file ./tmp_pdb2pqr.pdb
@@ -1052,8 +1051,7 @@ file: 1y0m_pdb2gmx.itp
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
-        >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> #Basic usage :
         >>> prot.add_top(out_folder=TEST_OUT+'/add_top/top_SH3') #doctest: +ELLIPSIS
         -Create topologie
@@ -1073,7 +1071,7 @@ separate file: 1y0m_pdb2gmx.itp
         >>> # Define amino acid termini: 'ter': 'yes'
         >>> # Needs to answer pdb2gmx request concerning termini
         >>> # with: input_pdb2gmx ="1 \\n 0"
-        >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/add_top/top_SH3_2/',
         ...     pdb2gmx_option_dict={'ignh': 'yes', 'ter': 'yes'},
         ...     input_pdb2gmx="1 \\n 0") #doctest: +ELLIPSIS
@@ -1155,7 +1153,7 @@ separate file: 1y0m_pdb2gmx.itp
 
         os.chdir(start_dir)
 
-    def prepare_top(self, out_folder, name=None, vsite="hydrogens", ignore_ZN=False):
+    def prepare_top(self, out_folder, name=None, vsite="hydrogens", ignore_ZN=True):
         """Prepare the topologie of a protein:
 
             1. compute hisdine protonation with ``pdb2pqr``
@@ -1188,9 +1186,8 @@ separate file: 1y0m_pdb2gmx.itp
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
         >>> # Create the topologie of a protein and do a minimisation:
-        >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_SH3/') #doctest: +ELLIPSIS
         Succeed to read file .../input/1y0m.pdb ,  648 atoms found
         Succeed to save file ./tmp_pdb2pqr.pdb
@@ -1292,8 +1289,7 @@ separate file: 1y0m_pdb2gmx.itp
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
-        >>> cyclic_pep = gmx.GmxSys(name='5vav', coor_file=TEST_PATH+'/5vav.pdb')
+        >>> cyclic_pep = GmxSys(name='5vav', coor_file=TEST_PATH+'/5vav.pdb')
         >>>
         >>> #Basic usage :
         >>> cyclic_pep.cyclic_peptide_top(out_folder=TEST_OUT+'/cyclic/top/') #doctest: +ELLIPSIS
@@ -1320,7 +1316,7 @@ gromacs_py_test_out/gmx5/cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         gmx grompp -f 5vav.mdp -c ../top/5vav_pdb2gmx_box.pdb -r ../top/5vav_pdb2gmx_box.pdb -p \
 ../top/5vav_pdb2gmx.top -po out_5vav.mdp -o 5vav.tpr -maxwarn 1
         -Launch the simulation 5vav.tpr
-        gmx mdrun -s 5vav.tpr -deffnm 5vav -nt 0 -ntmpi 0 -nsteps -2 -v
+        gmx mdrun -s 5vav.tpr -deffnm 5vav -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
         .. note::
             No options are allowed (forcefield, water model, termini capping) except for vsites.
@@ -1554,8 +1550,7 @@ gromacs_py_test_out/gmx5/cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
-        >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/create_box/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
@@ -1648,8 +1643,7 @@ gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedro
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
-        >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/convert_trj/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
@@ -1675,7 +1669,7 @@ constraints="none")
 ../top_SH3_water/1y0m_water.pdb -p ../top_SH3_water/1y0m_water.top -po out_1y0m.mdp -o 1y0m.tpr \
 -maxwarn 1
         -Launch the simulation 1y0m.tpr
-        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -v
+        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
         >>> prot.convert_trj(traj=False)
         -Convert trj/coor
         gmx trjconv -f gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.gro -o \
@@ -1769,8 +1763,7 @@ gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
-        >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/copy_box/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
@@ -1857,8 +1850,7 @@ gromacs_py_test_out/gmx5/copy_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron 
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
-        >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/solv_box/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
@@ -1969,8 +1961,7 @@ gromacs_py_test_out/gmx5/solv_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron 
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
-        >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/add_ions/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
@@ -2009,7 +2000,7 @@ constraints="none")
 ../top_SH3_water_ions/1y0m_ion.gro -p ../top_SH3_water_ions/1y0m_ion.top -po out_1y0m.mdp -o \
 1y0m.tpr -maxwarn 1
         -Launch the simulation 1y0m.tpr
-        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -v
+        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
 
         .. note::
@@ -2104,8 +2095,7 @@ constraints="none")
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
-        >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/solvate_add_ions/top_SH3/') #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
@@ -2148,7 +2138,7 @@ constraints = "none")
 ../top_SH3_water_ions/1y0m_water_ion.gro -p ../top_SH3_water_ions/1y0m_water_ion.top -po \
 out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         -Launch the simulation 1y0m.tpr
-        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -v
+        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
 
 
@@ -2205,8 +2195,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
 
         :Example:
 
-        >>> import gromacs_py.gromacs.gmx5 as gmx
-        >>> pep = gmx.GmxSys(name='SAM_pep')
+        >>> pep = GmxSys(name='SAM_pep')
         >>> pep.create_peptide(sequence='SAM', out_folder=TEST_OUT+'/peptide/', \
 em_nsteps=100, equi_nsteps=100)
         -Make peptide: SAM
@@ -2233,12 +2222,12 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 ../00_top/SAM_pdb2gmx_box.pdb -p ../00_top/SAM_pdb2gmx.top -po out_SAM_pep.mdp \
 -o SAM_pep.tpr -maxwarn 1
         -Launch the simulation SAM_pep.tpr
-        gmx mdrun -s SAM_pep.tpr -deffnm SAM_pep -nt 0 -ntmpi 0 -nsteps -2 -v
+        gmx mdrun -s SAM_pep.tpr -deffnm SAM_pep -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
         -Create the tpr file  equi_vacuum_SAM.tpr
         gmx grompp -f equi_vacuum_SAM.mdp -c ../01_mini/SAM_pep.gro -r ../01_mini/SAM_pep.gro -p \
 ../00_top/SAM_pdb2gmx.top -po out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         -Launch the simulation equi_vacuum_SAM.tpr
-        gmx mdrun -s equi_vacuum_SAM.tpr -deffnm equi_vacuum_SAM -nt 0 -ntmpi 0 -nsteps -2 -v
+        gmx mdrun -s equi_vacuum_SAM.tpr -deffnm equi_vacuum_SAM -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
         .. note::
             Pymol need to be installed to run the peptide creation
@@ -2461,8 +2450,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
         :Example:
 
-        #>>> import gromacs_py.gromacs.gmx5 as gmx
-        #>>> prot = gmx.GmxSys(name='5vav', coor_file='5vav.pdb')
+        #>>> prot = GmxSys(name='5vav', coor_file='5vav.pdb')
         #>>>
         #>>> #Basic usage :
         #>>> prot.create_box()
@@ -2948,8 +2936,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
                     "-nt", str(int(self.nt)),
                     "-ntmpi", str(int(self.ntmpi)),
                     "-nsteps", str(int(nsteps)),
-                    "-nocopyright",
-                    "-v"]
+                    "-nocopyright"]
 
         # Don't add gpu_id if not specified
         if self.gpu_id is not None:
