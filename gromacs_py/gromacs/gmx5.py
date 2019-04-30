@@ -14,12 +14,19 @@ from shutil import copy as shutil_copy
 # Needed because relative imports ..tools don't work
 # Need to define package to gromacs_py to import ..tools
 # Otherwise package will be gromacs and won't know gromacs_py.tools
-__package__ = 'gromacs_py.gromacs'
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+#__package__ = 'gromacs_py.gromacs'
 
-from ..tools import os_command
-from ..tools import pdb_manip
-from ..tools import pdb2pqr
+# In case gmx5 is launched as main, relative import will failed
+try:
+    from .tools import os_command
+    from .tools import pdb_manip
+    from .tools import pdb2pqr
+except ImportError:
+    print("Relive import from .tools fails, use absolute import instead")
+    import tools.os_command as os_command
+    import tools.pdb_manip as pdb_manip
+    import tools.pdb2pqr as pdb2pqr
 
 
 __author__ = "Samuel Murail"
@@ -3566,7 +3573,7 @@ if __name__ == "__main__":
     import shutil
 
     print("-Test gmx5 module:")
-    print("gromacs.gmx5:    \t", doctest.testmod())
+    print("gmx5:    \t", doctest.testmod())
 
     # Erase all test files
     shutil.rmtree('gromacs_py_test_out', ignore_errors=True)

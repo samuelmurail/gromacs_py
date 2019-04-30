@@ -13,7 +13,7 @@ __author__ = "Samuel Murail"
 
 # Test folder path
 OS_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(OS_LIB_DIR + "/../test/input/")
+TEST_PATH = os.path.abspath(OS_LIB_DIR + "/../../test/input/")
 TEST_OUT = 'gromacs_py_test_out/os_command/'
 
 
@@ -29,8 +29,7 @@ def which(*program_list):
 
     :Example:
 
-    >>> import tools.os_command as os_command
-    >>> ls_path = os_command.which('ls')
+    >>> ls_path = which('ls')
     >>> print(ls_path)
     /bin/ls
 
@@ -64,7 +63,6 @@ def is_exe(fpath):
 
     :Example:
 
-    >>> import tools.os_command as os_command
     >>> print(is_exe('/bin/ls'))
     True
 
@@ -81,7 +79,6 @@ def create_and_go_dir(dir_name):
 
     :Example:
 
-    >>> import tools.os_command as os_command
     >>> start_dir = os.getcwd()
     >>> create_and_go_dir(TEST_OUT+"tmp")
     >>> print("Path: ", os.getcwd()) #doctest: +ELLIPSIS
@@ -119,7 +116,6 @@ def check_file_exist(file):
 
     :Example:
 
-    >>> import tools.os_command as os_command
     >>> test_exist = check_file_exist(TEST_PATH+"/1y0m.pdb")
     >>> print("1y0m.pdb exist: ", test_exist)
     1y0m.pdb exist:  True
@@ -140,7 +136,6 @@ def check_directory_exist(directory):
 
     :Example:
 
-    >>> import tools.os_command as os_command
     >>> test_exist = check_directory_exist(TEST_PATH)
     >>> print("Directory {} exist: {}".format(TEST_PATH, test_exist)) #doctest: +ELLIPSIS
     Directory ...test/input exist: True
@@ -242,7 +237,6 @@ class Command:
 
     :Example:
 
-    >>> import tools.os_command as os_command
     >>> cmd_list = ['ls','-a',TEST_PATH]
     >>> cmd_test = Command(list_cmd=cmd_list)
     >>> cmd_test.display() #doctest: +ELLIPSIS
@@ -385,7 +379,8 @@ class Command:
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
-                                env=self.env)
+                                env=self.env,
+                                bufsize=0)
 
         # Launch function while self.cmd is running
         function(proc, func_input_dict)
@@ -415,9 +410,13 @@ class Command:
 if __name__ == "__main__":
 
     import doctest
-    import sys
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    import shutil
+
+    print(os.path.join(os.path.dirname(__file__), '../../..'))
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
     print("-Test os_command module:")
 
-    print("tools.os_command:  \t", doctest.testmod())
+    print("os_command:  \t", doctest.testmod())
+    # Erase all test files
+    shutil.rmtree(TEST_OUT, ignore_errors=True)

@@ -1,26 +1,33 @@
 #!/usr/bin/env python3
 # coding: utf-8
+
 """
-PDB2PQR
+#####################################
+#########     PDB2PQR      ##########
+#####################################
+
 """
+
 __author__ = "Samuel Murail"
 
 import os
-# Needed for doctest
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from . import os_command
-from . import pdb_manip
+# In case pdb2pqr is launched as main, relative import will failed
+try:
+    from . import os_command
+    from . import pdb_manip
+except ImportError:
+    print("Relive import from . fails, use absolute import instead")
+    import os_command
+    import pdb_manip
 
-#import tools.os_command as os_command
-#import tools.pdb_manip as pdb_manip
 
 PDB2PQR_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
 PDB2PQR_BIN = 'pdb2pqr.py'
 
 # Test folder path
 PQR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(PQR_LIB_DIR + "/../test/input/")
+TEST_PATH = os.path.abspath(PQR_LIB_DIR + "/../../test/input/")
 TEST_OUT = 'gromacs_py_test_out/pdb2pqr_test'
 
 
@@ -44,10 +51,9 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
 
     :Example:
 
-    >>> import tools.pdb_manip as pdb_manip
-    >>> import tools.pdb2pqr as pdb2pqr
+    >>> import gromacs_py.tools.pdb_manip as pdb_manip
     >>> # Compute protonation with pdb2pqr:
-    >>> pdb2pqr.compute_pdb2pqr(TEST_PATH+'/4n1m.pdb', TEST_OUT+'/4n1m.pqr') #doctest: +ELLIPSIS
+    >>> compute_pdb2pqr(TEST_PATH+'/4n1m.pdb', TEST_OUT+'/4n1m.pqr') #doctest: +ELLIPSIS
     Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
     Succeed to save file gromacs_py_test_out/pdb2pqr_test/tmp_pdb2pqr.pdb
     pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb2pqr_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb2pqr_test/4n1m.pqr
@@ -108,6 +114,8 @@ if __name__ == "__main__":
 
     import doctest
     import shutil
-    doctest.testmod()
+    print("-Test pdb2pqr module:")
+    print("pdb2pqr:\t", doctest.testmod())
+
     # Erase all test files
-    shutil.rmtree('../test/output/pdb2pqr_test', ignore_errors=True)
+    shutil.rmtree(TEST_OUT, ignore_errors=True)

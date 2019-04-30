@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # coding: utf-8
+
 """
 #####################################
 #########    PDB IN/OUT    ##########
 #####################################
 """
+
 __author__ = "Samuel Murail"
 
 import os
@@ -15,11 +17,16 @@ from numpy.linalg import norm
 from numpy import sin, cos
 from scipy.spatial import distance_matrix
 
-from . import os_command
+# In case pdb_manip is launched as main, relative import will failed
+try:
+    from . import os_command
+except ImportError:
+    print("Relive import from . fails, use absolute import instead")
+    import os_command
 
 # Test folder path
 PDB_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(PDB_LIB_DIR + "/../test/input/")
+TEST_PATH = os.path.abspath(PDB_LIB_DIR + "/../../test/input/")
 TEST_OUT = 'gromacs_py_test_out/pdb_manip_test'
 
 # Global variables:
@@ -568,8 +575,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
 
@@ -642,8 +648,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.write_pdb(TEST_OUT+'/tmp.pdb')
@@ -688,8 +693,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_aa_seq()
@@ -730,8 +734,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_aa_num()
@@ -755,14 +758,13 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_aa_seq()
         {'A': 'TFKSAVKALFDYKAQREDELTFTKSAIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
         >>> prot_coor.change_pdb_field(change_dict = {"chain" : "B"}) #doctest: +ELLIPSIS
-        <tools.pdb_manip.Coor object at ...>
+        <...Coor object at ...>
         >>> prot_coor.get_aa_seq()
         {'B': 'TFKSAVKALFDYKAQREDELTFTKSAIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
 
@@ -786,13 +788,12 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> res_826_852 = prot_coor.get_index_selection({'res_num' : range(826,852)})
         >>> prot_coor.change_index_pdb_field(index_list = res_826_852, change_dict = {"chain" : "B"}) #doctest: +ELLIPSIS
-        <tools.pdb_manip.Coor object at ...>
+        <...Coor object at ...>
         >>> prot_seq = prot_coor.get_aa_seq()
         >>> prot_seq == {'A': 'TFKSAVKALFDYKAQREDELTFTKSAIIQNVEKQD', 'B': 'GGWWRGDYGGKKQLWFPSNYVEEMIN'}
         True
@@ -818,8 +819,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_aa_num()
@@ -863,8 +863,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_index_selection({'res_num' : [826,827]})
@@ -903,8 +902,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_attribute_selection({'res_num' : [826,827]}, attribute='uniq_resid')
@@ -944,15 +942,14 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> prot_coor.get_aa_seq()
         {'A': 'TFKSAVKALFDYKAQREDELTFTKSAIIQNVEKQDGGWWRGDYGGKKQLWFPSNYVEEMIN'}
         >>> res_810_852 = prot_coor.get_index_selection({'res_num' : range(810,852)})
         >>> prot_coor.del_atom_index(index_list = res_810_852) #doctest: +ELLIPSIS
-        <tools.pdb_manip.Coor object at ...>
+        <...Coor object at ...>
         >>> prot_coor.get_aa_seq()
         {'A': 'TFKSAVKALFDYKAQREDE'}
 
@@ -974,8 +971,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> res_810 = prot_coor.get_index_selection({'res_num' : [810]})
@@ -985,7 +981,7 @@ class Coor:
         >>> prot_coor.correct_chain() #doctest: +ELLIPSIS
         Chain: A  Residue: 0 to 18
         Chain: B  Residue: 20 to 60
-        <tools.pdb_manip.Coor object at ...>
+        <...Coor object at ...>
         >>> # As a residue is missing, Calphas after residue 18 is no more consecutive
 
 
@@ -1040,15 +1036,14 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> import tools.pdb2pqr as pdb2pqr
+        >>> import gromacs.tools.pdb2pqr as pdb2pqr
         >>> # Compute protonation with pdb2pqr:
         >>> pdb2pqr.compute_pdb2pqr(TEST_PATH+'/4n1m.pdb',  TEST_OUT+'/4n1m.pqr') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
         Succeed to save file gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb
         pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/4n1m.pqr
         0
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_OUT+'/4n1m.pqr', pqr_format = True)
         Succeed to read file gromacs_py_test_out/pdb_manip_test/4n1m.pqr ,  2548 atoms found
         >>> HSD_index = prot_coor.get_index_selection({'res_name' : ['HSD'], 'name':['CA']})
@@ -1061,7 +1056,7 @@ class Coor:
         >>> print(len(HSP_index))
         0
         >>> prot_coor.correct_his_name() #doctest: +ELLIPSIS
-        <tools.pdb_manip.Coor object at 0x...
+        <...Coor object at 0x...
         >>> HIS_index = prot_coor.get_index_selection({'res_name' : ['HIS'], 'name':['CA']})
         >>> print(len(HIS_index))
         0
@@ -1108,11 +1103,10 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> import tools.pdb2pqr as pdb2pqr
+        >>> import gromacs.tools.pdb2pqr as pdb2pqr
         >>>
         >>> # Read the pdb 1jd4 and keep only chain A
-        >>> input_pdb = pdb_manip.Coor()
+        >>> input_pdb = Coor()
         >>> input_pdb.read_pdb(TEST_PATH+'/1jd4.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1jd4.pdb ,  1586 atoms found
         >>> chain_A = input_pdb.select_part_dict(selec_dict = {'chain' : ['A']})
@@ -1125,16 +1119,16 @@ class Coor:
         Succeed to save file gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb
         pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/1jd4.pqr
         0
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_OUT+'/1jd4.pqr', pqr_format = True)
         Succeed to read file gromacs_py_test_out/pdb_manip_test/1jd4.pqr ,  1548 atoms found
         >>> prot_coor.correct_cys_name() #doctest: +ELLIPSIS
-        <tools.pdb_manip.Coor object at 0x...
+        <...Coor object at 0x...
         >>> prot_coor.correct_his_name() #doctest: +ELLIPSIS
-        <tools.pdb_manip.Coor object at 0x...
+        <...Coor object at 0x...
         >>> prot_coor.correct_chain() #doctest: +ELLIPSIS
         Chain: A  Residue: 0 to 95
-        <tools.pdb_manip.Coor object at 0x...
+        <...Coor object at 0x...
         >>> ZN_index = prot_coor.get_index_selection({'name':['ZN']})
         >>> print(len(ZN_index))
         0
@@ -1216,22 +1210,21 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> import tools.pdb2pqr as pdb2pqr
+        >>> import gromacs.tools.pdb2pqr as pdb2pqr
         >>> # Compute protonation with pdb2pqr:
         >>> pdb2pqr.compute_pdb2pqr(TEST_PATH+'/1dpx.pdb',  TEST_OUT+'/1dpx.pqr') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
         Succeed to save file ...pdb_manip_test/tmp_pdb2pqr.pdb
         pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/1dpx.pqr
         0
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_OUT+'/1dpx.pqr', pqr_format = True)
         Succeed to read file gromacs_py_test_out/pdb_manip_test/1dpx.pqr ,  1960 atoms found
         >>> Isu_index = prot_coor.get_index_selection({'res_name' : ['DISU']})
         >>> print(len(Isu_index))
         16
         >>> prot_coor.correct_cys_name() #doctest: +ELLIPSIS
-        <tools.pdb_manip.Coor object at 0x...
+        <...Coor object at 0x...
         >>> Isu_index = prot_coor.get_index_selection({'res_name' : ['DISU']})
         >>> print(len(Isu_index))
         0
@@ -1259,16 +1252,15 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> import tools.pdb2pqr as pdb2pqr
-        >>> prot_coor = pdb_manip.Coor()
+        >>> import gromacs.tools.pdb2pqr as pdb2pqr
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb') #doctest: +ELLIPSIS
-        Succeed to read file .../test/input/1dpx.pdb ,  1192 atoms found
+        Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
         >>> hetatm_index = prot_coor.get_index_selection({'field':['HETATM']})
         >>> print(len(hetatm_index))
         179
         >>> prot_coor.water_to_ATOM() #doctest: +ELLIPSIS
-        <tools.pdb_manip.Coor object at 0x...
+        <...Coor object at 0x...
         >>> hetatm_index = prot_coor.get_index_selection({'field':['HETATM']})
         >>> print(len(hetatm_index))
         2
@@ -1290,13 +1282,12 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> import tools.pdb2pqr as pdb2pqr
-        >>> prot_coor = pdb_manip.Coor()
+        >>> import gromacs.tools.pdb2pqr as pdb2pqr
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb') #doctest: +ELLIPSIS
-        Succeed to read file .../test/input/1dpx.pdb ,  1192 atoms found
+        Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
         >>> prot_coor.water_to_ATOM() #doctest: +ELLIPSIS
-        <tools.pdb_manip.Coor object at 0x...
+        <...Coor object at 0x...
         >>> prot_coor.write_pdb(TEST_OUT+'/1dpx_water.pdb')
         Succeed to save file gromacs_py_test_out/pdb_manip_test/1dpx_water.pdb
         >>> # Compute protonation with pdb2pqr:
@@ -1305,7 +1296,7 @@ class Coor:
         Succeed to save file ...pdb_manip_test/tmp_pdb2pqr.pdb
         pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/1dpx_water.pqr
         0
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_OUT+'/1dpx_water.pqr', pqr_format = True)
         Succeed to read file gromacs_py_test_out/pdb_manip_test/1dpx_water.pqr ,  2491 atoms found
         >>> water_index = prot_coor.get_index_selection({'res_name':['TP3M'], 'name':['OH2']})
@@ -1429,8 +1420,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> com_1y0m = prot_coor.center_of_mass()
@@ -1454,8 +1444,7 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> com_1y0m = prot_coor.center_of_mass()
@@ -1509,8 +1498,7 @@ class Coor:
         :type cutoff_max: float, default=10.0
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
-        >>> prot_coor = pdb_manip.Coor()
+        >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
         >>> res_810 = prot_coor.select_part_dict({'res_num' : [810]})
@@ -1742,7 +1730,6 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
         >>> atom_1 = {'xyz': np.array([0.0, 0.0, 0.0])}
         >>> atom_2 = {'xyz': np.array([0.0, 1.0, 0.0])}
         >>> atom_3 = {'xyz': np.array([1.0, 1.0, 1.0])}
@@ -1767,7 +1754,6 @@ class Coor:
 
         :Example:
 
-        >>> import tools.pdb_manip as pdb_manip
         >>> Coor.concat_pdb(TEST_PATH+'/1y0m.pdb', TEST_PATH+'/1rxz.pdb', pdb_out = TEST_OUT+'/tmp_2.pdb') #doctest: +ELLIPSIS
         Concat : ...test/input/1y0m.pdb
         Concat : ...test/input/1rxz.pdb
@@ -1798,8 +1784,11 @@ if __name__ == "__main__":
     import doctest
     import shutil
 
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+
     print("-Test pdb_manip module:")
-    print("tools.pdb_manip:\t", doctest.testmod())
+    print("pdb_manip:\t", doctest.testmod())
 
     # Erase all test files
-    shutil.rmtree('gromacs_py_test_out', ignore_errors=True)
+    shutil.rmtree(TEST_OUT, ignore_errors=True)
