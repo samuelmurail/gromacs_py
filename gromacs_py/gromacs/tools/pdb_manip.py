@@ -21,7 +21,7 @@ from scipy.spatial import distance_matrix
 try:
     from . import os_command
 except ImportError:
-    print("Relive import from . fails, use absolute import instead")
+    print("Relative import from . fails, use absolute import instead")
     import os_command
 
 # Test folder path
