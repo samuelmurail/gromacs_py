@@ -6,7 +6,7 @@ restraints and (iii) finaly equilibration with weak alpha carbon position restra
 """
 
 import argparse
-import gromacs_py.gromacs.gmx5 as gmx
+import gromacs.gmx5 as gmx
 
 print(gmx.__file__)
 
