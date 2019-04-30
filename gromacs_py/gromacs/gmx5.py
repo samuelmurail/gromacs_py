@@ -15,6 +15,7 @@ from shutil import copy as shutil_copy
 # Need to define package to gromacs_py to import ..tools
 # Otherwise package will be gromacs and won't know gromacs_py.tools
 __package__ = 'gromacs_py.gromacs'
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from ..tools import os_command
 from ..tools import pdb_manip
