@@ -17,7 +17,7 @@ try:
     from . import os_command
     from . import pdb_manip
 except ImportError:
-    print("Relive import from . fails, use absolute import instead")
+    print("Relative import from . fails, use absolute import instead")
     import os_command
     import pdb_manip
 
