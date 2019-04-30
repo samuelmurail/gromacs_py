@@ -5,7 +5,7 @@ atoms position restraints, (ii) second equilibration with alpha carbon position 
 restraints and (iii) finaly equilibration with weak alpha carbon position restraints
 """
 import argparse
-import gromacs.gmx5 as gmx
+import gromacs_py.gromacs.gmx5 as gmx
 
 __author__ = "Samuel Murail"
 
