@@ -2881,7 +2881,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         :param rerun: option to rerun a simulation (eg. recompute energy)
         :type rerun: bool, default=False
 
-        :param monitor: option to monitor a simulation, if not none monitor should contains two values: 
+        :param monitor: option to monitor a simulation, if not none monitor should contains two values:\
         ``function`` the function to be ran while simulation is running and ``input`` parameters for the function  
         :type rerun: dict, default=None
 
@@ -2999,8 +2999,8 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
         :param maxwarn: Maximum number of warnings when using ``gmx grompp``
         :type maxwarn: int, default=0
 
-        :param monitor: option to monitor a simulation, if not none monitor should contains two values: 
-        ``function`` the function to be ran while simulation is running and ``input`` parameters for the function  
+        :param monitor: option to monitor a simulation, if not none monitor should contains two values:\
+        ``function`` the function to be ran while simulation is running and ``input`` parameters for the function
         :type rerun: dict, default=None
 
         **Object requirement(s):**
@@ -3018,6 +3018,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
             * self.tpr
             * self.coor_file
             * self.xtc
+
         """
 
         start_dir = os.path.abspath(".")
