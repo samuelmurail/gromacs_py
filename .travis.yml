@@ -1,1 +1,10 @@
 language: python
+
+python:
+  - "3.5"
+
+
+install:
+  - git clone https://github.com/samuelmurail/gromacs_py.git
+  - cd gromacs_py
+  - ./setup.py install --user
