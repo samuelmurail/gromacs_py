@@ -1,15 +1,24 @@
 language: python
-sudo: false
 
 python:
   - "3.6"
+
+os:
+  - osx
+  - linux
+
+sudo: false
+
 
 install:
   - pip install -r requirements.txt
   - cd ..
   - git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
   - cd apbs-pdb2pqr/pdb2pqr/
-  - python2 scons/scons.py install --prefix=$HOME
+  - python2 scons/scons.py install
+
+env:
+  - PATH="/home/travis/pdb2pqr/":$PATH
 
 branches:
     only:
