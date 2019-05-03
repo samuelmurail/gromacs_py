@@ -1,10 +1,20 @@
 language: python
+sudo: false
 
 python:
   - "3.5"
 
 install:
+  - git clone https://github.com/samuelmurail/gromacs_py.git
   - pip install -r requirements.txt
+  - cd ..
+  - git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
+  - cd apbs-pdb2pqr/pdb2pqr/
+  - python scons/scons.py install --prefix=$HOME
+
+branches:
+    only:
+      - master
 
 script:
-  - python ./gromacs_py/test_gromacs_py.py
+  - ./gromacs_py/test_gromacs_py.py
