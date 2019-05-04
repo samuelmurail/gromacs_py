@@ -11,8 +11,8 @@ sudo: false
 git:
   depth: false
 
-before_install: 
-- python install 2.7 
+#before_install: 
+#  - python install 2.7 
 
 install:
   - #git clone https://github.com/samuelmurail/gromacs_py.git
@@ -24,6 +24,8 @@ install:
   - python2 scons/scons.py install
   - export PATH="/home/travis/pdb2pqr/:$PATH"
   - #export PATH=/home/travis/build/samuelmurail/gromacs_py/gromacs_py:$PATH"
+  - ls ${TRAVIS_BUILD_DIR}
+
 branches:
     only:
       - master
