@@ -51,7 +51,7 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
 
     :Example:
 
-    >>> import gromacs_py.tools.pdb_manip as pdb_manip
+    >>> import gromacs.tools.pdb_manip as pdb_manip
     >>> # Compute protonation with pdb2pqr:
     >>> compute_pdb2pqr(TEST_PATH+'/4n1m.pdb', TEST_OUT+'/4n1m.pqr') #doctest: +ELLIPSIS
     Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
