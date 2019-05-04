@@ -11,7 +11,7 @@ sudo: false
 
 install:
   - #git clone https://github.com/samuelmurail/gromacs_py.git
-  - pip install --user -r requirements.txt
+  - pip install -r requirements.txt
   - cd ..
   - git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
   - cd apbs-pdb2pqr/pdb2pqr/
