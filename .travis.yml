@@ -33,9 +33,7 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.7
         - os: linux
-          env: PYTHON_VERSION=3.5
-        - os: linux
-          env: GROMACS_VERSION=5.1.4
+          env: GROMACS_VERSION=5.1.4 PYTHON_VERSION=3.5
         - os: linux
           env: GROMACS_VERSION=2018.5
 
