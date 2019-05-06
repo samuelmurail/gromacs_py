@@ -26,7 +26,7 @@ env:
     - CONDA_DEPENDENCIES="scipy matplotlib gromacs"
     - CONDA_CHANNELS="conda-forge bioconda"
     - NUMPY_VERSION=stable
-    - PIP_DEPENDENCIES="codecov"
+    - PIP_DEPENDENCIES="codecov pytest-cov"
 
 matrix:
     include:
@@ -65,9 +65,9 @@ script:
   - sphinx-build -b html . _build
 
 after_success:
-    - pip install pytest-cov
-    - py.test --cov-report=xml --cov=gromacs_py tests/
-
+  # Launch pytest for codecov
+  - py.test --cov-report=xml --cov=gromacs_py 
+  - codecov
 #after_success:
 #- if [[ $SETUP_CMD == *coverage* ]]; then coveralls; fi
 
