@@ -9,6 +9,10 @@
    :alt: Documentation Status
 
 
+.. image:: https://travis-ci.org/samuelmurail/gromacs_py.svg?branch=master
+    :target: https://travis-ci.org/samuelmurail/gromacs_py
+
+
 Gromacs_py
 =======================================
 
