@@ -10,6 +10,13 @@ os:
 
 sudo: false
 
+git:
+  depth: false
+
+branches:
+  only:
+    - master
+
 env:
   global:
     - SETUP_CMD='test'
@@ -19,6 +26,7 @@ env:
     - CONDA_DEPENDENCIES="scipy matplotlib gromacs"
     - CONDA_CHANNELS="conda-forge bioconda"
     - NUMPY_VERSION=stable
+    - PIP_DEPENDENCIES="codecov"
 
 matrix:
     include:
@@ -57,7 +65,8 @@ script:
   - sphinx-build -b html . _build
 
 after_success:
-    - bash <(curl -s https://codecov.io/bash)
+    - pip install pytest-cov
+    - py.test --cov-report=xml --cov=myproj tests/
 
 #after_success:
 #- if [[ $SETUP_CMD == *coverage* ]]; then coveralls; fi
