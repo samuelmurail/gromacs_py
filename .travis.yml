@@ -30,18 +30,18 @@ env:
 
 matrix:
     include:
-        - os: linux
-          env: PYTHON_VERSION=3.7
+        #- os: linux
+        #  env: PYTHON_VERSION=3.7
         #- os: ;inux
         #  env: PYTHON_VERSION=3.6
         #- os: ;inux
         #  env: PYTHON_VERSION=3.5
-        #- os: ;inux
-        #  env: GROMACS_VERSION=2016.6
+        - os: ;inux
+          env: GROMACS_VERSION=2016.6
         #- os: ;inux
         #  env: GROMACS_VERSION=5.1.5
-        #- os: ;inux
-        #  env: GROMACS_VERSION=5.0.7
+        - os: ;inux
+          env: GROMACS_VERSION=5.0.7
 
 install:
   # Install astropy to build python and gromacs with conda
