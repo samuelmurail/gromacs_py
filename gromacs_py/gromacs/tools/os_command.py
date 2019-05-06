@@ -374,17 +374,19 @@ class Command:
         # stderr to NULL solve some issue with backgound running
         # probably redirecting stderr to file or NULL should be done
         # However I'd like to find an other solution
+        # Removing the "-v" option solve the issue
 
         proc = subprocess.Popen(self.cmd,
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
-                                env=self.env,
-                                bufsize=0)
+                                env=self.env)
 
-        # Launch function while self.cmd is running
-        function(proc, func_input_dict)
+        # Launch monitor function while self.cmd is running
+        from . import monitor
+        monitor.simulation_plot(proc, function, func_input_dict)
 
+        # When job is finished get stdout and stderr data
         (stdout_data, stderr_data) = proc.communicate(com_input.encode())
 
         if display:
