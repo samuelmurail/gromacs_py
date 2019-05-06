@@ -30,20 +30,20 @@ env:
 
 matrix:
     include:
-        #- os: linux
-        #  env: PYTHON_VERSION=3.7
-        #- os: linux
-        #  env: PYTHON_VERSION=3.6
-        #- os: linux
-        #  env: PYTHON_VERSION=3.5
         - os: linux
-          env: GROMACS_VERSION=2016
+          env: PYTHON_VERSION=3.7
+        - os: linux
+          env: PYTHON_VERSION=3.6
+        - os: linux
+          env: PYTHON_VERSION=3.5
+        - os: linux
+          env: CONDA_DEPENDENCIES="scipy matplotlib gromacs-2016"
         - os: linux
           env: GROMACS_VERSION=2018.5
         - os: linux
           env: GROMACS_VERSION=2019.1
-        - os: ;inux
-          env: GROMACS_VERSION=5.1
+        - os: linux
+          env: CONDA_DEPENDENCIES="scipy matplotlib gromacs-5.1.2"
 
 install:
   # Install astropy to build python and gromacs with conda
