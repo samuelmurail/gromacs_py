@@ -1,8 +1,8 @@
 import os
 from . import os_command
 
-VMD_BIN=os_command.which('vmd_MACOSXX86','vmd','vmd_LINUXAMD64')
-
+#VMD_BIN=os_command.which('vmd_MACOSXX86','vmd','vmd_LINUXAMD64')
+VMD_BIN='vmd'
 
 #VMD_BIN="/Applications/VMD 1.9.3.app/Contents/vmd/vmd_MACOSXX86"
 VMD_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
