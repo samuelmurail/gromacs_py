@@ -25,7 +25,9 @@ setup(
     ],
     install_requires=[
         "numpy",
-        "scipy"
+        "scipy",
+        "sphinx_rtd_theme",
+        "sphinx-argparse"
     ],
     include_package_data=True,
 )
