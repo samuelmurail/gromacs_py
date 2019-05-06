@@ -1,8 +1,12 @@
 import os
 from . import os_command
 
-#VMD_BIN=os_command.which('vmd_MACOSXX86','vmd','vmd_LINUXAMD64')
-VMD_BIN='vmd'
+# Add the try/except only for readthedocs compilation
+try:
+    VMD_BIN=os_command.which('vmd_MACOSXX86','vmd','vmd_LINUXAMD64')
+except OSError:
+    print("VMD cannot be found")
+    VMD_BIN = ""
 
 #VMD_BIN="/Applications/VMD 1.9.3.app/Contents/vmd/vmd_MACOSXX86"
 VMD_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
