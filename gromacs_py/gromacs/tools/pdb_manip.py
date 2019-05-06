@@ -1816,4 +1816,4 @@ if __name__ == "__main__":
     print("pdb_manip:\t", doctest.testmod())
 
     # Erase all test files
-    shutil.rmtree(TEST_OUT.split('/')[0], ignore_errors=True)
+    shutil.rmtree('gromacs_py_test_out', ignore_errors=True)
