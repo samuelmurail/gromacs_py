@@ -1016,7 +1016,7 @@ class Coor:
 
         # Change chain ID :
 
-        # print(Ca_atom.atom_dict)
+        # print(Ca_atom.atomChabge_dict)
 
         for i, chain_res in enumerate(chain_res_list):
             print("Chain:", chr(65 + i), " Residue:", chain_res[0], "to", chain_res[-1])
@@ -1036,7 +1036,12 @@ class Coor:
 
         :Example:
 
-        >>> import gromacs.tools.pdb2pqr as pdb2pqr
+        >>> try: #doctest: +ELLIPSIS
+        ...   print("Start import")
+        ...   from . import pdb2pqr
+        ... except ImportError:
+        ...   import pdb2pqr
+        Start import...
         >>> # Compute protonation with pdb2pqr:
         >>> pdb2pqr.compute_pdb2pqr(TEST_PATH+'/4n1m.pdb',  TEST_OUT+'/4n1m.pqr') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
@@ -1098,12 +1103,17 @@ class Coor:
         return self
 
     def add_zinc_finger(self, ZN_pdb, cutoff=3.2):
-        """ Chabge protonation state of cysteins and histidine coordinating Zinc atoms.
+        """ Change protonation state of cysteins and histidine coordinating Zinc atoms.
         To do after `correct_his_name` and `correct_cys_name`, in order that protonation is recognize by pdb2gmx.
 
         :Example:
 
-        >>> import gromacs.tools.pdb2pqr as pdb2pqr
+        >>> try: #doctest: +ELLIPSIS
+        ...   print("Start import")
+        ...   from . import pdb2pqr
+        ... except ImportError:
+        ...   import pdb2pqr
+        Start import...
         >>>
         >>> # Read the pdb 1jd4 and keep only chain A
         >>> input_pdb = Coor()
@@ -1210,7 +1220,12 @@ class Coor:
 
         :Example:
 
-        >>> import gromacs.tools.pdb2pqr as pdb2pqr
+        >>> try: #doctest: +ELLIPSIS
+        ...   print("Start import")
+        ...   from . import pdb2pqr
+        ... except ImportError:
+        ...   import pdb2pqr
+        Start import...
         >>> # Compute protonation with pdb2pqr:
         >>> pdb2pqr.compute_pdb2pqr(TEST_PATH+'/1dpx.pdb',  TEST_OUT+'/1dpx.pqr') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
@@ -1252,7 +1267,12 @@ class Coor:
 
         :Example:
 
-        >>> import gromacs.tools.pdb2pqr as pdb2pqr
+        >>> try: #doctest: +ELLIPSIS
+        ...   print("Start import")
+        ...   from . import pdb2pqr
+        ... except ImportError:
+        ...   import pdb2pqr
+        Start import...
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
@@ -1282,7 +1302,12 @@ class Coor:
 
         :Example:
 
-        >>> import gromacs.tools.pdb2pqr as pdb2pqr
+        >>> try: #doctest: +ELLIPSIS
+        ...   print("Start import")
+        ...   from . import pdb2pqr
+        ... except ImportError:
+        ...   import pdb2pqr
+        Start import...
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
@@ -1785,10 +1810,10 @@ if __name__ == "__main__":
     import shutil
 
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
+    print(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 
     print("-Test pdb_manip module:")
     print("pdb_manip:\t", doctest.testmod())
 
     # Erase all test files
-    shutil.rmtree(TEST_OUT, ignore_errors=True)
+    shutil.rmtree(TEST_OUT.split('/')[0], ignore_errors=True)

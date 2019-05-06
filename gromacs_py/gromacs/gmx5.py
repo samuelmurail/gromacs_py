@@ -3564,4 +3564,4 @@ if __name__ == "__main__":
     print("gmx5:    \t", doctest.testmod())
 
     # Erase all test files
-    shutil.rmtree('gromacs_py_test_out', ignore_errors=True)
+    shutil.rmtree(TEST_OUT.split('/')[0], ignore_errors=True)

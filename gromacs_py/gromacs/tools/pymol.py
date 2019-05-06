@@ -1,6 +1,6 @@
 # coding: utf-8
 import os
-import tools.os_command as os_command
+from . import os_command
 
 # PYMOL_BIN="/Applications/PyMOL.app/Contents/bin/pymol"
 # PYMOL_BIN=osCommand.which('pymol')

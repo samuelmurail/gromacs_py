@@ -1,5 +1,5 @@
 import os
-import tools.os_command as os_command
+from . import os_command
 
 VMD_BIN=os_command.which('vmd_MACOSXX86','vmd','vmd_LINUXAMD64')
 

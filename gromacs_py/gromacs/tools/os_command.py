@@ -418,4 +418,4 @@ if __name__ == "__main__":
 
     print("os_command:  \t", doctest.testmod())
     # Erase all test files
-    shutil.rmtree(TEST_OUT, ignore_errors=True)
+    shutil.rmtree('gromacs_py_test_out', ignore_errors=True)
