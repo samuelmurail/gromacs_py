@@ -59,14 +59,14 @@ install:
 script:
   - cd ${TRAVIS_BUILD_DIR}
   # Test gromacs_py
-  - ./gromacs_py/test_gromacs_py.py
+  - pytest
   # Build Doc:
   - cd gromacs_py/doc
   - sphinx-build -b html . _build
 
 after_success:
     - pip install pytest-cov
-    - py.test --cov-report=xml --cov=myproj tests/
+    - py.test --cov-report=xml --cov=gromacs_py tests/
 
 #after_success:
 #- if [[ $SETUP_CMD == *coverage* ]]; then coveralls; fi
