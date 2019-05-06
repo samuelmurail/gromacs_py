@@ -12,6 +12,8 @@
 .. image:: https://travis-ci.org/samuelmurail/gromacs_py.svg?branch=master
     :target: https://travis-ci.org/samuelmurail/gromacs_py
 
+.. image:: https://codecov.io/gh/samuelmurail/gromacs_py/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/samuelmurail/gromacs_py
 
 Gromacs_py
 =======================================
