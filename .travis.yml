@@ -1,12 +1,12 @@
 # https://github.com/astropy/ci-helpers/blob/master/.travis.yml
-
 # We set the language to c because python isn't supported on the MacOS X nodes
 # on Travis. However, the language ends up being irrelevant anyway, since we
 # install Python ourselves using conda.
+
 language: generic
 
 os:
-    - linux
+  - linux
 
 sudo: false
 
@@ -14,17 +14,14 @@ env:
   global:
     - SETUP_CMD='test'
     - TEST_CMD='./gromacs_py/test_gromacs_py.py'
+    - GROMACS_VERSION=2019.1 
     - PYTHON_VERSION=3.6
     - CONDA_DEPENDENCIES="scipy matplotlib gromacs"
     - CONDA_CHANNELS="defaults conda-forge bioconda"
     - NUMPY_VERSION=stable
 
-    matrix:
-        - GROMACS_VERSION=2019.1  PYTHON_VERSION=3.6
-
 matrix:
     include:
-        # pytest pip fallback, conda package for 3.1 is not available for py3.4
         - os: linux
           env: PYTHON_VERSION=3.4
         - os: ;inux
