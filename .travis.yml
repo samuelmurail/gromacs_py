@@ -24,7 +24,7 @@ env:
     - GROMACS_VERSION=2019.1 
     - PYTHON_VERSION=3.6
     - CONDA_DEPENDENCIES="scipy matplotlib gromacs"
-    - CONDA_CHANNELS="conda-forge bioconda becksteinlab"
+    - CONDA_CHANNELS="conda-forge bioconda acellera"
     - NUMPY_VERSION=stable
     - PIP_DEPENDENCIES="codecov pytest-cov"
 
@@ -33,17 +33,11 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.7
         - os: linux
-          env: PYTHON_VERSION=3.6
-        - os: linux
           env: PYTHON_VERSION=3.5
         - os: linux
-          env: CONDA_DEPENDENCIES="scipy matplotlib gromacs-2016"
+          env: GROMACS_VERSION=5.1.4
         - os: linux
           env: GROMACS_VERSION=2018.5
-        - os: linux
-          env: GROMACS_VERSION=2019.1
-        - os: linux
-          env: CONDA_DEPENDENCIES="scipy matplotlib gromacs-5.1.2"
 
 install:
   # Install astropy to build python and gromacs with conda
