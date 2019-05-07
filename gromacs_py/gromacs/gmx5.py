@@ -1602,7 +1602,7 @@ gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedro
 
     def convert_trj(self, name=None, ur="compact", pbc="mol", select="System", traj=True,
                     specific_coor_out=None, check_file_out=True, **cmd_args):
-        """Convert a trajectory or coordinate file using the commande ``gmx trjconv``.
+        r"""Convert a trajectory or coordinate file using the commande ``gmx trjconv``.
 
         This is specially usefull when the protein is break across pbc. Using \
         ``convert_trj()`` with default parameters will fix it.
@@ -1640,6 +1640,9 @@ gromacs_py_test_out/gmx5/create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedro
         **Object field(s) changed:**
 
             * self.coor_file or self.xtc
+
+        """ + \
+        """
 
         :Example:
 
@@ -1734,7 +1737,7 @@ gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
             self.coor_file = coor_out
 
     def copy_box(self, nbox, name=None, check_file_out=True, **cmd_args):
-        """Copy images of a given corrdinates in x, y, and z directions using ``gmx genconf``.
+        r"""Copy images of a given corrdinates in x, y, and z directions using ``gmx genconf``.
 
         nbox needs a list of 3 string for number x,y,z dimensions copy
 
@@ -1760,6 +1763,9 @@ gromacs_py_test_out/gmx5/convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
         **Object field(s) changed:**
 
             * self.coor_file
+
+        """ +\
+        """
 
         :Example:
 
@@ -2649,7 +2655,7 @@ gromacs_py_test_out/gmx5/peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 
 
     def add_tpr(self, name, r=None, po=None, folder_out="",
                 check_file_out=True, **grompp_options):
-        """Create a tpr file using ``gmx grompp``.
+        r"""Create a tpr file using ``gmx grompp``.
 
         :param name: name of the simulation
         :type name: str
