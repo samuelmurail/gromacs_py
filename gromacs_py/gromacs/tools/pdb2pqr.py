@@ -27,7 +27,7 @@ PDB2PQR_BIN = 'pdb2pqr.py'
 
 # Test folder path
 PQR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(PQR_LIB_DIR + "/../../test/input/")
+TEST_PATH = os.path.abspath(os.path.join(PQR_LIB_DIR, "../../test/input/"))
 
 
 def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
@@ -94,17 +94,17 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
 
     # Remove HETATM
     no_hetatm_pdb = tmp_coor.select_part_dict({'field': 'ATOM'})
-    no_hetatm_pdb.write_pdb(out_folder + "/tmp_pdb2pqr.pdb")
+    no_hetatm_pdb.write_pdb(os.path.join(out_folder + "/tmp_pdb2pqr.pdb"))
 
     cmd_pdb2pqr = os_command.Command([PDB2PQR_BIN,
                                       "--ff", ff,
                                       "--ffout", ff,
                                       "--chain",
-                                      out_folder + "/tmp_pdb2pqr.pdb", pdb_out])
+                                      os.path.join(out_folder + "/tmp_pdb2pqr.pdb"), pdb_out])
 
     cmd_pdb2pqr.display()
     out_data = cmd_pdb2pqr.run()
-    os_command.delete_file(out_folder + "/tmp_pdb2pqr.pdb")
+    os_command.delete_file(os.path.join(out_folder + "/tmp_pdb2pqr.pdb"))
 
     return out_data
 
