@@ -265,8 +265,11 @@ class Command:
             # Use sorted to have same order of command in doctest
             for key, value in sorted(kwargs.items(), key=operator.itemgetter(0)):
                 # print(key, value )
-                self.cmd.append("-" + key)
-                self.cmd.append(value)
+                if value != None:
+                    self.cmd.append("-" + key)
+                    self.cmd.append(value)
+                else:
+                    self.cmd.append("-" + key)
         # print("Cmd:",self.cmd)
 
     def define_env(self, my_env):
