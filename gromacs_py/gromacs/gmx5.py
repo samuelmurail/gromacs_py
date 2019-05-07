@@ -2912,6 +2912,9 @@ SAM_pdb2gmx.itp
         if pdb_restr is not None:
             pdb_restr = os_command.full_path_and_check(pdb_restr)
 
+        if self.top_file is None:
+            raise ValueError("Simulation could not be ran because the topologie is not defined")
+
         # Create and go in out_folder:
         os_command.create_and_go_dir(out_folder)
 
