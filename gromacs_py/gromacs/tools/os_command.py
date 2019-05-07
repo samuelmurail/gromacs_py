@@ -227,6 +227,33 @@ def get_directory(file):
     return directory
 
 
+def get_gmx_version():
+    """ Get gmx version 
+
+    :Example:
+
+    >>> print('Version is {}'.format(get_gmx_version())) #doctest: +ELLIPSIS
+    Version is ...
+    """ 
+
+    gmx_bin = which('gmx')
+    cmd_copy = Command([gmx_bin, "-version"])
+
+    proc = subprocess.Popen(cmd_copy.cmd,
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            env=cmd_copy.env)
+
+    (stdout_data, stderr_data) = proc.communicate()
+
+    #print(stdout_data)
+
+    for line in stdout_data.decode('utf-8').split('\n'):
+        if line.startswith('GROMACS version:'):
+            version = line.split()[2].strip()
+            return(version)
+
 class Command:
     """The Command class is a way to launch bash command and mainly gromacs
 
