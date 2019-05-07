@@ -346,9 +346,11 @@ class Command:
 
         print("The following command could not be executed correctly :")
         self.display()
-        print(stdout_data.decode('utf-8'))
-        print(stderr_data.decode('utf-8'))
-        raise RuntimeError('Following Command Fails : {}'.format(" ".join(self.cmd)))
+        raise RuntimeError('Following Command Fails : {} \n Ret code = {} \n {} \n {}'.format(
+            " ".join(self.cmd),
+            proc.returncode,
+            stdout_data.decode('utf-8'), 
+            stderr_data.decode('utf-8')))
 
     def run_background(self, function, func_input_dict, com_input="", display=False, out_data=False):
         """ Launch ``Command`` object that will be launch.
