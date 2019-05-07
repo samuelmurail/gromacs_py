@@ -1,0 +1,19 @@
+; Topologie file created by Samuel Murail
+; Using library gromacs_py.gromacs.gmx5 
+
+; Forcefield: 
+#include "charmm36-jul2017.ff/forcefield.itp"
+
+; Itp to include: 
+#include "1Y0M_pdb2gmx.itp"
+#include "charmm36-jul2017.ff/tip3p.itp"
+#include "charmm36-jul2017.ff/ions.itp"
+
+[ system ]
+; Name
+Protein
+
+[ molecules ]
+; Compound        #mols
+Protein_chain_A 	1
+
