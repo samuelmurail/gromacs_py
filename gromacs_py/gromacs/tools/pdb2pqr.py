@@ -28,7 +28,6 @@ PDB2PQR_BIN = 'pdb2pqr.py'
 # Test folder path
 PQR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PATH = os.path.abspath(PQR_LIB_DIR + "/../../test/input/")
-TEST_OUT = 'gromacs_py_test_out/pdb2pqr_test'
 
 
 def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
@@ -51,15 +50,16 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
 
     :Example:
 
+    >>> TEST_OUT = getfixture('tmpdir')
     >>> # Compute protonation with pdb2pqr:
     >>> compute_pdb2pqr(TEST_PATH+'/4n1m.pdb', TEST_OUT+'/4n1m.pqr') #doctest: +ELLIPSIS
     Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
-    Succeed to save file gromacs_py_test_out/pdb2pqr_test/tmp_pdb2pqr.pdb
-    pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb2pqr_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb2pqr_test/4n1m.pqr
+    Succeed to save file .../tmp_pdb2pqr.pdb
+    pdb2pqr.py --ff CHARMM --ffout CHARMM --chain .../tmp_pdb2pqr.pdb .../4n1m.pqr
     0
     >>> prot_coor = pdb_manip.Coor()
     >>> prot_coor.read_pdb(TEST_OUT+'/4n1m.pqr', pqr_format = True)
-    Succeed to read file gromacs_py_test_out/pdb2pqr_test/4n1m.pqr ,  2548 atoms found
+    Succeed to read file .../4n1m.pqr ,  2548 atoms found
     >>> HSD_index = prot_coor.get_index_selection({'res_name' : ['HSD'], 'name':['CA']})
     >>> print(len(HSD_index))
     5
@@ -113,8 +113,15 @@ if __name__ == "__main__":
 
     import doctest
     import shutil
+
+    TEST_DIR = 'gromacs_py_test_out'
+    TEST_OUT = os.path.join(TEST_DIR, 'pdb2pqr_test')
+
+    def getfixture(*args):
+        return TEST_OUT
+
     print("-Test pdb2pqr module:")
     print("pdb2pqr:\t", doctest.testmod())
 
     # Erase all test files
-    shutil.rmtree('gromacs_py_test_out', ignore_errors=True)
+    shutil.rmtree(TEST_DIR, ignore_errors=True)

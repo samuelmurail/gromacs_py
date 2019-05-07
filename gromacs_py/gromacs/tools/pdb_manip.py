@@ -27,7 +27,6 @@ except ImportError:
 # Test folder path
 PDB_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PATH = os.path.abspath(os.path.join(PDB_LIB_DIR, "../../test/input/"))
-TEST_OUT = 'gromacs_py_test_out/pdb_manip_test'
 
 # Global variables:
 AA_DICT = {'GLY': 'G',
@@ -648,11 +647,12 @@ class Coor:
 
         :Example:
 
+        >>> TEST_OUT = getfixture('tmpdir')
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
-        >>> prot_coor.write_pdb(TEST_OUT+'/tmp.pdb')
-        Succeed to save file gromacs_py_test_out/pdb_manip_test/tmp.pdb
+        >>> prot_coor.write_pdb(TEST_OUT+'/tmp.pdb') #doctest: +ELLIPSIS
+        Succeed to save file .../tmp.pdb
 
         """
 
@@ -1042,15 +1042,16 @@ class Coor:
         ... except ImportError:
         ...   import pdb2pqr
         Start import...
+        >>> TEST_OUT = getfixture('tmpdir')
         >>> # Compute protonation with pdb2pqr:
         >>> pdb2pqr.compute_pdb2pqr(TEST_PATH+'/4n1m.pdb',  TEST_OUT+'/4n1m.pqr') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
-        Succeed to save file gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/4n1m.pqr
+        Succeed to save file .../tmp_pdb2pqr.pdb
+        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain .../tmp_pdb2pqr.pdb .../4n1m.pqr
         0
         >>> prot_coor = Coor()
-        >>> prot_coor.read_pdb(TEST_OUT+'/4n1m.pqr', pqr_format = True)
-        Succeed to read file gromacs_py_test_out/pdb_manip_test/4n1m.pqr ,  2548 atoms found
+        >>> prot_coor.read_pdb(TEST_OUT+'/4n1m.pqr', pqr_format = True) #doctest: +ELLIPSIS
+        Succeed to read file .../4n1m.pqr ,  2548 atoms found
         >>> HSD_index = prot_coor.get_index_selection({'res_name' : ['HSD'], 'name':['CA']})
         >>> print(len(HSD_index))
         5
@@ -1114,24 +1115,25 @@ class Coor:
         ... except ImportError:
         ...   import pdb2pqr
         Start import...
+        >>> TEST_OUT = getfixture('tmpdir')
         >>>
         >>> # Read the pdb 1jd4 and keep only chain A
         >>> input_pdb = Coor()
         >>> input_pdb.read_pdb(TEST_PATH+'/1jd4.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1jd4.pdb ,  1586 atoms found
         >>> chain_A = input_pdb.select_part_dict(selec_dict = {'chain' : ['A']})
-        >>> chain_A.write_pdb(TEST_OUT+'/1jd4_A.pdb')
-        Succeed to save file gromacs_py_test_out/pdb_manip_test/1jd4_A.pdb
+        >>> chain_A.write_pdb(TEST_OUT+'/1jd4_A.pdb') #doctest: +ELLIPSIS
+        Succeed to save file .../1jd4_A.pdb
         >>>
         >>> # Compute protonation with pdb2pqr:
         >>> pdb2pqr.compute_pdb2pqr(TEST_OUT+'/1jd4_A.pdb',  TEST_OUT+'/1jd4.pqr') #doctest: +ELLIPSIS
-        Succeed to read file gromacs_py_test_out/pdb_manip_test/1jd4_A.pdb ,  793 atoms found
-        Succeed to save file gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/1jd4.pqr
+        Succeed to read file .../1jd4_A.pdb ,  793 atoms found
+        Succeed to save file .../tmp_pdb2pqr.pdb
+        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain .../tmp_pdb2pqr.pdb .../1jd4.pqr
         0
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_OUT+'/1jd4.pqr', pqr_format = True)
-        Succeed to read file gromacs_py_test_out/pdb_manip_test/1jd4.pqr ,  1548 atoms found
+        Succeed to read file .../1jd4.pqr ,  1548 atoms found
         >>> prot_coor.correct_cys_name() #doctest: +ELLIPSIS
         <...Coor object at 0x...
         >>> prot_coor.correct_his_name() #doctest: +ELLIPSIS
@@ -1143,7 +1145,7 @@ class Coor:
         >>> print(len(ZN_index))
         0
         >>> prot_coor.add_zinc_finger(TEST_OUT+'/1jd4_A.pdb') #doctest: +ELLIPSIS
-        Succeed to read file gromacs_py_test_out/pdb_manip_test/1jd4_A.pdb ,  793 atoms found
+        Succeed to read file .../1jd4_A.pdb ,  793 atoms found
         Presence of 1 Zinc detected
         change cystein residue(s) : [48, 51, 75]
         change histidine residue(s) : [68]
@@ -1226,15 +1228,16 @@ class Coor:
         ... except ImportError:
         ...   import pdb2pqr
         Start import...
+        >>> TEST_OUT = getfixture('tmpdir')
         >>> # Compute protonation with pdb2pqr:
         >>> pdb2pqr.compute_pdb2pqr(TEST_PATH+'/1dpx.pdb',  TEST_OUT+'/1dpx.pqr') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
-        Succeed to save file ...pdb_manip_test/tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/1dpx.pqr
+        Succeed to save file .../tmp_pdb2pqr.pdb
+        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain .../tmp_pdb2pqr.pdb .../1dpx.pqr
         0
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_OUT+'/1dpx.pqr', pqr_format = True)
-        Succeed to read file gromacs_py_test_out/pdb_manip_test/1dpx.pqr ,  1960 atoms found
+        Succeed to read file .../1dpx.pqr ,  1960 atoms found
         >>> Isu_index = prot_coor.get_index_selection({'res_name' : ['DISU']})
         >>> print(len(Isu_index))
         16
@@ -1308,22 +1311,23 @@ class Coor:
         ... except ImportError:
         ...   import pdb2pqr
         Start import...
+        >>> TEST_OUT = getfixture('tmpdir')
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb') #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
         >>> prot_coor.water_to_ATOM() #doctest: +ELLIPSIS
         <...Coor object at 0x...
-        >>> prot_coor.write_pdb(TEST_OUT+'/1dpx_water.pdb')
-        Succeed to save file gromacs_py_test_out/pdb_manip_test/1dpx_water.pdb
+        >>> prot_coor.write_pdb(TEST_OUT+'/1dpx_water.pdb') #doctest: +ELLIPSIS
+        Succeed to save file .../1dpx_water.pdb
         >>> # Compute protonation with pdb2pqr:
         >>> pdb2pqr.compute_pdb2pqr(TEST_OUT+'/1dpx_water.pdb', TEST_OUT+'/1dpx_water.pqr') #doctest: +ELLIPSIS
-        Succeed to read file ...pdb_manip_test/1dpx_water.pdb ,  1192 atoms found
-        Succeed to save file ...pdb_manip_test/tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain gromacs_py_test_out/pdb_manip_test/tmp_pdb2pqr.pdb gromacs_py_test_out/pdb_manip_test/1dpx_water.pqr
+        Succeed to read file .../1dpx_water.pdb ,  1192 atoms found
+        Succeed to save file .../tmp_pdb2pqr.pdb
+        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain .../tmp_pdb2pqr.pdb .../1dpx_water.pqr
         0
         >>> prot_coor = Coor()
-        >>> prot_coor.read_pdb(TEST_OUT+'/1dpx_water.pqr', pqr_format = True)
-        Succeed to read file gromacs_py_test_out/pdb_manip_test/1dpx_water.pqr ,  2491 atoms found
+        >>> prot_coor.read_pdb(TEST_OUT+'/1dpx_water.pqr', pqr_format = True) #doctest: +ELLIPSIS
+        Succeed to read file .../1dpx_water.pqr ,  2491 atoms found
         >>> water_index = prot_coor.get_index_selection({'res_name':['TP3M'], 'name':['OH2']})
         >>> print(len(water_index))
         177
@@ -1780,10 +1784,11 @@ class Coor:
 
         :Example:
 
+        >>> TEST_OUT = getfixture('tmpdir')
         >>> Coor.concat_pdb(TEST_PATH+'/1y0m.pdb', TEST_PATH+'/1rxz.pdb', pdb_out = TEST_OUT+'/tmp_2.pdb') #doctest: +ELLIPSIS
         Concat : ...test/input/1y0m.pdb
         Concat : ...test/input/1rxz.pdb
-        Succeed to save .../pdb_manip_test/tmp_2.pdb
+        Succeed to save .../tmp_2.pdb
         """
 
         if os_command.check_file_and_create_path(pdb_out):
@@ -1810,11 +1815,17 @@ if __name__ == "__main__":
     import doctest
     import shutil
 
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-    print(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+    TEST_DIR = 'gromacs_py_test_out'
+    TEST_OUT = os.path.join(TEST_DIR, 'pdb_manip_test')
+
+    def getfixture(*args):
+        return TEST_OUT
+
+    #sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+    #print(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 
     print("-Test pdb_manip module:")
     print("pdb_manip:\t", doctest.testmod())
 
     # Erase all test files
-    shutil.rmtree('gromacs_py_test_out', ignore_errors=True)
+    shutil.rmtree(TEST_DIR, ignore_errors=True)

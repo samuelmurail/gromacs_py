@@ -14,7 +14,6 @@ __author__ = "Samuel Murail"
 # Test folder path
 OS_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PATH = os.path.abspath(os.path.join(OS_LIB_DIR, "../../test/input/"))
-TEST_OUT = 'gromacs_py_test_out/os_command/'
 
 
 def which(*program_list):
@@ -79,10 +78,11 @@ def create_and_go_dir(dir_name):
 
     :Example:
 
+    >>> TEST_OUT = getfixture('tmpdir')
     >>> start_dir = os.getcwd()
-    >>> create_and_go_dir(TEST_OUT+"tmp")
+    >>> create_and_go_dir(os.path.join(TEST_OUT, "tmp"))
     >>> print("Path: ", os.getcwd()) #doctest: +ELLIPSIS
-    Path: .../gromacs_py_test_out/os_command/tmp
+    Path: .../tmp
     >>> os.chdir(start_dir)
     """
 
@@ -447,8 +447,14 @@ if __name__ == "__main__":
     import doctest
     import shutil
 
+    TEST_DIR = 'gromacs_py_test_out'
+    TEST_OUT = os.path.join(TEST_DIR, 'os_command')
+
+    def getfixture(*args):
+        return TEST_OUT
+
     print("-Test os_command module:")
 
     print("os_command:  \t", doctest.testmod())
     # Erase all test files
-    shutil.rmtree('gromacs_py_test_out', ignore_errors=True)
+    shutil.rmtree(TEST_DIR, ignore_errors=True)

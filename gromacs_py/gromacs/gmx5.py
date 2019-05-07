@@ -3447,7 +3447,7 @@ if __name__ == "__main__":
     import shutil
 
     TEST_DIR = 'gromacs_py_test_out'
-    TEST_OUT = TEST_DIR+'/gmx5/'
+    TEST_OUT = os.path.join(TEST_DIR, 'gmx5')
 
     def getfixture(*args):
         return TEST_OUT
