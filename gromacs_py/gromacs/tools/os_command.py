@@ -250,7 +250,7 @@ def get_gmx_version():
     #print(stdout_data)
 
     for line in stdout_data.decode('utf-8').split('\n'):
-        if line.startswith('GROMACS version:'):
+        if line.startswith('GROMACS version:') or line.startswith('Gromacs version:'):
             version = line.split()[2].strip()
             return(version)
 
