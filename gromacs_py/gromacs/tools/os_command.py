@@ -86,7 +86,8 @@ def create_and_go_dir(dir_name):
     >>> os.chdir(start_dir)
     """
 
-    dir_name = os.path.expanduser(dir_name)
+    # Use str(dir_name) to fix an error with python 3.5
+    dir_name = os.path.expanduser(str(dir_name))
     if not os.path.isdir(dir_name) and dir_name != "":
         os.makedirs(dir_name)
     os.chdir(dir_name)
