@@ -292,7 +292,7 @@ class Command:
             # Use sorted to have same order of command in doctest
             for key, value in sorted(kwargs.items(), key=operator.itemgetter(0)):
                 # if the dict value is None just add a flag -`key`
-                if value != None:
+                if value is not None:
                     self.cmd.append("-" + key)
                     self.cmd.append(value)
                 else:
