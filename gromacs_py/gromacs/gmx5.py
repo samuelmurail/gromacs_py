@@ -36,6 +36,7 @@ __author__ = "Samuel Murail"
 try:
     GMX_BIN = os_command.which('gmx')
     gmx_version = os_command.get_gmx_version()
+    print("Gromacs version is {}".format(gmx_version))
 except OSError:
     print("Gromacs cannot be found")
     GMX_BIN = ""
