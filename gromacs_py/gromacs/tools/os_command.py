@@ -228,7 +228,7 @@ def get_directory(file):
 
 
 def get_gmx_version():
-    """ Get gmx version 
+    """ Get gromacs version of mdrun.
 
     :Example:
 
@@ -250,8 +250,8 @@ def get_gmx_version():
     #print(stdout_data)
 
     for line in stdout_data.decode('utf-8').split('\n'):
-        if line.startswith('GROMACS version:') or line.startswith('Gromacs version:'):
-            version = line.split()[2].strip()
+        if line.upper().startswith('GROMACS VERSION:'):
+            version = line.split()[-1].strip()
             return(version)
 
 class Command:
