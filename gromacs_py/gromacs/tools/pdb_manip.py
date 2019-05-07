@@ -647,11 +647,11 @@ class Coor:
 
         :Example:
 
-        >>> TEST_OUT = getfixture('tmpdir')
+        >>> TEST_OUT = str(getfixture('tmpdir'))
         >>> prot_coor = Coor()
-        >>> prot_coor.read_pdb(TEST_PATH+'/1y0m.pdb') #doctest: +ELLIPSIS
+        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1y0m.pdb')) #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
-        >>> prot_coor.write_pdb(TEST_OUT+'/tmp.pdb') #doctest: +ELLIPSIS
+        >>> prot_coor.write_pdb(os.path.join(TEST_OUT, 'tmp.pdb')) #doctest: +ELLIPSIS
         Succeed to save file .../tmp.pdb
 
         """
@@ -1311,22 +1311,22 @@ class Coor:
         ... except ImportError:
         ...   import pdb2pqr
         Start import...
-        >>> TEST_OUT = getfixture('tmpdir')
+        >>> TEST_OUT = str(getfixture('tmpdir'))
         >>> prot_coor = Coor()
-        >>> prot_coor.read_pdb(TEST_PATH+'/1dpx.pdb') #doctest: +ELLIPSIS
+        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1dpx.pdb')) #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
         >>> prot_coor.water_to_ATOM() #doctest: +ELLIPSIS
         <...Coor object at 0x...
-        >>> prot_coor.write_pdb(TEST_OUT+'/1dpx_water.pdb') #doctest: +ELLIPSIS
+        >>> prot_coor.write_pdb(os.path.join(TEST_OUT, '1dpx_water.pdb')) #doctest: +ELLIPSIS
         Succeed to save file .../1dpx_water.pdb
         >>> # Compute protonation with pdb2pqr:
-        >>> pdb2pqr.compute_pdb2pqr(TEST_OUT+'/1dpx_water.pdb', TEST_OUT+'/1dpx_water.pqr') #doctest: +ELLIPSIS
+        >>> pdb2pqr.compute_pdb2pqr(os.path.join(TEST_OUT, '1dpx_water.pdb'), os.path.join(TEST_OUT, '1dpx_water.pqr')) #doctest: +ELLIPSIS
         Succeed to read file .../1dpx_water.pdb ,  1192 atoms found
         Succeed to save file .../tmp_pdb2pqr.pdb
         pdb2pqr.py --ff CHARMM --ffout CHARMM --chain .../tmp_pdb2pqr.pdb .../1dpx_water.pqr
         0
         >>> prot_coor = Coor()
-        >>> prot_coor.read_pdb(TEST_OUT+'/1dpx_water.pqr', pqr_format = True) #doctest: +ELLIPSIS
+        >>> prot_coor.read_pdb(os.path.join(TEST_OUT, '1dpx_water.pqr'), pqr_format = True) #doctest: +ELLIPSIS
         Succeed to read file .../1dpx_water.pqr ,  2491 atoms found
         >>> water_index = prot_coor.get_index_selection({'res_name':['TP3M'], 'name':['OH2']})
         >>> print(len(water_index))
@@ -1784,8 +1784,10 @@ class Coor:
 
         :Example:
 
-        >>> TEST_OUT = getfixture('tmpdir')
-        >>> Coor.concat_pdb(TEST_PATH+'/1y0m.pdb', TEST_PATH+'/1rxz.pdb', pdb_out = TEST_OUT+'/tmp_2.pdb') #doctest: +ELLIPSIS
+        >>> TEST_OUT = str(getfixture('tmpdir'))
+        >>> Coor.concat_pdb(os.path.join(TEST_PATH, '1y0m.pdb'),
+        ...                 os.path.join(TEST_PATH, '1rxz.pdb'),
+        ...                 pdb_out = os.path.join(TEST_OUT, 'tmp_2.pdb')) #doctest: +ELLIPSIS
         Concat : ...test/input/1y0m.pdb
         Concat : ...test/input/1rxz.pdb
         Succeed to save .../tmp_2.pdb

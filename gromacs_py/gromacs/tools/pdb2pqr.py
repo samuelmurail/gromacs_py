@@ -50,9 +50,9 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
 
     :Example:
 
-    >>> TEST_OUT = getfixture('tmpdir')
+    >>> TEST_OUT = str(getfixture('tmpdir'))
     >>> # Compute protonation with pdb2pqr:
-    >>> compute_pdb2pqr(TEST_PATH+'/4n1m.pdb', TEST_OUT+'/4n1m.pqr') #doctest: +ELLIPSIS
+    >>> compute_pdb2pqr(os.path.join(TEST_PATH,'4n1m.pdb'), os.path.join(TEST_OUT, '4n1m.pqr')) #doctest: +ELLIPSIS
     Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
     Succeed to save file .../tmp_pdb2pqr.pdb
     pdb2pqr.py --ff CHARMM --ffout CHARMM --chain .../tmp_pdb2pqr.pdb .../4n1m.pqr

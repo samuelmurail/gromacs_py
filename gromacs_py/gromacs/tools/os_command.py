@@ -78,7 +78,7 @@ def create_and_go_dir(dir_name):
 
     :Example:
 
-    >>> TEST_OUT = getfixture('tmpdir')
+    >>> TEST_OUT = str(getfixture('tmpdir'))
     >>> start_dir = os.getcwd()
     >>> create_and_go_dir(os.path.join(TEST_OUT, "tmp"))
     >>> print("Path: ", os.getcwd()) #doctest: +ELLIPSIS
@@ -117,7 +117,7 @@ def check_file_exist(file):
 
     :Example:
 
-    >>> test_exist = check_file_exist(TEST_PATH+"/1y0m.pdb")
+    >>> test_exist = check_file_exist(os.path.join(TEST_PATH, "1y0m.pdb"))
     >>> print("1y0m.pdb exist: ", test_exist)
     1y0m.pdb exist:  True
     """
@@ -140,7 +140,7 @@ def check_directory_exist(directory):
     >>> test_exist = check_directory_exist(TEST_PATH)
     >>> print("Directory {} exist: {}".format(TEST_PATH, test_exist)) #doctest: +ELLIPSIS
     Directory ...test/input exist: True
-    >>> test_exist = check_directory_exist(TEST_PATH+'/no_way')
+    >>> test_exist = check_directory_exist(os.path.join(TEST_PATH,'no_way'))
     >>> print("Directory {} exist: {}".format(TEST_PATH+'/no_way', test_exist)) #doctest: +ELLIPSIS
     Directory ...test/input/no_way exist: False
     """
