@@ -837,7 +837,7 @@ class GmxSys:
     Succeed to save file 01_1y0m_good_his.pdb
     -Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
-1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -vsite hydrogens
+1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh -vsite hydrogens
     Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a separate \
 file: 1y0m_pdb2gmx.itp
     Protein_chain_A
@@ -1034,7 +1034,7 @@ file: 1y0m_pdb2gmx.itp
         :type check_file_out: bool, optional, default=True
 
         :param pdb2gmx_option_dict: dictionnary of option for pdb2gmx, for example if
-            you want to ignore input hydrogens use:``{'ignh': 'yes'}``. The '-' before the option
+            you want to ignore input hydrogens use:``{'ignh': None}``. The '-' before the option
             is to avoid.
         :type pdb2gmx_option_dict: dict, optional, default=None
 
@@ -1069,17 +1069,17 @@ separate file: 1y0m_pdb2gmx.itp
         >>> #########################################
         >>> # Use of different options for pdb2gmx: #
         >>> #########################################
-        >>> # Ignore hydrogens: 'ignh': 'yes'
-        >>> # Define amino acid termini: 'ter': 'yes'
+        >>> # Ignore hydrogens: 'ignh': None
+        >>> # Define amino acid termini: 'ter': None
         >>> # Needs to answer pdb2gmx request concerning termini
         >>> # with: input_pdb2gmx ="1 \\n 0"
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/add_top/top_SH3_2/',
-        ...     pdb2gmx_option_dict={'ignh': 'yes', 'ter': 'yes'},
+        ...     pdb2gmx_option_dict={'ignh': None, 'ter': None},
         ...     input_pdb2gmx="1 \\n 0") #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
-1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -ter yes
+1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh -ter
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a \
 separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
@@ -1200,7 +1200,7 @@ separate file: 1y0m_pdb2gmx.itp
         Succeed to save file 01_1y0m_good_his.pdb
         -Create topologie
         gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p 1y0m_pdb2gmx.top -i \
-1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh yes -vsite hydrogens
+1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh -vsite hydrogens
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie in a \
 separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
@@ -1253,10 +1253,10 @@ separate file: 1y0m_pdb2gmx.itp
 
         # Compute topology for system without zinc
         if not zinc_in:
-            pdb2gmx_option_dict = {'vsite': vsite, 'ignh': 'yes'}
+            pdb2gmx_option_dict = {'vsite': vsite, 'ignh': None}
         # Compute topology for system with zinc
         else:
-            pdb2gmx_option_dict = {'vsite': vsite, 'ignh': 'yes', 'merge': 'all'}
+            pdb2gmx_option_dict = {'vsite': vsite, 'ignh': None, 'merge': 'all'}
 
         self.add_top(out_folder=".", check_file_out=True,
                      pdb2gmx_option_dict=pdb2gmx_option_dict)
@@ -1299,7 +1299,7 @@ separate file: 1y0m_pdb2gmx.itp
         >>> cyclic_pep.cyclic_peptide_top(out_folder=os.path.join(str(TEST_OUT),'cyclic/top')) #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f ...input/5vav.pdb -o no_cyclic_5vav_pdb2gmx.pdb -p no_cyclic_5vav_pdb2gmx.top -i no_cyclic_5vav_posre.itp -water tip3p -ff \
-charmm36-jul2017 -ignh yes -ter yes -vsite no
+charmm36-jul2017 -ignh -ter -vsite no
         Molecule topologie present in no_cyclic_5vav_pdb2gmx.top , extract the topologie in a \
 separate file: no_cyclic_5vav_pdb2gmx.itp
         Protein_chain_A
@@ -1342,7 +1342,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         # Create peptide topologie with NH2 Cter and COO- Nter
         self.add_top(out_folder=out_folder, name="no_cyclic_" + name,
                      water="tip3p", ff="charmm36-jul2017",
-                     pdb2gmx_option_dict={'vsite': 'no', 'ignh': 'yes', 'ter': 'yes'},
+                     pdb2gmx_option_dict={'vsite': 'no', 'ignh': None, 'ter': None},
                      check_file_out=False, input_pdb2gmx=N_ter_dic["NH2"] + "\n" + C_ter_dic["COO-"])
 
         # Make the top clean:
@@ -2213,7 +2213,7 @@ em_nsteps=100, equi_nsteps=100) #doctest: +ELLIPSIS
         Succeed to save file .../peptide/SAM.pdb
         -Create topologie
         gmx pdb2gmx -f ../SAM.pdb -o SAM_pdb2gmx.pdb -p SAM_pdb2gmx.top -i SAM_posre.itp -water \
-tip3p -ff charmm36-jul2017 -ignh yes -ter yes -vsite hydrogens
+tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
         Molecule topologie present in SAM_pdb2gmx.top , extract the topologie in a separate file: \
 SAM_pdb2gmx.itp
         Protein_chain_P
@@ -2257,7 +2257,7 @@ SAM_pdb2gmx.itp
                      name=sequence, water="tip3p",
                      ff="charmm36-jul2017",
                      pdb2gmx_option_dict={'vsite': 'hydrogens',
-                                          'ignh': 'yes', 'ter': 'yes'},
+                                          'ignh': None, 'ter': None},
                      check_file_out=False,
                      input_pdb2gmx=N_ter_dic[N_ter] + "\n" + C_ter_dic[C_ter],
                      posre_post=posre_post)
