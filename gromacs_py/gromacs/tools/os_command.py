@@ -13,7 +13,7 @@ __author__ = "Samuel Murail"
 
 # Test folder path
 OS_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(OS_LIB_DIR + "/../../test/input/")
+TEST_PATH = os.path.abspath(os.path.join(OS_LIB_DIR, "../../test/input/"))
 TEST_OUT = 'gromacs_py_test_out/os_command/'
 
 

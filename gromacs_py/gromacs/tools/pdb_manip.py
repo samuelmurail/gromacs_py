@@ -26,7 +26,7 @@ except ImportError:
 
 # Test folder path
 PDB_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(PDB_LIB_DIR + "/../../test/input/")
+TEST_PATH = os.path.abspath(os.path.join(PDB_LIB_DIR, "../../test/input/"))
 TEST_OUT = 'gromacs_py_test_out/pdb_manip_test'
 
 # Global variables:
@@ -682,7 +682,7 @@ class Coor:
         filout.write("TER\n")
         filout.close()
 
-        print("Succeed to save file", pdb_out)
+        print("Succeed to save file", os.path.relpath(pdb_out))
         return
 
     def get_aa_seq(self):
@@ -1376,7 +1376,7 @@ class Coor:
         """
 
         # Create the out_folder:
-        pdb_out = out_folder + "/" + pdb_out
+        pdb_out = os.path.join(out_folder, pdb_out)
         os_command.create_dir(out_folder)
 
         # Parameters for molecule insertion:
@@ -1595,6 +1595,7 @@ class Coor:
         out_folder = os.path.dirname(pdb_out)
         # print(out_folder)
         os_command.create_dir(out_folder)
+
 
         print("-Make peptide: {}".format(sequence))
 
