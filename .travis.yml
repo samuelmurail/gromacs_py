@@ -32,7 +32,7 @@ matrix:
           env: PYTHON_VERSION=3.5
         - os: linux
           env: PYTHON_VERSION=3.7
-        - os: linux
+        - os: osx
           env: GROMACS_VERSION=2018.5
 
 install:

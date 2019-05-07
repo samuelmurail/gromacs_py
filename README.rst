@@ -54,6 +54,29 @@ Main features:
    - Monitor a simulation while running
    - Interrupt a simulation if a criterion is met
 
+
+Compatibility
+---------------------------------------
+
+* Supported Gromacs versions:
+   - 2019*
+   - 2018*
+   - 2017
+   - 2016
+   - 5.1
+   - 5.0
+
+* Supported Python versions:
+   - 3.7*
+   - 3.6*
+   - 3.5*
+
+* Supported OS:
+   - osx
+   - linux*
+
+**\*** tested after each code submission.
+
 Quick install
 ---------------------------------------
 
