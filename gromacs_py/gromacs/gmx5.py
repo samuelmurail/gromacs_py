@@ -35,16 +35,21 @@ __author__ = "Samuel Murail"
 # Add the try/except only for readthedocs compilation
 try:
     GMX_BIN = os_command.which('gmx')
+    gmx_version = os_command.get_gmx_version()
 except OSError:
     print("Gromacs cannot be found")
     GMX_BIN = ""
+    gmx_version = ""
 
 
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
-WATER_GRO = os.path.join(GMX_PATH + "/share/gromacs/top/spc216.gro")
+WATER_GRO = os.path.join(GMX_PATH, "share/gromacs/top/spc216.gro")
 
 GROMACS_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
-FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template/")
+if gmx_version[:3] != "5.0":
+    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template")
+else:
+    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template") + ":" +os.path.join(GMX_PATH, "share/gromacs/top")
 
 # Test folder path
 GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -57,7 +62,6 @@ HA_NAME = ['N', 'C', 'O', 'CA', 'CB', 'CG', 'CG1', 'CG2', 'SG',
            'ND1', 'CE', 'CE1', 'CE2', 'CE3', 'OE1', 'OE2', 'NE',
            'NE1', 'NE2', 'OH', 'CZ', 'CZ2', 'CZ3', 'NZ', 'NH1',
            'NH2']
-
 
 class TopSys:
     """Topologie base on gromacs .top :
