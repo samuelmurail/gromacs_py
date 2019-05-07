@@ -1296,7 +1296,7 @@ separate file: 1y0m_pdb2gmx.itp
         >>> cyclic_pep = GmxSys(name='5vav', coor_file=TEST_PATH+'/5vav.pdb')
         >>>
         >>> #Basic usage :
-        >>> cyclic_pep.cyclic_peptide_top(out_folder=os.path.join(TEST_OUT,'cyclic/top/')) #doctest: +ELLIPSIS
+        >>> cyclic_pep.cyclic_peptide_top(out_folder=os.path.join(str(TEST_OUT),'cyclic/top')) #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f ...input/5vav.pdb -o no_cyclic_5vav_pdb2gmx.pdb -p no_cyclic_5vav_pdb2gmx.top -i no_cyclic_5vav_posre.itp -water tip3p -ff \
 charmm36-jul2017 -ignh yes -ter yes -vsite no
@@ -2203,7 +2203,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
 
         >>> TEST_OUT = getfixture('tmpdir')
         >>> pep = GmxSys(name='SAM_pep')
-        >>> pep.create_peptide(sequence='SAM', out_folder=TEST_OUT+'/peptide/', \
+        >>> pep.create_peptide(sequence='SAM', out_folder=os.path.join(str(TEST_OUT), 'peptide'), \
 em_nsteps=100, equi_nsteps=100) #doctest: +ELLIPSIS
         -Make peptide: SAM
         residue name:X
