@@ -1,7 +1,7 @@
+# Inspired by :
 # https://github.com/astropy/ci-helpers/blob/master/.travis.yml
-# We set the language to c because python isn't supported on the MacOS X nodes
-# on Travis. However, the language ends up being irrelevant anyway, since we
-# install Python ourselves using conda.
+# And:
+# https://github.com/Becksteinlab/GromacsWrapper/blob/master/.travis.yml
 
 language: generic
 
@@ -19,12 +19,10 @@ branches:
 
 env:
   global:
-    - SETUP_CMD='test'
-    - TEST_CMD='./gromacs_py/test_gromacs_py.py'
     - GROMACS_VERSION=2019.1 
     - PYTHON_VERSION=3.6
     - CONDA_DEPENDENCIES="scipy matplotlib gromacs"
-    - CONDA_CHANNELS="conda-forge bioconda acellera"
+    - CONDA_CHANNELS="conda-forge bioconda"
     - NUMPY_VERSION=stable
     - PIP_DEPENDENCIES="codecov pytest-cov"
 
@@ -62,43 +60,3 @@ after_success:
   # Launch pytest for codecov
   - cd ${TRAVIS_BUILD_DIR}
   - codecov
-
-
-#after_success:
-#- if [[ $SETUP_CMD == *coverage* ]]; then coveralls; fi
-
-#language: python
-#
-#python:
-#  - "3.6"
-#
-#os:
-#  - linux
-#
-#sudo: false
-#
-#git:
-#  depth: false
-#
-##before_install: 
-##  - python install 2.7 
-#
-#install:
-#  - #git clone https://github.com/samuelmurail/gromacs_py.git
-#  - pwd
-#  - pip install -r requirements.txt
-#  - cd ..
-#  - git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
-#  - cd apbs-pdb2pqr/pdb2pqr/
-#  - python2 scons/scons.py install
-#  - export PATH="/home/travis/pdb2pqr/:$PATH"
-#  - #export PATH=/home/travis/build/samuelmurail/gromacs_py/gromacs_py:$PATH"
-#  - ls ${TRAVIS_BUILD_DIR}
-#
-#branches:
-#    only:
-#      - master
-#
-#script:
-#  - cd ${TRAVIS_BUILD_DIR}
-#  - ./gromacs_py/test_gromacs_py.py
