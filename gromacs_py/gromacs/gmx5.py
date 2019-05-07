@@ -134,14 +134,20 @@ class TopSys:
                     # Look if the itp is in the top path:
                     # print("Path 1: ",self.folder+"/"+file_name)
                     # print("Path 2: ",FORCEFIELD_PATH+"/"+file_name)
+
+                    itp_found = False
                     if os_command.check_file_exist(os.path.join(self.folder, file_name)):
                         path = os.path.abspath(os.path.join(self.folder, file_name))
+                        itp_found = True
                     else:
                         for forcefield in FORCEFIELD_PATH.split(':'):
                             if os_command.check_file_exist(os.path.join(forcefield,file_name)):
                                 path = os.path.abspath(os.path.join(forcefield, file_name))
+                                itp_found = True
                                 break
+                    if not itp_found:
                         raise IOError('Itp ' + file_name + ' not found')
+
                     # print("name =", include, "fullname =", file_name, "path =",path)
                     if include == "forcefield":
                         self.forcefield = {'name': include, 'fullname': file_name, 'path': path}
@@ -2003,7 +2009,7 @@ separate file: 1y0m_pdb2gmx.itp
         Get charge of  SOL : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
         -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 water \
-num= 5640
+num= 56...
         Add ions : NA : 15   CL : 15
         gmx genion -s genion_1y0m_ion.tpr -p 1y0m_ion.top -o 1y0m_ion.gro -np 15 -pname NA -nn 15 \
 -nname CL
@@ -2122,15 +2128,11 @@ file: 1y0m_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
-        >>> prot.create_box() #doctest: +ELLIPSIS
-        -Create pbc box
-        gmx editconf -f .../solvate_add_ions/top_SH3/1y0m_pdb2gmx.pdb -o \
-.../solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         >>> prot.solvate_add_ions(out_folder=TEST_OUT+'/solvate_add_ions/top_SH3_water_ions/') \
 #doctest: +ELLIPSIS
         -Create pbc box
-        gmx editconf -f .../solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb \
--o .../solvate_add_ions/top_SH3/1y0m_pdb2gmx_box_box.pdb -bt dodecahedron \
+        gmx editconf -f .../solvate_add_ions/top_SH3/1y0m_pdb2gmx.pdb \
+-o .../solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron \
 -d 1.1
         -Solvate the pbc box
         Copy topologie file and dependancies
@@ -2142,7 +2144,7 @@ file: 1y0m_pdb2gmx.itp
         Get charge of  SOL : 0.0 total charge: 0.0
         Get charge of  SOL : 0.0 total charge: 0.0
         -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 \
-water num= 6218
+water num= 62...
         Add ions : NA : 16   CL : 16
         gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o 1y0m_water_ion.gro \
 -np 16 -pname NA -nn 16 -nname CL
