@@ -52,6 +52,8 @@ if gmx_version[:3] != "5.0":
 else:
     FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template") + ":" +os.path.join(GMX_PATH, "share/gromacs/top")
 
+print('FORCEFIELD_PATH = {}'.format(FORCEFIELD_PATH))
+
 # Test folder path
 GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PATH = os.path.join(GMX_LIB_DIR, "../test/input/")
@@ -134,9 +136,11 @@ class TopSys:
                     # print("Path 2: ",FORCEFIELD_PATH+"/"+file_name)
                     if os_command.check_file_exist(os.path.join(self.folder, file_name)):
                         path = os.path.abspath(os.path.join(self.folder, file_name))
-                    elif os_command.check_file_exist(os.path.join(FORCEFIELD_PATH,file_name)):
-                        path = os.path.abspath(os.path.join(FORCEFIELD_PATH, file_name))
                     else:
+                        for forcefield in FORCEFIELD_PATH.split(':'):
+                            if os_command.check_file_exist(os.path.join(forcefield,file_name)):
+                                path = os.path.abspath(os.path.join(forcefield, file_name))
+                                break
                         raise IOError('Itp ' + file_name + ' not found')
                     # print("name =", include, "fullname =", file_name, "path =",path)
                     if include == "forcefield":
