@@ -72,7 +72,7 @@ Compatibility
    - 3.5*
 
 * Supported OS:
-   - osx
+   - osx*
    - linux*
 
 **\*** tested after each code submission.
