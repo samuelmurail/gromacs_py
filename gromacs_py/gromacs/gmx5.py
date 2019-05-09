@@ -220,7 +220,7 @@ class TopSys:
 
         self.copy_dependancies(os_command.get_directory(top_out))
 
-    def charge(self):
+    def charge(self, verbose=False):
         """Get the charge of the system
         """
 
@@ -234,7 +234,8 @@ class TopSys:
             for local_itp in self.itp_list:
                 itp_charge = local_itp.charge(name)
                 if itp_charge is not None:
-                    print("Get charge of ", name, ":", itp_charge, "total charge:", itp_charge * num)
+                    if verbose:
+                        print("Get charge of ", name, ":", itp_charge, "total charge:", itp_charge * num)
                     self._charge += num * itp_charge
                     break
         return self._charge
@@ -841,9 +842,9 @@ class GmxSys:
     :Example:
 
     >>> TEST_OUT = getfixture('tmpdir')
-    >>> # Create the topologie of a protein and do a minimisation:
-    >>> prot = GmxSys(name = '1y0m', coor_file = TEST_PATH+'/1y0m.pdb')
-    >>> prot.prepare_top(out_folder = TEST_OUT+'/class/top_SH3') #doctest: +ELLIPSIS
+    >>> # Create the topologie of a protein, solvate and do a minimisation:
+    >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+    >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3')) #doctest: +ELLIPSIS
     Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file tmp_pdb2pqr.pdb
     pdb2pqr.py --ff CHARMM --ffout CHARMM --chain tmp_pdb2pqr.pdb 00_1y0m.pqr
@@ -860,7 +861,79 @@ file: 1y0m_pdb2gmx.itp
     -molecules defined in the itp file:
     * Protein_chain_A
     Rewrite topologie: 1y0m_pdb2gmx.top
-
+    >>> prot.solvate_add_ions(out_folder=os.path.join(TEST_OUT, 'top_sys')) #doctest: +ELLIPSIS
+    -Create pbc box
+    gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o .../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.1
+    -Solvate the pbc box
+    Copy topologie file and dependancies
+    Copy topologie file and dependancies
+    -Create the tpr file  genion_1y0m_water_ion.tpr
+    gmx grompp -f .../gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
+    -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 water num= 4775
+    Add ions : NA : 12   CL : 12
+    gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o 1y0m_water_ion.gro -np 12 -pname NA -nn 12 -nname CL
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100, constraints='none')
+    -Create the tpr file  1y0m.tpr
+    gmx grompp -f 1y0m.mdp -c ../top_sys/1y0m_water_ion.gro -r ../top_sys/1y0m_water_ion.gro -p ../top_sys/1y0m_water_ion.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
+    -Launch the simulation 1y0m.tpr
+    gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+    >>> # Create the peptide:
+    >>> pep = GmxSys(name='D')
+    >>> pep.create_peptide(sequence='D', out_folder=os.path.join(TEST_OUT, 'top_D'), em_nsteps=100, equi_nsteps=0) #doctest: +ELLIPSIS
+    -Make peptide: D
+    residue name:X
+    residue name:D
+    Succeed to save file .../top_D/D.pdb
+    -Create topologie
+    gmx pdb2gmx -f ../D.pdb -o D_pdb2gmx.pdb -p D_pdb2gmx.top -i D_posre.itp -water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
+    Molecule topologie present in D_pdb2gmx.top , extract the topologie in a separate file: D_pdb2gmx.itp
+    Protein_chain_P
+    -ITP file: D_pdb2gmx.itp
+    -molecules defined in the itp file:
+    * Protein_chain_P
+    Rewrite topologie: D_pdb2gmx.top
+    -Create pbc box
+    gmx editconf -f .../top_D/00_top/D_pdb2gmx.pdb -o .../top_D/00_top/D_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+    -Create the tpr file  D.tpr
+    gmx grompp -f D.mdp -c ../00_top/D_pdb2gmx_box.pdb -r ../00_top/D_pdb2gmx_box.pdb -p ../00_top/D_pdb2gmx.top -po out_D.mdp -o D.tpr -maxwarn 1
+    -Launch the simulation D.tpr
+    gmx mdrun -s D.tpr -deffnm D -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+    >>> # Insert 4 copy of the peptide in the SH3 system:
+    >>> prot.insert_mol_sys(mol_gromacs=pep, mol_num=4, new_name='SH3_D', out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
+    -Copy pbc box using genconf
+    Succeed to read file ../top_D/01_mini/D_copy_box.pdb ,  88 atoms found
+    Succeed to save file ../top_D/01_mini/D_copy_box.pdb
+    AA num: 1
+    -Convert trj/coor
+    gmx trjconv -f ../em_SH3/1y0m.gro -o ../em_SH3/1y0m_compact.pdb -s ../em_SH3/1y0m.tpr -ur compact -pbc mol
+    Concat files: ['../em_SH3/1y0m_compact.pdb', '../top_D/01_mini/D_copy_box.pdb']
+    Succeed to save concat file: SH3_D_pre_mix.pdb
+    Succeed to read file SH3_D_pre_mix.pdb ,  15429 atoms found
+    Insert mol in system
+    Insert 4 mol of 2 residues each
+    insert mol   1, water mol   ..., time=0...
+    insert mol   2, water mol   ..., time=0...
+    insert mol   3, water mol   ..., time=0...
+    insert mol   4, water mol   ..., time=0...
+    Delete ... overlapping water atoms
+    Succeed to save file SH3_D.pdb
+    Peptide
+    Add 4 mol D_pdb2gmx.itp
+    Succeed to read file SH3_D.pdb ,  15... atoms found
+    Water num: 47...
+    CHARGE: -4.0
+    Should neutralize the system
+    Copy topologie file and dependancies
+    -Create the tpr file  genion_SH3_D_neutral.tpr
+    gmx grompp -f .../template/mini.mdp -c SH3_D.pdb -r SH3_D.pdb -p SH3_D_neutral.top -po out_mini.mdp -o genion_SH3_D_neutral.tpr -maxwarn 1
+    -Add ions to the system with an ionic concentration of 0 M , sytem charge = -4.0 water num= 47...
+    Add ions : NA : 4   CL : 0
+    gmx genion -s genion_SH3_D_neutral.tpr -p SH3_D_neutral.top -o SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), nsteps=100, constraints='none') #doctest: +ELLIPSIS
+    -Create the tpr file  1y0m.tpr
+    gmx grompp -f 1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro -p SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
+    -Launch the simulation 1y0m.tpr
+    gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
     .. note::
         An history of all command used could be saved.
@@ -2005,9 +2078,6 @@ separate file: 1y0m_pdb2gmx.itp
         -Create the tpr file  genion_1y0m_ion.tpr
         gmx grompp -f .../gromacs/template/mini.mdp -c ../top_SH3_water/1y0m_water.pdb -r \
 ../top_SH3_water/1y0m_water.pdb -p 1y0m_ion.top -po out_mini.mdp -o genion_1y0m_ion.tpr -maxwarn 1
-        Get charge of  Protein_chain_A : 0.0 total charge: 0.0
-        Get charge of  SOL : 0.0 total charge: 0.0
-        Get charge of  SOL : 0.0 total charge: 0.0
         -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 water \
 num= 56...
         Add ions : NA : 15   CL : 15
@@ -2140,9 +2210,6 @@ file: 1y0m_pdb2gmx.itp
         -Create the tpr file  genion_1y0m_water_ion.tpr
         gmx grompp -f .../gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p \
 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
-        Get charge of  Protein_chain_A : 0.0 total charge: 0.0
-        Get charge of  SOL : 0.0 total charge: 0.0
-        Get charge of  SOL : 0.0 total charge: 0.0
         -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 \
 water num= 62...
         Add ions : NA : 16   CL : 16
@@ -2380,12 +2447,13 @@ SAM_pdb2gmx.itp
 
         # Concat the two pdb sys_pdb and mol_pdb
         concat_sys = new_name + "_pre_mix.pdb"
-        # Get a compact pdb for the sys pdb
 
-        self.sim_name = "tmp"
-        mini_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "/template/mini.mdp")
-        self.add_mdp(mdp_template=mini_template_mdp, mdp_options={})
-        self.add_tpr(name="tmp")
+        # Get a compact pdb for the sys pdb, need to add a tpr if not already
+        if self.tpr is None:
+            self.sim_name = "tmp"
+            mini_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/mini.mdp")
+            self.add_mdp(mdp_template=mini_template_mdp, mdp_options={})
+            self.add_tpr(name="tmp")
         self.convert_trj(traj=False)
         GmxSys.concat_coor(self.coor_file, mol_gromacs.coor_file, pdb_out=concat_sys)
 
@@ -2398,18 +2466,18 @@ SAM_pdb2gmx.itp
                            check_file_out=check_file_out)
 
         self.coor_file = new_name + ".pdb"
-        self.display()
+
         # Insert the peptide top in the prot_sys top
         # Copy itp and posre files of mol_top to the new location
         top_mol = TopSys(mol_gromacs.top_file)
         old_name = top_mol.mol_comp[0]['name']
-        print("Old topologie name is:", old_name)
+        #print("Old topologie name is:", old_name)
         top_mol.change_mol_name(old_name, "Peptide")
         top_mol.copy_dependancies("./")
         # top_mol.display()
         # Get the new location of the peptide itp file:
         pep_itp = os.path.basename(top_mol.get_include_no_posre_file_list()[0])
-        print("Include:", pep_itp)
+        #print("Include:", pep_itp)
 
         # Get the system topologie:
         sys_topologie = TopSys(self.top_file)
@@ -2437,7 +2505,6 @@ SAM_pdb2gmx.itp
                 self.add_ions(out_folder=".", name=new_name + "_neutral", ion_C=0)
 
         os.chdir(start_dir)
-        self.display()
 
     @staticmethod
     def concat_coor(*coor_in_files, pdb_out):
@@ -2460,7 +2527,7 @@ SAM_pdb2gmx.itp
         pdb_in_files = []
 
         for coor_in in coor_in_files:
-            print("File:", coor_in)
+            #print("File:", coor_in)
             if (coor_in[-3:]) == "pdb":
                 pdb_in_files.append(coor_in)
             elif (coor_in[-3:]) == "gro":
@@ -2469,7 +2536,7 @@ SAM_pdb2gmx.itp
                 pdb_in_files.append(tmp_gromacs.coor_file)
             else:
                 raise RuntimeError('Cannot concat the file, should be gro or pdb format')
-        print("CONCAT:", pdb_in_files)
+        print("Concat files:", pdb_in_files)
         return pdb_manip.Coor.concat_pdb(pdb_out=pdb_out, *pdb_in_files)
 
     def concat_traj(self, *xtc_files_list, concat_traj_out, check_file_out=True):

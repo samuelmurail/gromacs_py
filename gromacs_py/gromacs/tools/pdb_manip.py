@@ -1388,7 +1388,7 @@ class Coor:
         cutoff_prot_off = 12.0
         cutoff_prot_in = 15.0
 
-        print("\n\nInsert mol in system")
+        print("Insert mol in system")
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(pdb_out):
@@ -1408,7 +1408,7 @@ class Coor:
         res_insert_list = insert.get_attribute_selection(attribute='uniq_resid')
         # Need to sort the resid, to have consecutive residues
         res_insert_list.sort()
-        print("Residue list = ", res_insert_list)
+        #print("Residue list = ", res_insert_list)
         mol_len = int(len(res_insert_list) / mol_num)
 
         print("Insert {} mol of {:d} residues each".format(mol_num, mol_len))
@@ -1419,8 +1419,7 @@ class Coor:
             water_good_index = water_O.get_index_dist_between(prot_insert_CA,
                                                               cutoff_max=cutoff_prot_in,
                                                               cutoff_min=cutoff_prot_off)
-            print("Get index, time = {:.2f} s".format(time.time() - start_time))
-            print('insert mol {}, water mol {}'.format(i, len(water_good_index)))
+            print('insert mol {:3}, water mol {:5}, time={:.2f}'.format(i+1, len(water_good_index), time.time() - start_time))
             insert_unique = insert.select_part_dict(selec_dict={'chain': [mol_chain],
                                                                 'uniq_resid': res_insert_list[(mol_len * i):(mol_len * (i + 1))]})
             com_insert = insert_unique.center_of_mass()
@@ -1429,13 +1428,12 @@ class Coor:
             insert_unique.translate(trans_vector)
 
         # Delete water residues in which at leat one atom is close enough to peptides
-        print("Get water to delete index ")
         water_to_del_index = water.get_index_dist_between(insert, cutoff_max=cutoff_water_clash)
         water_res_to_del = water.get_attribute_selection(selec_dict={},
                                                          attribute='uniq_resid',
                                                          index_list=water_to_del_index)
         water_to_del_index = water.get_index_selection(selec_dict={'uniq_resid': water_res_to_del})
-        print("Delete {} water atoms".format(len(water_to_del_index)))
+        print("Delete {} overlapping water atoms".format(len(water_to_del_index)))
         self.del_atom_index(index_list=water_to_del_index)
 
         self.write_pdb(pdb_out)
@@ -1801,7 +1799,7 @@ class Coor:
         count = 0
 
         for pdb_in in pdb_in_files:
-            print("Concat :", os.path.relpath(pdb_in))
+            #print("Concat :", os.path.relpath(pdb_in))
             with open(pdb_in) as pdbfile:
                 for line in pdbfile:
                     if (count == 0 and line[:6] == "CRYST1") or line[:4] == 'ATOM' or line[:6] == "HETATM":
@@ -1809,7 +1807,7 @@ class Coor:
             count += 1
 
         filout.close()
-        print("Succeed to save :", pdb_out)
+        print("Succeed to save concat file:", pdb_out)
 
 
 if __name__ == "__main__":
