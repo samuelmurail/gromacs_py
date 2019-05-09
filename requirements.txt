@@ -1,4 +1,5 @@
 numpy
 scipy
+pandas
 sphinx-argparse
 sphinx_rtd_theme
