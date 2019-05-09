@@ -9,6 +9,8 @@ import subprocess
 import operator
 import shutil
 
+from . import monitor
+
 __author__ = "Samuel Murail"
 
 # Test folder path
@@ -416,7 +418,6 @@ class Command:
                                 env=self.env)
 
         # Launch monitor function while self.cmd is running
-        from . import monitor
         monitor.simulation_plot(proc, function, func_input_dict)
 
         # When job is finished get stdout and stderr data
