@@ -8,6 +8,7 @@
 import sys
 import os
 import copy
+import pandas as pd
 
 from shutil import copy as shutil_copy
 
@@ -929,7 +930,7 @@ file: 1y0m_pdb2gmx.itp
     -Add ions to the system with an ionic concentration of 0 M , sytem charge = -4.0 water num= 47...
     Add ions : NA : 4   CL : 0
     gmx genion -s genion_SH3_D_neutral.tpr -p SH3_D_neutral.top -o SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
-    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), nsteps=100, constraints='none')
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), nsteps=200, constraints='none')
     -Create the tpr file  1y0m.tpr
     gmx grompp -f 1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro -p SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
@@ -962,7 +963,11 @@ file: 1y0m_pdb2gmx.itp
     log          : .../equi_HA_D_SH3/equi_HA_D_SH3.log
     nt           : 0
     ntmpi        : 0
-
+    >>> ener_pd = prot.get_ener(os.path.join(TEST_OUT, 'tmp.xvg'), ['Potential', 'Temp'])  #doctest: +ELLIPSIS
+    -Extract energy
+    gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o .../tmp.xvg -skip 0
+    >>> ener_pd['Potential'].mean()
+    -22...
 
     .. note::
         An history of all command used could be saved.
@@ -3522,7 +3527,7 @@ SAM_pdb2gmx.itp
         print("Last Frame not found in gmx check output")
         raise Error()
 
-    def get_ener(self, output_xvg, selection, skip=0, check_file_out=True):
+    def get_ener(self, output_xvg, selection_list, skip=0, check_file_out=True, keep_ener_file=True):
         """Get energy of a system using ``gmx energy``.
         """
 
@@ -3539,8 +3544,22 @@ SAM_pdb2gmx.itp
                                           "-skip", str(skip)])
 
         cmd_convert.display()
-        cmd_convert.run(com_input=selection)
+        cmd_convert.run(com_input='\n'.join(selection_list))
 
+        # Get first line without command in output file:
+        with open(output_xvg, 'r') as file_in:
+            for first_line, line in enumerate(file_in):
+                if not line.startswith(("#", "@")):
+                    break
+
+        ener_pd = pd.read_table(output_xvg, comment='#',
+                                skiprows=first_line,
+                                sep='\s+',
+                                names=['time']+selection_list)
+        if not keep_ener_file:
+            os_command.delete_file(output_xvg)
+
+        return(ener_pd)
 
     ##########################################################
     #############   ANALYSIS RELATED FUNCTIONS   #############
