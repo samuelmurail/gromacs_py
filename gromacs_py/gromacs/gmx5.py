@@ -843,8 +843,10 @@ class GmxSys:
     :Example:
 
     >>> TEST_OUT = str(getfixture('tmpdir'))
-    >>> # Create the topologie of a protein, solvate and do a minimisation:
     >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+    >>> ###################################
+    >>> ####   Create the topologie:   ###
+    >>> ###################################
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3')) #doctest: +ELLIPSIS
     Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file tmp_pdb2pqr.pdb
@@ -862,6 +864,9 @@ file: 1y0m_pdb2gmx.itp
     -molecules defined in the itp file:
     * Protein_chain_A
     Rewrite topologie: 1y0m_pdb2gmx.top
+    >>> ###################################
+    >>> ####    Add water and ions:     ###
+    >>> ###################################
     >>> prot.solvate_add_ions(out_folder=os.path.join(TEST_OUT, 'top_sys')) #doctest: +ELLIPSIS
     -Create pbc box
     gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o .../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.1
@@ -873,12 +878,17 @@ file: 1y0m_pdb2gmx.itp
     -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 water num= 4775
     Add ions : NA : 12   CL : 12
     gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o 1y0m_water_ion.gro -np 12 -pname NA -nn 12 -nname CL
+    >>> ###################################
+    >>> ####    Minimize the system     ###
+    >>> ###################################
     >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100, constraints='none')
     -Create the tpr file  1y0m.tpr
     gmx grompp -f 1y0m.mdp -c ../top_sys/1y0m_water_ion.gro -r ../top_sys/1y0m_water_ion.gro -p ../top_sys/1y0m_water_ion.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-    >>> # Create the peptide:
+    >>> ###################################
+    >>> ####    Create a D peptide      ###
+    >>> ###################################
     >>> pep = GmxSys(name='D')
     >>> pep.create_peptide(sequence='D', out_folder=os.path.join(TEST_OUT, 'top_D'), em_nsteps=100, equi_nsteps=0) #doctest: +ELLIPSIS
     -Make peptide: D
@@ -899,7 +909,9 @@ file: 1y0m_pdb2gmx.itp
     gmx grompp -f D.mdp -c ../00_top/D_pdb2gmx_box.pdb -r ../00_top/D_pdb2gmx_box.pdb -p ../00_top/D_pdb2gmx.top -po out_D.mdp -o D.tpr -maxwarn 1
     -Launch the simulation D.tpr
     gmx mdrun -s D.tpr -deffnm D -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-    >>> # Insert 4 copy of the peptide in the SH3 system:
+    >>> #######################################################
+    >>> ### Insert 4 copy of the peptide in the SH3 system: ###
+    >>> #######################################################
     >>> prot.insert_mol_sys(mol_gromacs=pep, mol_num=4, new_name='SH3_D', out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
     -Copy pbc box using genconf
     Succeed to read file ../top_D/01_mini/D_copy_box.pdb ,  88 atoms found
@@ -935,6 +947,9 @@ file: 1y0m_pdb2gmx.itp
     gmx grompp -f 1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro -p SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+    >>> ###################################
+    >>> ####   Equilibrate the system   ###
+    >>> ###################################
     >>> equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
     >>> mdp_options = {'nsteps': 100, 'define': '-DPOSRES', 'dt': 0.001}
     >>> prot.run_md_sim(out_folder=os.path.join(TEST_OUT, 'equi_HA_D_SH3'), name="equi_HA_D_SH3",\
@@ -963,6 +978,9 @@ file: 1y0m_pdb2gmx.itp
     log          : .../equi_HA_D_SH3/equi_HA_D_SH3.log
     nt           : 0
     ntmpi        : 0
+    >>> #########################################
+    >>> ### Extract Potential Energy and Temp ###
+    >>> #########################################
     >>> ener_pd = prot.get_ener(os.path.join(TEST_OUT, 'tmp.xvg'), ['Potential', 'Temp'])  #doctest: +ELLIPSIS
     -Extract energy
     gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o .../tmp.xvg -skip 0
