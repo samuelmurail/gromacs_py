@@ -1110,8 +1110,23 @@ file: 1y0m_pdb2gmx.itp
         """
         # print("Coor : ", self.coor_file, "\nTop : ", self.top_file)
 
+        # Order dict is only necessary for python 3.5, where dict are not ordered
+        numbermap = {'name': 1,
+                     'sim_name': 2,
+                     '_coor_file': 3,
+                     '_top_file': 4,
+                     '_tpr': 5,
+                     '_ndx': 6,
+                     '_mdp': 7,
+                     '_xtc': 8,
+                     '_edr': 9,
+                     '_log': 10,
+                     'nt': 11,
+                     'ntmpi': 12,
+                     'gpu_id': 13}
+
         attr_list = [attr for attr in vars(self) if not attr.startswith('__')]
-        for attr in attr_list:
+        for attr in sorted(attr_list, key=numbermap.__getitem__):
             if attr[0] == "_":
                 to_show = attr[1:]
             else:
