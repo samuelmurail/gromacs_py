@@ -983,7 +983,7 @@ file: 1y0m_pdb2gmx.itp
     >>> #########################################
     >>> ener_pd = prot.get_ener(os.path.join(TEST_OUT, 'tmp.xvg'), ['Potential', 'Temp'])  #doctest: +ELLIPSIS
     -Extract energy
-    gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o .../tmp.xvg -skip 0
+    gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o .../tmp.xvg
     >>> ener_pd['Potential'].mean()
     -22...
 
@@ -3545,7 +3545,7 @@ SAM_pdb2gmx.itp
         print("Last Frame not found in gmx check output")
         raise Error()
 
-    def get_ener(self, output_xvg, selection_list, skip=0, check_file_out=True, keep_ener_file=True):
+    def get_ener(self, output_xvg, selection_list, check_file_out=True, keep_ener_file=True):
         """Get energy of a system using ``gmx energy``.
         """
 
@@ -3558,8 +3558,7 @@ SAM_pdb2gmx.itp
 
         cmd_convert = os_command.Command([GMX_BIN, "energy",
                                           "-f", self.edr,
-                                          "-o", output_xvg,
-                                          "-skip", str(skip)])
+                                          "-o", output_xvg])
 
         cmd_convert.display()
         cmd_convert.run(com_input='\n'.join(selection_list))
