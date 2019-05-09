@@ -907,7 +907,7 @@ file: 1y0m_pdb2gmx.itp
     -Convert trj/coor
     gmx trjconv -f ../em_SH3/1y0m.gro -o ../em_SH3/1y0m_compact.pdb -s ../em_SH3/1y0m.tpr -ur compact -pbc mol
     Concat files: ['../em_SH3/1y0m_compact.pdb', '../top_D/01_mini/D_copy_box.pdb']
-    Succeed to save concat file: SH3_D_pre_mix.pdb
+    Succeed to save concat file:  SH3_D_pre_mix.pdb
     Succeed to read file SH3_D_pre_mix.pdb ,  15429 atoms found
     Insert mol in system
     Insert 4 mol of 2 residues each
