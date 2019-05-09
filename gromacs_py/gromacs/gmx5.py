@@ -841,7 +841,7 @@ class GmxSys:
 
     :Example:
 
-    >>> TEST_OUT = getfixture('tmpdir')
+    >>> TEST_OUT = str(getfixture('tmpdir'))
     >>> # Create the topologie of a protein, solvate and do a minimisation:
     >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3')) #doctest: +ELLIPSIS

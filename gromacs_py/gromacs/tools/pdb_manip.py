@@ -1786,9 +1786,7 @@ class Coor:
         >>> Coor.concat_pdb(os.path.join(TEST_PATH, '1y0m.pdb'),
         ...                 os.path.join(TEST_PATH, '1rxz.pdb'),
         ...                 pdb_out = os.path.join(TEST_OUT, 'tmp_2.pdb')) #doctest: +ELLIPSIS
-        Concat : ...test/input/1y0m.pdb
-        Concat : ...test/input/1rxz.pdb
-        Succeed to save .../tmp_2.pdb
+        Succeed to save  concat file: .../tmp_2.pdb
         """
 
         if os_command.check_file_and_create_path(pdb_out):
@@ -1807,7 +1805,7 @@ class Coor:
             count += 1
 
         filout.close()
-        print("Succeed to save concat file:", pdb_out)
+        print("Succeed to save concat file: ", pdb_out)
 
 
 if __name__ == "__main__":
