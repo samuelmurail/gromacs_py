@@ -929,11 +929,40 @@ file: 1y0m_pdb2gmx.itp
     -Add ions to the system with an ionic concentration of 0 M , sytem charge = -4.0 water num= 47...
     Add ions : NA : 4   CL : 0
     gmx genion -s genion_SH3_D_neutral.tpr -p SH3_D_neutral.top -o SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
-    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), nsteps=100, constraints='none') #doctest: +ELLIPSIS
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), nsteps=100, constraints='none')
     -Create the tpr file  1y0m.tpr
     gmx grompp -f 1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro -p SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+    >>> equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
+    >>> mdp_options = {'nsteps': 100, 'define': '-DPOSRES', 'dt': 0.001}
+    >>> prot.run_md_sim(out_folder=os.path.join(TEST_OUT, 'equi_HA_D_SH3'), name="equi_HA_D_SH3",\
+                        mdp_template=equi_template_mdp,\
+                        mdp_options=mdp_options)
+    -Create the tpr file  equi_HA_D_SH3.tpr
+    gmx grompp -f equi_HA_D_SH3.mdp -c ../top_D_SH3/1y0m.gro -r ../top_D_SH3/1y0m.gro -p ../top_D_SH3/SH3_D_neutral.top -po out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
+    -Launch the simulation equi_HA_D_SH3.tpr
+    gmx mdrun -s equi_HA_D_SH3.tpr -deffnm equi_HA_D_SH3 -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+    >>> prot.get_simulation_time() #doctest: +ELLIPSIS
+    -Get simulation time from : .../equi_HA_D_SH3/equi_HA_D_SH3.cpt
+    gmx check -f .../equi_HA_D_SH3/equi_HA_D_SH3.cpt
+    0.1
+    >>> prot.convert_trj(traj=False) #doctest: +ELLIPSIS
+    -Convert trj/coor
+    gmx trjconv -f .../equi_HA_D_SH3/equi_HA_D_SH3.gro -o .../equi_HA_D_SH3/equi_HA_D_SH3_compact.pdb -s .../equi_HA_D_SH3/equi_HA_D_SH3.tpr -ur compact -pbc mol
+    >>> prot.display() #doctest: +ELLIPSIS
+    name         : 1y0m
+    sim_name     : equi_HA_D_SH3
+    coor_file    : .../equi_HA_D_SH3/equi_HA_D_SH3_compact.pdb
+    top_file     : .../top_D_SH3/SH3_D_neutral.top
+    tpr          : .../equi_HA_D_SH3/equi_HA_D_SH3.tpr
+    mdp          : .../equi_HA_D_SH3/equi_HA_D_SH3.mdp
+    xtc          : .../equi_HA_D_SH3/equi_HA_D_SH3.xtc
+    edr          : .../equi_HA_D_SH3/equi_HA_D_SH3.edr
+    log          : .../equi_HA_D_SH3/equi_HA_D_SH3.log
+    nt           : 0
+    ntmpi        : 0
+
 
     .. note::
         An history of all command used could be saved.
@@ -1088,7 +1117,7 @@ file: 1y0m_pdb2gmx.itp
             else:
                 to_show = attr
             if getattr(self, to_show) is not None:
-                print(to_show, ":\t", getattr(self, to_show))
+                print("{:12} : {}".format(to_show, getattr(self, to_show)))
 
 
     #########################################################
@@ -2401,14 +2430,6 @@ SAM_pdb2gmx.itp
             * self.coor_file
             * self.top_file
 
-        :Example:
-
-        #>>> prot = GmxSys(name='5vav', coor_file='5vav.pdb')
-        #>>>
-        #>>> #Basic usage :
-        #>>> prot.create_box()
-        #>>> prot.solvate_box()
-
         .. note::
             VMD don't need anymore to be installed to run the peptide creation
         """
@@ -3479,7 +3500,7 @@ SAM_pdb2gmx.itp
 
         # Search in all line, if it start with "Last frame"
         for line in output['stderr'].splitlines():
-            if line[:10] == "Last frame":
+            if line.startswith("Last frame"):
                 time = float(line.split()[4])
                 return time
 
@@ -3487,7 +3508,7 @@ SAM_pdb2gmx.itp
         raise Error()
 
     def get_ener(self, output_xvg, selection, skip=0, check_file_out=True):
-        """Get enrgy of a system using ``gmx energy``.
+        """Get energy of a system using ``gmx energy``.
         """
 
         print("-Extract energy")
