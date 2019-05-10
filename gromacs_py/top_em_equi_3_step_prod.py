@@ -80,16 +80,9 @@ if __name__ == "__main__":
     print("\n\nSolvation was sucessfull \n\tTopologie directorie :\t" + solv_dir)
     md_sys.display()
 
-    # EM
-    em_dir = args.o + "/sys_em/"
-    md_sys.em_2_steps(out_folder=em_dir, no_constr_nsteps=args.min_steps, constr_nsteps=args.min_steps,
-                      posres="", create_box_flag=False)
-    print("\n\nMinimisation was sucessfull \n\tMinimzed directory :\t" + em_dir)
-    md_sys.display()
-
-    # EQUI
-    equi_dir = args.o + "/sys_equi/"
-    md_sys.equi_three_step(out_folder=equi_dir, name=sys_name, nsteps_HA=HA_step,
+    # EM and  EQUI
+    equi_dir = args.o + "/sys_em_equi/"
+    md_sys.em_equi_three_step_iter_error(out_folder=equi_dir, name=sys_name, nsteps_HA=HA_step,
                            nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA)
     print("\n\nEquilibration was sucessfull \n\tEquilibration directory :\t" + equi_dir)
     md_sys.display()
