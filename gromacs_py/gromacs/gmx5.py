@@ -839,6 +839,9 @@ class GmxSys:
     :param gpu_id: List of GPU device id-s to use, specifies the per-node PP rank to GPU mapping
     :type gpu_id: str, default=None
 
+    :param sys_history: List of previous GmxSys() states
+    :type sys_history: list of GmxSys()
+
     :Example:
 
     >>> TEST_OUT = str(getfixture('tmpdir'))
@@ -941,11 +944,64 @@ file: 1y0m_pdb2gmx.itp
     -Add ions to the system with an ionic concentration of 0 M , sytem charge = -4.0 water num= 47...
     Add ions : NA : 4   CL : 0
     gmx genion -s genion_SH3_D_neutral.tpr -p SH3_D_neutral.top -o SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
-    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), nsteps=100, constraints='none')
+    >>> ################################
+    >>> ####   Minimize the system   ###
+    >>> ################################
+    >>> prot.em_2_steps(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), no_constr_nsteps=100, constr_nsteps=100)
+    -Create the tpr file  Init_em_1y0m.tpr
+    gmx grompp -f Init_em_1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp -o Init_em_1y0m.tpr -maxwarn 1
+    -Launch the simulation Init_em_1y0m.tpr
+    gmx mdrun -s Init_em_1y0m.tpr -deffnm Init_em_1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
     -Create the tpr file  1y0m.tpr
-    gmx grompp -f 1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro -p SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
+    gmx grompp -f 1y0m.mdp -c Init_em_1y0m.gro -r Init_em_1y0m.gro -p SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+    >>> ##################################
+    >>> ####    Show system history    ###
+    >>> ##################################
+    >>> prot.display_history() #doctest: +ELLIPSIS
+    State -3:
+    <BLANKLINE>
+    name         : 1y0m
+    sim_name     : genion_1y0m_water_ion
+    coor_file    : .../top_sys/1y0m_water_ion.gro
+    top_file     : .../top_sys/1y0m_water_ion.top
+    tpr          : .../top_sys/genion_1y0m_water_ion.tpr
+    mdp          : gromacs_py/gromacs/template/mini.mdp
+    nt           : 0
+    ntmpi        : 0
+    sys_history  : 0
+    <BLANKLINE>
+    State -2:
+    <BLANKLINE>
+    name         : 1y0m
+    sim_name     : genion_SH3_D_neutral
+    coor_file    : .../top_D_SH3/SH3_D_neutral.gro
+    top_file     : .../top_D_SH3/SH3_D_neutral.top
+    tpr          : .../top_D_SH3/genion_SH3_D_neutral.tpr
+    mdp          : gromacs_py/gromacs/template/mini.mdp
+    xtc          : .../em_SH3/1y0m.trr
+    edr          : .../em_SH3/1y0m.edr
+    log          : .../em_SH3/1y0m.log
+    nt           : 0
+    ntmpi        : 0
+    sys_history  : 0
+    <BLANKLINE>
+    State -1:
+    <BLANKLINE>
+    name         : 1y0m
+    sim_name     : Init_em_1y0m
+    coor_file    : .../top_D_SH3/Init_em_1y0m.gro
+    top_file     : .../top_D_SH3/SH3_D_neutral.top
+    tpr          : .../top_D_SH3/Init_em_1y0m.tpr
+    mdp          : .../top_D_SH3/Init_em_1y0m.mdp
+    xtc          : .../top_D_SH3/Init_em_1y0m.trr
+    edr          : .../top_D_SH3/Init_em_1y0m.edr
+    log          : .../top_D_SH3/Init_em_1y0m.log
+    nt           : 0
+    ntmpi        : 0
+    sys_history  : 0
+    <BLANKLINE>
     >>> ###################################
     >>> ####   Equilibrate the system   ###
     >>> ###################################
@@ -977,6 +1033,7 @@ file: 1y0m_pdb2gmx.itp
     log          : .../equi_HA_D_SH3/equi_HA_D_SH3.log
     nt           : 0
     ntmpi        : 0
+    sys_history  : 4
     >>> #########################################
     >>> ### Extract Potential Energy and Temp ###
     >>> #########################################
@@ -1037,6 +1094,10 @@ file: 1y0m_pdb2gmx.itp
         self.nt = 0
         self.ntmpi = 0
         self.gpu_id = None
+
+        # System information history:
+        # list of GmxSys()
+        self.sys_history = []
 
     @property
     def coor_file(self):
@@ -1145,7 +1206,8 @@ file: 1y0m_pdb2gmx.itp
                      '_log': 10,
                      'nt': 11,
                      'ntmpi': 12,
-                     'gpu_id': 13}
+                     'gpu_id': 13,
+                     'sys_history': 14}
 
         attr_list = [attr for attr in vars(self) if not attr.startswith('__')]
         for attr in sorted(attr_list, key=numbermap.__getitem__):
@@ -1153,9 +1215,27 @@ file: 1y0m_pdb2gmx.itp
                 to_show = attr[1:]
             else:
                 to_show = attr
-            if getattr(self, to_show) is not None:
+            if attr == 'sys_history':
+                print("{:12} : {}".format(to_show, len(getattr(self, to_show))))
+            elif getattr(self, to_show) is not None:
                 print("{:12} : {}".format(to_show, getattr(self, to_show)))
 
+    def save_state(self):
+        """ Save last state
+        """
+
+        prev_state = copy.deepcopy(self)
+        prev_state.sys_history = []
+        self.sys_history.append(prev_state)
+
+    def display_history(self):
+        """ Show all history
+        """
+        
+        for i, history in enumerate(self.sys_history):
+            print("State {}:\n".format(i-len(self.sys_history)))
+            history.display()
+            print()
 
     #########################################################
     #############  TOPOLOGIE RELATED FUNCTIONS  #############
@@ -3048,6 +3128,9 @@ SAM_pdb2gmx.itp
 
         # Create and go in out_folder:
         os_command.create_and_go_dir(out_folder)
+
+        # Save previous state:
+        self.save_state()
 
         # Create mdp :
         self.sim_name = name
