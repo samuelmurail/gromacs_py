@@ -27,6 +27,7 @@ setup(
         "numpy",
         "scipy",
         "pandas",
+        "matplotlib",
         "sphinx_rtd_theme",
         "sphinx-argparse",
     ],

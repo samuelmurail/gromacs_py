@@ -1,5 +1,6 @@
 numpy
 scipy
 pandas
+matplotlib
 sphinx-argparse
 sphinx_rtd_theme
