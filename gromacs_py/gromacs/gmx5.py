@@ -9,7 +9,6 @@ import sys
 import os
 import copy
 import pandas as pd
-
 from shutil import copy as shutil_copy
 
 # Needed because relative imports ..tools don't work
@@ -942,7 +941,7 @@ file: 1y0m_pdb2gmx.itp
     -Add ions to the system with an ionic concentration of 0 M , sytem charge = -4.0 water num= 47...
     Add ions : NA : 4   CL : 0
     gmx genion -s genion_SH3_D_neutral.tpr -p SH3_D_neutral.top -o SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
-    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), nsteps=200, constraints='none')
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), nsteps=100, constraints='none')
     -Create the tpr file  1y0m.tpr
     gmx grompp -f 1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro -p SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
@@ -981,11 +980,11 @@ file: 1y0m_pdb2gmx.itp
     >>> #########################################
     >>> ### Extract Potential Energy and Temp ###
     >>> #########################################
-    >>> ener_pd = prot.get_ener(os.path.join(TEST_OUT, 'tmp.xvg'), ['Potential', 'Temp'])  #doctest: +ELLIPSIS
+    >>> ener_pd = prot.get_ener(['Potential', 'Temp'])  #doctest: +ELLIPSIS
     -Extract energy
-    gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o .../tmp.xvg
-    >>> ener_pd['Potential'].mean()
-    -22...
+    gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o tmp.xvg
+    >>> ener_pd['Potential'].mean() #doctest: +ELLIPSIS
+    -2...
 
     .. note::
         An history of all command used could be saved.
@@ -2932,6 +2931,12 @@ SAM_pdb2gmx.itp
         if check_file_out and os.path.isfile(self.sim_name + ".gro"):
             print("Simulation not launched", self.sim_name + ".gro", "already exist")
             self.coor_file = self.sim_name + ".gro"
+            if os_command.check_file_exist(self.sim_name + ".xtc"):
+                self.xtc = self.sim_name + ".xtc"
+            else:
+                self.xtc = self.sim_name + ".trr"
+            self.edr = self.sim_name + ".edr"
+            self.log = self.sim_name + ".log"
             return
 
         if rerun and check_file_out and os.path.isfile(self.sim_name + ".edr"):
@@ -3545,7 +3550,7 @@ SAM_pdb2gmx.itp
         print("Last Frame not found in gmx check output")
         raise Error()
 
-    def get_ener(self, output_xvg, selection_list, check_file_out=True, keep_ener_file=True):
+    def get_ener(self, selection_list, output_xvg='tmp.xvg', check_file_out=True, keep_ener_file=False):
         """Get energy of a system using ``gmx energy``.
         """
 
@@ -3554,25 +3559,16 @@ SAM_pdb2gmx.itp
         # Check if output files exist:
         if check_file_out and os.path.isfile(output_xvg):
             print("get_ener not launched", output_xvg, "already exist")
-            return
+        else:
+            cmd_convert = os_command.Command([GMX_BIN, "energy",
+                                              "-f", self.edr,
+                                              "-o", output_xvg])
+    
+            cmd_convert.display()
+            cmd_convert.run(com_input='\n'.join(selection_list))
+    
+        ener_pd = os_command.read_xvg(output_xvg)
 
-        cmd_convert = os_command.Command([GMX_BIN, "energy",
-                                          "-f", self.edr,
-                                          "-o", output_xvg])
-
-        cmd_convert.display()
-        cmd_convert.run(com_input='\n'.join(selection_list))
-
-        # Get first line without command in output file:
-        with open(output_xvg, 'r') as file_in:
-            for first_line, line in enumerate(file_in):
-                if not line.startswith(("#", "@")):
-                    break
-
-        ener_pd = pd.read_table(output_xvg, comment='#',
-                                skiprows=first_line,
-                                sep='\s+',
-                                names=['time']+selection_list)
         if not keep_ener_file:
             os_command.delete_file(output_xvg)
 
