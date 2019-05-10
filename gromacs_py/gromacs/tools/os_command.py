@@ -8,6 +8,7 @@ import os
 import subprocess
 import operator
 import shutil
+import pandas as pd
 
 from . import monitor
 
@@ -255,6 +256,26 @@ def get_gmx_version():
         if line.upper().startswith('GROMACS VERSION:'):
             version = line.split()[-1].strip()
             return(version)
+
+
+def read_xvg(xvg_file, x_axis='time'):
+
+        y_label_list = []
+
+        # Get first line without command in output file:
+        with open(xvg_file, 'r') as file_in:
+            for first_line, line in enumerate(file_in):
+                if line.startswith("@ s"):
+                    y_label_list.append(line.split("\"")[1])
+                if not line.startswith(("#", "@")):
+                    break
+
+        ener_pd = pd.read_table(xvg_file, comment='#',
+                                skiprows=first_line,
+                                sep='\s+',
+                                names=[x_axis]+y_label_list)
+        return(ener_pd)
+
 
 class Command:
     """The Command class is a way to launch bash command and mainly gromacs
