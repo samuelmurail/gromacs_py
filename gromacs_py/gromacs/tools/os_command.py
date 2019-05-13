@@ -270,7 +270,7 @@ def read_xvg(xvg_file, x_axis='time'):
                 if not line.startswith(("#", "@")):
                     break
 
-        ener_pd = pd.read_table(xvg_file, comment='#',
+        ener_pd = pd.read_csv(xvg_file, comment='#',
                                 skiprows=first_line,
                                 sep='\s+',
                                 names=[x_axis]+y_label_list)
