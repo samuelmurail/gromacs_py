@@ -13,6 +13,7 @@
 
    readme
    install
+   notebook/00_basic_example.ipynb
    gmx_sys
    gmx_top
    tools
