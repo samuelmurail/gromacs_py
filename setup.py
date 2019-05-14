@@ -31,7 +31,6 @@ setup(
         "sphinx_rtd_theme",
         "sphinx-argparse",
         "nbsphinx",
-        "pandoc"
     ],
     include_package_data=True,
 )
