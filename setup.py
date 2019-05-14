@@ -30,7 +30,8 @@ setup(
         "matplotlib",
         "sphinx_rtd_theme",
         "sphinx-argparse",
-        "nbsphinx"
+        "nbsphinx",
+        "pandoc"
     ],
     include_package_data=True,
 )

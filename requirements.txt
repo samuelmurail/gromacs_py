@@ -5,3 +5,4 @@ matplotlib
 sphinx-argparse
 sphinx_rtd_theme
 nbsphinx
+pandoc
