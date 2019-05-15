@@ -402,7 +402,7 @@ class Command:
             stdout_data.decode('utf-8'), 
             stderr_data.decode('utf-8')))
 
-    def run_background(self, function, func_input_dict, com_input="", display=False, out_data=False):
+    def run_background(self, func_input_dict, com_input="", display=False, out_data=False):
         """ Launch ``Command`` object that will be launch.
         Will the command is running launch the `function` using `func_input_dict`
         as argument.
@@ -439,7 +439,8 @@ class Command:
                                 env=self.env)
 
         # Launch monitor function while self.cmd is running
-        monitor.simulation_plot(proc, function, func_input_dict)
+        #monitor.simulation_plot(proc, function, func_input_dict)
+        func_input_dict['function'](proc, func_input_dict)
 
         # When job is finished get stdout and stderr data
         (stdout_data, stderr_data) = proc.communicate(com_input.encode())

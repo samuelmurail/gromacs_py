@@ -3056,7 +3056,12 @@ SAM_pdb2gmx.itp
         if monitor is None:
             cmd_run.run()
         else:
-            cmd_run.run_background(monitor['function'], monitor['input'])
+            monitor_files = {'xtc': self.sim_name + ".xtc",
+                             'edr': self.sim_name + ".edr",
+                             'log': self.sim_name + ".log"
+                             }
+            monitor.update(monitor_files)
+            cmd_run.run_background(monitor)
 
         # If it's not a rerun, assign all output to the object variables xtc, edr, log
         if not rerun:
