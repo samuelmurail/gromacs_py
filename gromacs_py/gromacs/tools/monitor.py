@@ -17,6 +17,22 @@ from . import os_command
 MONITOR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PATH = os.path.abspath(os.path.join(MONITOR_LIB_DIR, "../../test/input/"))
 
+def isnotebook():
+    """ Return if the command is launch from a notebook or not
+    Taken from:
+    https://stackoverflow.com/questions/15411967/how-can-i-check-if-code-is-executed-in-the-ipython-notebook
+    """
+
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return True   # Jupyter notebook or qtconsole
+        elif shell == 'TerminalInteractiveShell':
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False      # Probably standard Python interpreter
 
 def simulation_plot(proc, func_input_dict, refresh_time=1.0):
     """ This function is used for monitoring a simulation in real time.
@@ -24,6 +40,12 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
     The function monitors a trajectory file, and launch the analysis if the file has been modified.
     It can plot as function of time an analysis of a simulation.
     Analysis is passed as input function.
+
+    .. warning::
+        Need to add the following lines to be run in jupyter notebook:  
+
+        * ``%matplotlib notebook``
+
     """
 
     file_to_check = func_input_dict[func_input_dict['file_check_ext']]
@@ -33,6 +55,7 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
     count = 1
     x_list = []
     y_list = []
+    notebook = isnotebook()
 
     ###################
     # Set up the plot #
@@ -56,7 +79,8 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
                       color='blue')
     # show the window
     # figure will be in foreground, but the user may move it to background
-    fig.show()
+    if not notebook:
+        fig.show()
     fig.canvas.set_window_title(file_to_check[:-4])
 
     while proc.poll() is None:
@@ -75,22 +99,23 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
                 anal = function['func'](func_input_dict)
                 # print(anal)
 
-                try:
+                if 'time' in anal and function['term'] in anal:
                     x_list[i].append(anal['time'])
                     y_list[i].append(anal[function['term']])
 
                     axarr[i].lines[0].set_data(x_list[i], y_list[i])  # set plot data
                     axarr[i].relim()                  # recompute the data limits
                     axarr[i].autoscale_view()         # automatic axis scaling
-                except KeyError:
-                    print('Energy could not be extract, simulation is probably finished.')
+                #except KeyError:
+                #    print('Energy could not be extract, simulation is probably finished.')
 
             fig.canvas.flush_events()   # update the plot and take care of window events (like resizing etc.)
-
+            if notebook:
+                fig.canvas.draw() # Needed when launched in notebook
 
 def extract_log_dict(func_input_dict, tail_line_num=20):
-    """ Read last line of a gromacs ``.log`` file and return a dictionnary
-    containing ``time``,  ``step`` and all log energetic terms.
+    """ Read the last lines of a gromacs ``.log`` file and return a dictionnary
+    containing ``time``,  ``step`` and all energetic terms.
     """
 
     log_to_check = func_input_dict['log']
@@ -98,6 +123,7 @@ def extract_log_dict(func_input_dict, tail_line_num=20):
 
     split_text = tail_text.split('\n')
     log_dict = {}
+    time_read = False
     ener_read = False
     ener_done = False
     field_len = 15
@@ -110,11 +136,11 @@ def extract_log_dict(func_input_dict, tail_line_num=20):
             line_split = split_text[i + 1].split()
             log_dict['step'] = int(line_split[0])
             log_dict['time'] = float(line_split[1])
-            # print(log_dict)
+            time_read = True  
             # Skip next line (already extracted with time and step)
             i += 2
             continue
-        if line.strip().startswith('Energies'):
+        elif time_read and line.strip().startswith('Energies'):
             ener_read = True
         elif ener_read and len(line) == 0:
             ener_done = True
@@ -132,8 +158,23 @@ def extract_log_dict(func_input_dict, tail_line_num=20):
     return(log_dict)
 
 
-def print_log_file(proc, func_input_dict, refresh_time=0.01, tail_line_num=20):
+def print_log_file(proc, func_input_dict, tail_line_num=20):
     """ Monitor ``.log`` file information.
+    The ``func_input_dict`` should contains several keys:
+
+    * `terms`: list of energetic terms to extract, eg. ['Potential', 'Temperature']  
+    * `log`: path of the log file (Defined in ``os_command.run_background()``)
+    * `refresh_time`: time interval to refresh log extract (default=1.0 s)  
+
+    :param proc: running subprocess 
+    :type proc: subprocess object
+
+    :param func_input_dict: dictionnary containing parameters for log extract
+    :type func_input_dict: dict
+
+    :param tail_line_num: number of line to read at the end of ``.log`` file
+    :type tail_line_num: int, default=20
+
 
     Example:
 
@@ -179,7 +220,6 @@ file: 1y0m_pdb2gmx.itp
     gmx grompp -f 1y0m.mdp -c ../top_SH3/1y0m_pdb2gmx_box.pdb -r ../top_SH3/1y0m_pdb2gmx_box.pdb -p ../top_SH3/1y0m_pdb2gmx.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-    Energy could not be extracted, simulation is probably finished.
 
 
     """
@@ -192,7 +232,6 @@ file: 1y0m_pdb2gmx.itp
         refresh_time = func_input_dict['refresh_time']
     else:
         refresh_time = 1.0
-
 
     while proc.poll() is None:
 
@@ -207,13 +246,13 @@ file: 1y0m_pdb2gmx.itp
             time_modif = file_time
 
             log_dict = extract_log_dict(func_input_dict)
-            try:
-                print("time = {:6.1f}".format(log_dict['time']), end='')
+            if 'time' in log_dict:
+                print("time = {:6.1f} ".format(log_dict['time']), end='')
                 for keys in func_input_dict['terms']:
-                    print("  {} = {:5.1f} ".format(keys, log_dict[keys]), end='')
+                    if keys in log_dict:
+                        print("  {} = {:5.1f} ".format(keys, log_dict[keys]), end='')
                 print()
-            except KeyError:
-                print('Energy could not be extracted, simulation is probably finished.')
+
 
 if __name__ == "__main__":
 
