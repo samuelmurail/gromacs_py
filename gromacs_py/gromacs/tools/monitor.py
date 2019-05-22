@@ -17,6 +17,7 @@ from . import os_command
 MONITOR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PATH = os.path.abspath(os.path.join(MONITOR_LIB_DIR, "../../test/input/"))
 
+
 def isnotebook():
     """ Return if the command is launch from a notebook or not
     Taken from:
@@ -34,6 +35,7 @@ def isnotebook():
     except NameError:
         return False      # Probably standard Python interpreter
 
+
 def simulation_plot(proc, func_input_dict, refresh_time=1.0):
     """ This function is used for monitoring a simulation in real time.
     Function can be excecuted by the gromacs.tools.os_command.run_background() function.
@@ -42,7 +44,7 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
     Analysis is passed as input function.
 
     .. warning::
-        Need to add the following lines to be run in jupyter notebook:  
+        Need to add the following lines to be run in jupyter notebook:
 
         * ``%matplotlib notebook``
 
@@ -106,12 +108,13 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
                     axarr[i].lines[0].set_data(x_list[i], y_list[i])  # set plot data
                     axarr[i].relim()                  # recompute the data limits
                     axarr[i].autoscale_view()         # automatic axis scaling
-                #except KeyError:
-                #    print('Energy could not be extract, simulation is probably finished.')
+                # except KeyError:
+                # print('Energy could not be extract, simulation is probably finished.')
 
             fig.canvas.flush_events()   # update the plot and take care of window events (like resizing etc.)
             if notebook:
                 fig.canvas.draw() # Needed when launched in notebook
+
 
 def extract_log_dict(func_input_dict, tail_line_num=20):
     """ Read the last lines of a gromacs ``.log`` file and return a dictionnary
