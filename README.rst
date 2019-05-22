@@ -88,7 +88,7 @@ Get gromacs_py library from `github`_.
    cd gromacs_py
    ./setup.py install --user
 
-see the :ref:`install-label` file for details.
+see `Installation <https://gromacs-py.readthedocs.io/en/latest/install.html>`_ for details.
 
 .. _github: https://github.com/samuelmurail/gromacs_py
 
