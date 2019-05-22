@@ -41,7 +41,7 @@ Main features:
    - **GPU** acceleration
 
 * Topologie manipulation starting from a raw ``PDB``:
-   - Amino acid protonation and pKa calculation using apbs/pdb2pqr
+   - Amino acid protonation and pKa calculation using `apbs/pdb2pqr <http://www.poissonboltzmann.org/>`_
    - Position constraints file ``.itp`` creation
    - Cyclic petide topologie
 
