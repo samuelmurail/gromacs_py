@@ -1,4 +1,3 @@
 include gromacs_py/test/input/*pdb
 include gromacs_py/gromacs/template/*mdp
 include gromacs_py/gromacs/template/charmm36-jul2017.ff/*
-include gromacs_py/tools/vmd_script/*tcl
