@@ -16,3 +16,10 @@ gromacs_py.egg-info/**
 # Twine Build
 dist
 dist/**
+
+# Notebook Data:
+gromacs_py/doc/notebook/.ipynb_checkpoints
+gromacs_py/doc/notebook/data_sim
+gromacs_py/doc/notebook/data_sim/*
+
+__pycache__
