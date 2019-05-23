@@ -6,13 +6,18 @@
 # twine check dist/*
 # twine upload dist/*
 
+# Create conda env:
+# conda update conda
+# conda env create --name test -f=.conda.yml
+# conda activate test
+# conda deactivate
+
 from setuptools import setup, find_packages
 
-import gromacs_py
 
 setup(
     name='gromacs_py',
-    version=gromacs_py.__version__,
+    version="1.0.0post4",
     packages=find_packages(),
     description='Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software.',
     long_description=open('README.rst', encoding='utf-8').read(),
