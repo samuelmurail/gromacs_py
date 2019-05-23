@@ -5,13 +5,9 @@ channels:
   - acellera
 dependencies:
   - python=3.7
-  - scipy 
-  - matplotlib 
   - gromacs 
-  - pandoc
   - htmd-pdb2pqr
   - pip
   - pip:
-    - codecov
-    - pytest-cov
     - gromacs_py
+
