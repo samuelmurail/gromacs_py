@@ -967,7 +967,7 @@ file: 1y0m_pdb2gmx.itp
     coor_file    : .../top_sys/1y0m_water_ion.gro
     top_file     : .../top_sys/1y0m_water_ion.top
     tpr          : .../top_sys/genion_1y0m_water_ion.tpr
-    mdp          : gromacs_py/gromacs/template/mini.mdp
+    mdp          : .../gromacs/template/mini.mdp
     nt           : 0
     ntmpi        : 0
     sys_history  : 0
@@ -979,7 +979,7 @@ file: 1y0m_pdb2gmx.itp
     coor_file    : .../top_D_SH3/SH3_D_neutral.gro
     top_file     : .../top_D_SH3/SH3_D_neutral.top
     tpr          : .../top_D_SH3/genion_SH3_D_neutral.tpr
-    mdp          : gromacs_py/gromacs/template/mini.mdp
+    mdp          : .../gromacs/template/mini.mdp
     xtc          : .../em_SH3/1y0m.trr
     edr          : .../em_SH3/1y0m.edr
     log          : .../em_SH3/1y0m.log
