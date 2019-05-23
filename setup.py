@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Create the pipy:
+# python setup.py sdist
+# twine check dist/*
+# twine upload dist/*
+
 from setuptools import setup, find_packages
 
 import gromacs_py
