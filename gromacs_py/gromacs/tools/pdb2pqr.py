@@ -23,8 +23,15 @@ except ImportError:
 
 
 PDB2PQR_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
+
 # Add 'pdb2pqr_cli' in case it is installed with conda
-PDB2PQR_BIN = os_command.which('pdb2pqr.py','pdb2pqr_cli')
+
+# Add the try/except only for readthedocs compilation
+try:
+    PDB2PQR_BIN = os_command.which('pdb2pqr.py','pdb2pqr_cli')
+except OSError:
+    print("pdb2pqr cannot be found")
+    PDB2PQR_BIN = ""
 
 
 
