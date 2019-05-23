@@ -4,6 +4,46 @@
 Installation
 =======================================
 
+Conda
+---------------------------------------
+
+
+First create a conda environment named `gromacs_py_env`. `Gromacs_py` support python version 3.5 to 3.7.
+
+.. code-block:: bash
+
+	conda create --yes -n `gromacs_py_env` python=3.7
+
+Then add several conda channels for dependencies:
+- gromacs from `bioconda`
+- gromacs_py from my channel (`samuel.murail`)
+
+
+.. code-block:: bash
+
+	conda config --add channels conda-forge
+	conda config --add channels bioconda
+	conda config --add channels samuel.murail
+
+Finally install `gromacs_py in your `gromacs_py_env` environment:
+
+.. code-block:: bash
+
+	conda install --yes -n `gromacs_py_env` gromacs_py
+
+You need to activate the environment:
+
+.. code-block:: bash
+
+	source activate `gromacs_py_env`
+
+Finally test the installation using pytest:
+
+.. code-block:: bash
+
+	(gromacs_py_env) $ pip install pytest
+	(gromacs_py_env) $ pytest --pyargs gromacs_py.gromacs --doctest-modules
+
 Getting Started
 ---------------------------------------
 
