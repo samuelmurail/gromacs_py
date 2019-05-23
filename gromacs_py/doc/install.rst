@@ -44,8 +44,11 @@ Finally test the installation using pytest:
 	(gromacs_py_env) $ pip install pytest
 	(gromacs_py_env) $ pytest --pyargs gromacs_py.gromacs --doctest-modules
 
-Getting Started
+
+Without Conda
 ---------------------------------------
+
+
 
 Get the gromacs_py library from `github`_.
 
@@ -57,7 +60,7 @@ Get the gromacs_py library from `github`_.
 .. _github: https://github.com/samuelmurail/gromacs_py
 
 Prerequisites
----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. python 3 libraries:  
 	* numpy
@@ -104,7 +107,7 @@ __ http://manual.gromacs.org/documentation/
 __ http://manual.gromacs.org/documentation/2019/install-guide/index.html
 
 Installing
----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Need to add path of gmx and pdb2pqr to the environment variable ``$PATH``.
 Add in your ~/.bashrc :
@@ -118,7 +121,7 @@ Add in your ~/.bashrc :
 
 
 Make the documentation
----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Need `sphinx`_ installed with the argparse sphinx module:
 
@@ -140,7 +143,7 @@ You can then build the documentation either in html format or pdf.
 .. _sphinx: http://www.sphinx-doc.org
 
 Test installation
----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Launch test with `doctest`_, will check that module’s docstrings are up-to-date by verifying that all interactive examples still work as documented.
 
