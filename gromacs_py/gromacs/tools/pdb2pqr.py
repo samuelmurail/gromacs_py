@@ -23,7 +23,10 @@ except ImportError:
 
 
 PDB2PQR_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
-PDB2PQR_BIN = 'pdb2pqr.py'
+# Add 'pdb2pqr_cli' in case it is installed with conda
+PDB2PQR_BIN = os_command.which('pdb2pqr.py','pdb2pqr_cli')
+
+
 
 # Test folder path
 PQR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
