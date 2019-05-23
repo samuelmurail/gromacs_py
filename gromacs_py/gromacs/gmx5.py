@@ -32,15 +32,27 @@ except ImportError:
 __author__ = "Samuel Murail"
 
 
-# Add the try/except only for readthedocs compilation
-try:
-    GMX_BIN = os_command.which('gmx')
-    gmx_version = os_command.get_gmx_version()
-    print("Gromacs version is {}".format(gmx_version))
-except OSError:
+## Add the try/except only for readthedocs compilation
+#try:
+#    GMX_BIN = os_command.which('gmx')
+#    gmx_version = os_command.get_gmx_version()
+#    print("Gromacs version is {}".format(gmx_version))
+#except OSError:
+#    print("Gromacs cannot be found")
+#    GMX_BIN = ""
+#    gmx_version = ""
+
+# Check if Readthedoc is launched skip the program path searching
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
+if on_rtd:
     print("Gromacs cannot be found")
     GMX_BIN = ""
     gmx_version = ""
+else:
+    GMX_BIN = os_command.which('gmx')
+    gmx_version = os_command.get_gmx_version()
+    print("Gromacs version is {}".format(gmx_version))
+
 
 
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])

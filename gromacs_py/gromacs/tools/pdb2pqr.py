@@ -24,16 +24,14 @@ except ImportError:
 
 PDB2PQR_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
 
-# Add 'pdb2pqr_cli' in case it is installed with conda
-
-# Add the try/except only for readthedocs compilation
-try:
-    PDB2PQR_BIN = os_command.which('pdb2pqr.py','pdb2pqr_cli')
-except OSError:
+# Check if Readthedoc is launched skip the program path searching
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
+if on_rtd:
     print("pdb2pqr cannot be found")
     PDB2PQR_BIN = ""
-
-
+else:
+    # Add 'pdb2pqr_cli' in case it is installed with conda
+    PDB2PQR_BIN = os_command.which('pdb2pqr.py','pdb2pqr_cli')
 
 # Test folder path
 PQR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
