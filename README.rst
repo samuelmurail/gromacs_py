@@ -80,13 +80,19 @@ Compatibility
 Quick install
 ---------------------------------------
 
-Get gromacs_py library from `github`_.
+Add several conda channels for dependencies:
 
 .. code-block:: bash
 
-   git clone https://github.com/samuelmurail/gromacs_py.git
-   cd gromacs_py
-   ./setup.py install --user
+   conda config --add channels conda-forge
+   conda config --add channels bioconda
+   conda config --add channels samuel.murail
+
+Then install `gromacs_py`:
+
+.. code-block:: bash
+
+   conda install gromacs_py
 
 see `Installation <https://gromacs-py.readthedocs.io/en/latest/install.html>`_ for details.
 
