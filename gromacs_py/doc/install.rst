@@ -19,7 +19,7 @@ Finally install `gromacs_py` in your `gromacs_py_env` environment:
 
 .. code-block:: bash
 
-	conda install --yes -n gromacs_py_env gromacs_py
+	conda install gromacs_py
 
 In a new environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
