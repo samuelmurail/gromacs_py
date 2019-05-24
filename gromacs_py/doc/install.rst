@@ -7,7 +7,7 @@ Conda installation
 Quick Start
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Then add several conda channels for dependencies:
+Add several conda channels for dependencies:
 
 .. code-block:: bash
 
