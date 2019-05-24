@@ -1,19 +1,39 @@
 Installation
 =======================================
 
-Conda
+Conda installation
 ---------------------------------------
 
+Quick Start
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First create a conda environment named `gromacs_py_env`. `Gromacs_py` support python version 3.5 to 3.7.
+Then add several conda channels for dependencies:
 
 .. code-block:: bash
 
-	conda create --yes -n `gromacs_py_env` python=3.7
+	conda config --add channels conda-forge
+	conda config --add channels bioconda
+	conda config --add channels samuel.murail
+
+Finally install `gromacs_py` in your `gromacs_py_env` environment:
+
+.. code-block:: bash
+
+	conda install --yes -n gromacs_py_env gromacs_py
+
+In a new environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First create a conda environment named `gromacs_py_env` (choose yout env name). `gromacs_py` support python version 3.5 to 3.7.
+
+.. code-block:: bash
+
+	conda create --yes -n gromacs_py_env python=3.7
 
 Then add several conda channels for dependencies:
-- gromacs from `bioconda`
-- gromacs_py from my channel (`samuel.murail`)
+	- gromacs 2019 from `bioconda`
+	- gromacs_py from my channel (`samuel.murail`)
+	- htmd-pdb2pqr from `conda-forge`
 
 
 .. code-block:: bash
@@ -22,19 +42,19 @@ Then add several conda channels for dependencies:
 	conda config --add channels bioconda
 	conda config --add channels samuel.murail
 
-Finally install `gromacs_py in your `gromacs_py_env` environment:
+Finally install `gromacs_py` in your `gromacs_py_env` environment:
 
 .. code-block:: bash
 
-	conda install --yes -n `gromacs_py_env` gromacs_py
+	conda install --yes -n gromacs_py_env gromacs_py
 
-You need to activate the environment:
+You need to activate the environment to be able to use `gromacs_y`, it has to be done in every shell in which you need `gromacs_py` :
 
 .. code-block:: bash
 
-	source activate `gromacs_py_env`
+	source activate gromacs_py_env
 
-Finally test the installation using pytest:
+Finally test the installation using `pytest`:
 
 .. code-block:: bash
 
@@ -62,6 +82,8 @@ Prerequisites
 1. python 3 libraries:  
 	* numpy
 	* scipy
+	* pandas
+	* matplotlib
 	* Sphinx and sphinx-argparse (only for building documentation)
 
 2. `pdb2pqr`_:
