@@ -15,7 +15,7 @@ Add several conda channels for dependencies:
 	conda config --add channels bioconda
 	conda config --add channels samuel.murail
 
-Finally install `gromacs_py` in your `gromacs_py_env` environment:
+Then install `gromacs_py`:
 
 .. code-block:: bash
 
