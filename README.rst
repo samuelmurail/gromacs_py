@@ -15,6 +15,9 @@
 .. image:: https://codecov.io/gh/samuelmurail/gromacs_py/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/samuelmurail/gromacs_py
 
+.. image:: https://anaconda.org/samuel.murail/gromacs_py/badges/version.svg
+  :target: https://anaconda.org/samuel.murail/gromacs_py
+
 Gromacs_py
 =======================================
 
