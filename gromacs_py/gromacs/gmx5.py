@@ -14,8 +14,8 @@ from shutil import copy as shutil_copy
 # Needed because relative imports ..tools don't work
 # Need to define package to gromacs_py to import ..tools
 # Otherwise package will be gromacs and won't know gromacs_py.tools
-#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-#__package__ = 'gromacs_py.gromacs'
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# __package__ = 'gromacs_py.gromacs'
 
 # In case gmx5 is launched as main, relative import will failed
 try:
@@ -31,17 +31,6 @@ except ImportError:
 
 __author__ = "Samuel Murail"
 
-
-## Add the try/except only for readthedocs compilation
-#try:
-#    GMX_BIN = os_command.which('gmx')
-#    gmx_version = os_command.get_gmx_version()
-#    print("Gromacs version is {}".format(gmx_version))
-#except OSError:
-#    print("Gromacs cannot be found")
-#    GMX_BIN = ""
-#    gmx_version = ""
-
 # Check if Readthedoc is launched skip the program path searching
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 if on_rtd:
@@ -53,25 +42,28 @@ else:
     gmx_version = os_command.get_gmx_version()
     print("Gromacs version is {}".format(gmx_version))
 
-
-
+# Get local gmx path
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
+# Deduce the water gro file path
 WATER_GRO = os.path.join(GMX_PATH, "share/gromacs/top/spc216.gro")
 
+# Get library path
 GROMACS_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
-#if gmx_version[:3] != "5.0":
-#    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template")
-#else:
+
+FORCEFIELD_PATH_LIST = [os.path.join(GROMACS_MOD_DIRNAME, "template")]
+# GMXLIB_var should not include GMXPATH top dir, it could induce some conflict
+GMXLIB_var = os.path.join(GROMACS_MOD_DIRNAME, "template")
+
 # Check if GMXLIB env variable is defines if yes add it to forcefield path
 if 'GMXLIB' in os.environ:
-    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template") + ":" +\
-                      os.environ['GMXLIB'] + ":" +\
-                      os.path.join(GMX_PATH, "share/gromacs/top")
-else:
-    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template") + ":" +\
-                      os.path.join(GMX_PATH, "share/gromacs/top")
+    # Needed for pytest in monitor.py, otherwise add twice GROMACS_MOD_DIRNAME
+    if os.environ['GMXLIB'] not in FORCEFIELD_PATH_LIST:
+        FORCEFIELD_PATH_LIST.append(os.environ['GMXLIB'])
+        GMXLIB_var += ":" + os.environ['GMXLIB']
 
-print('FORCEFIELD_PATH = {}'.format(FORCEFIELD_PATH))
+FORCEFIELD_PATH_LIST.append(os.path.join(GMX_PATH, "share/gromacs/top"))
+
+print('FORCEFIELD_PATH_LIST = ', FORCEFIELD_PATH_LIST)
 
 # Test folder path
 GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -84,6 +76,7 @@ HA_NAME = ['N', 'C', 'O', 'CA', 'CB', 'CG', 'CG1', 'CG2', 'SG',
            'ND1', 'CE', 'CE1', 'CE2', 'CE3', 'OE1', 'OE2', 'NE',
            'NE1', 'NE2', 'OH', 'CZ', 'CZ2', 'CZ3', 'NZ', 'NH1',
            'NH2']
+
 
 class TopSys:
     """Topologie base on gromacs .top :
@@ -152,15 +145,15 @@ class TopSys:
 
                     # Look if the itp is in the top path:
                     # print("Path 1: ",self.folder+"/"+file_name)
-                    # print("Path 2: ",FORCEFIELD_PATH+"/"+file_name)
+                    # print("Path 2: ",FORCEFIELD_PATH_LIST+"/"+file_name)
 
                     itp_found = False
                     if os_command.check_file_exist(os.path.join(self.folder, file_name)):
                         path = os.path.abspath(os.path.join(self.folder, file_name))
                         itp_found = True
                     else:
-                        for forcefield in FORCEFIELD_PATH.split(':'):
-                            if os_command.check_file_exist(os.path.join(forcefield,file_name)):
+                        for forcefield in FORCEFIELD_PATH_LIST:
+                            if os_command.check_file_exist(os.path.join(forcefield, file_name)):
                                 path = os.path.abspath(os.path.join(forcefield, file_name))
                                 itp_found = True
                                 break
@@ -1385,8 +1378,7 @@ separate file: 1y0m_pdb2gmx.itp
                                       "-ff", ff], **pdb2gmx_option_dict)
 
         # Define the forcefield dir to the env GMXLIB,
-        # the forcefield is not added to the GMXLIB to avoid conflit :
-        cmd_top.define_env(my_env=os.environ.update({'GMXLIB': FORCEFIELD_PATH}))
+        cmd_top.define_env(my_env=os.environ.update({'GMXLIB': GMXLIB_var}))
         cmd_top.display()
         cmd_top.run(input_pdb2gmx)
 
@@ -2969,7 +2961,7 @@ SAM_pdb2gmx.itp
 
         cmd_tpr.display()
         # cmd_tpr.define_env(my_env={**os.environ, 'GMXLIB': FORCEFIELD_PATH})
-        cmd_tpr.define_env(my_env=os.environ.update({'GMXLIB': FORCEFIELD_PATH}))
+        cmd_tpr.define_env(my_env=os.environ.update({'GMXLIB': GMXLIB_var}))
 
         cmd_tpr.run(display=False)
 

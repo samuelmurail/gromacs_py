@@ -187,7 +187,7 @@ def print_log_file(proc, func_input_dict, tail_line_num=20):
     >>> sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
     >>> import gromacs.gmx5 as gmx #doctest: +ELLIPSIS
     Gromacs version is ...
-    FORCEFIELD_PATH = ...
+    FORCEFIELD_PATH_LIST = ...
     >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
     >>> ###################################
     >>> ####   Create the topologie:   ###
@@ -222,8 +222,7 @@ file: 1y0m_pdb2gmx.itp
     -Create the tpr file  1y0m.tpr
     gmx grompp -f 1y0m.mdp -c ../top_SH3/1y0m_pdb2gmx_box.pdb -r ../top_SH3/1y0m_pdb2gmx_box.pdb -p ../top_SH3/1y0m_pdb2gmx.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
-    gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-    time =  100.0   Potential = ...
+    gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright...
 
     """
 
