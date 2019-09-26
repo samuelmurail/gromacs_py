@@ -2858,7 +2858,7 @@ SAM_pdb2gmx.itp
             ndx_out = self.name + ".ndx"
 
         if folder_out != "":
-            ndx_out = os.path.join(folder_ou, ndx_out)
+            ndx_out = os.path.join(folder_out, ndx_out)
 
         print("-Create the ndx file ", ndx_out)
 
