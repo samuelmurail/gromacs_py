@@ -3655,6 +3655,7 @@ SAM_pdb2gmx.itp
         """
 
         print("-Extract energy")
+        #print('\n'.join(selection_list))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(output_xvg):

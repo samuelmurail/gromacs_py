@@ -216,14 +216,14 @@ file: 1y0m_pdb2gmx.itp
            'terms':['Potential'],\
            'file_check_ext':'log'}
     >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100,\
-    constraints='none', create_box_flag=True, monitor=monitor, nstlog=10)
+    constraints='none', create_box_flag=True, monitor=monitor, nstlog=10) #doctest: +ELLIPSIS
     -Create pbc box
     gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o .../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
     -Create the tpr file  1y0m.tpr
     gmx grompp -f 1y0m.mdp -c ../top_SH3/1y0m_pdb2gmx_box.pdb -r ../top_SH3/1y0m_pdb2gmx_box.pdb -p ../top_SH3/1y0m_pdb2gmx.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-
+    time =  100.0   Potential = ...
 
     """
 
