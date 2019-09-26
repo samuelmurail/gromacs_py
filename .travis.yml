@@ -21,7 +21,7 @@ env:
   global:
     - GROMACS_VERSION=2019.1 
     - PYTHON_VERSION=3.6
-    - CONDA_DEPENDENCIES="scipy matplotlib gromacs pandoc"
+    - CONDA_DEPENDENCIES="scipy matplotlib gromacs pandoc numpy pandas ipython"
     - CONDA_CHANNELS="conda-forge bioconda"
     - NUMPY_VERSION=stable
     - PIP_DEPENDENCIES="codecov pytest-cov"
