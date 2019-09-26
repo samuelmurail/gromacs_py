@@ -59,10 +59,17 @@ GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
 WATER_GRO = os.path.join(GMX_PATH, "share/gromacs/top/spc216.gro")
 
 GROMACS_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
-if gmx_version[:3] != "5.0":
-    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template")
+#if gmx_version[:3] != "5.0":
+#    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template")
+#else:
+# Check if GMXLIB env variable is defines if yes add it to forcefield path
+if 'GMXLIB' in os.environ:
+    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template") + ":" +\
+                      os.environ['GMXLIB'] + ":" +\
+                      os.path.join(GMX_PATH, "share/gromacs/top")
 else:
-    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template") + ":" +os.path.join(GMX_PATH, "share/gromacs/top")
+    FORCEFIELD_PATH = os.path.join(GROMACS_MOD_DIRNAME, "template") + ":" +\
+                      os.path.join(GMX_PATH, "share/gromacs/top")
 
 print('FORCEFIELD_PATH = {}'.format(FORCEFIELD_PATH))
 
@@ -1401,7 +1408,8 @@ separate file: 1y0m_pdb2gmx.itp
 
         os.chdir(start_dir)
 
-    def prepare_top(self, out_folder, name=None, vsite="hydrogens", ignore_ZN=True):
+    def prepare_top(self, out_folder, name=None,
+                    vsite="hydrogens", ignore_ZN=True, ff="charmm36-jul2017"):
         """Prepare the topologie of a protein:
 
             1. compute hisdine protonation with ``pdb2pqr``
@@ -1504,7 +1512,7 @@ separate file: 1y0m_pdb2gmx.itp
         else:
             pdb2gmx_option_dict = {'vsite': vsite, 'ignh': None, 'merge': 'all'}
 
-        self.add_top(out_folder=".", check_file_out=True,
+        self.add_top(out_folder=".", check_file_out=True, ff=ff,
                      pdb2gmx_option_dict=pdb2gmx_option_dict)
         os.chdir(start_dir)
 
