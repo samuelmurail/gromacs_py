@@ -162,7 +162,7 @@ class TopSys:
 
                     # print("name =", include, "fullname =", file_name, "path =",path)
                     if include == "forcefield":
-                        self.forcefield = {'name': include, 'fullname': file_name, 'path': path}
+                        self.forcefield = {'name': file_name.split('.')[0], 'fullname': file_name, 'path': path}
                     else:
                         # print("name =", include, "fullname = ",file_name, "path = ",path)
                         self.itp_list.append(Itp(name=include, fullname=file_name, path=path))
@@ -1599,14 +1599,15 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
 
         # Define termini atoms:
         # C-ter NH3
-        charmm_name_dict = {'NH1': 'H1'}
-        charmm_name_dict = {'NH2': 'H2'}
-        charmm_name_dict = {'NH3': 'H3'}
-        charmm_name_dict = {'N': 'N'}
-        charmm_name_dict = {'CA': 'CA'}
-        charmm_name_dict = {'HA1': 'HA1'}
-        charmm_name_dict = {'HA2': 'HA2'}
 
+        if ff.startswith('amber'):
+            N_type = 'N'
+            HN_type = 'H'
+            GLY_HA_type = 'H1'
+        else:
+            # For charmm
+            N_type = 'NH1'
+            HN_type = 'HN'
 
         # Delete useless ter atoms:
         del_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H2'], 'res_num': [1]}) +\
@@ -1617,11 +1618,11 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
 
         # Change atom type, name and charge :
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
-        mol_top.atom_dict[chg_index]['atom_type'] = 'NH1'
+        mol_top.atom_dict[chg_index]['atom_type'] = N_type
         mol_top.atom_dict[chg_index]['charge'] = -0.470
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H1'], 'res_num': [1]})[0]
         mol_top.atom_dict[chg_index]['atom_name'] = 'HN'
-        mol_top.atom_dict[chg_index]['atom_type'] = 'H'
+        mol_top.atom_dict[chg_index]['atom_type'] = HN_type
         mol_top.atom_dict[chg_index]['charge'] = 0.310
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
         mol_top.atom_dict[chg_index]['charge'] = mol_top.atom_dict[chg_index]['charge'] - 0.12
@@ -1630,10 +1631,18 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         mol_top.atom_dict[chg_index]['atom_type'] = 'O'
         mol_top.atom_dict[chg_index]['atom_name'] = 'O'
         mol_top.atom_dict[chg_index]['charge'] = -0.51
+        if mol_top.atom_dict[1]['res_name'] == 'GLY':
+            chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['HA1'], 'res_num': [1]})[0]
+            mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
+            chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['HA2'], 'res_num': [1]})[0]
+            mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
+
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['C'],
                                                             'res_num': [res_num]})[0]
         mol_top.atom_dict[chg_index]['atom_type'] = 'C'
         mol_top.atom_dict[chg_index]['charge'] = 0.51
+
+
         last_res_index = chg_index
 
         # Get index for residue i-2
@@ -1660,6 +1669,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
                 'atom_name': ['HA1'], 'res_num': [res_num]})[0]
             prev_CB_index = mol_top.get_selection_index(selec_dict={
                 'atom_name': ['HA2'], 'res_num': [res_num]})[0]
+
         # Get index for residue i
         C_index = mol_top.get_selection_index(selec_dict={'atom_name': ['C'], 'res_num': [1]})[0]
         # O_index = mol_top.get_selection_index(selec_dict={'atom_name': ['O'], 'res_num': [1]})[0]
@@ -1672,6 +1682,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         else:
             HN_index = mol_top.get_selection_index(selec_dict={
                 'atom_name': ['CD'], 'res_num': [1]})[0]
+
         # check if res is GLY:
         if mol_top.atom_dict[1]['res_name'] != 'GLY':
             HA_index = mol_top.get_selection_index(selec_dict={
@@ -1746,10 +1757,11 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
                                   'al': HN_index, 'funct': 2})
 
         # Cmap
-        mol_top.cmap_list.append({'ai': prev_2_C_index, 'aj': prev_N_index, 'ak': prev_CA_index,
-                                  'al': prev_C_index, 'am': N_index, 'funct': 1})
-        mol_top.cmap_list.append({'ai': prev_C_index, 'aj': N_index, 'ak': CA_index, 'al': C_index,
-                                  'am': next_N_index, 'funct': 1})
+        if ff.startswith('charmm'):
+            mol_top.cmap_list.append({'ai': prev_2_C_index, 'aj': prev_N_index, 'ak': prev_CA_index,
+                                      'al': prev_C_index, 'am': N_index, 'funct': 1})
+            mol_top.cmap_list.append({'ai': prev_C_index, 'aj': N_index, 'ak': CA_index, 'al': C_index,
+                                      'am': next_N_index, 'funct': 1})
 
         # Save itp:
         top_pep.itp_list[0].write_file(os.path.join(out_folder, name + "_pdb2gmx.itp"))
