@@ -890,8 +890,8 @@ file: 1y0m_pdb2gmx.itp
     -Create the tpr file  genion_1y0m_water_ion.tpr
     gmx grompp -f .../gromacs/template/mini.mdp -c 1y0m_water.pdb -r 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
     -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 water num= 4775
-    Add ions : NA : 12   CL : 12
-    gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o 1y0m_water_ion.gro -np 12 -pname NA -nn 12 -nname CL
+    Add ions : NA : 13   CL : 13
+    gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o 1y0m_water_ion.gro -np 13 -pname NA -nn 13 -nname CL
     >>> ###################################
     >>> ####    Minimize the system     ###
     >>> ###################################
@@ -935,7 +935,7 @@ file: 1y0m_pdb2gmx.itp
     gmx trjconv -f ../em_SH3/1y0m.gro -o ../em_SH3/1y0m_compact.pdb -s ../em_SH3/1y0m.tpr -ur compact -pbc mol
     Concat files: ['../em_SH3/1y0m_compact.pdb', '../top_D/01_mini/D_copy_box.pdb']
     Succeed to save concat file:  SH3_D_pre_mix.pdb
-    Succeed to read file SH3_D_pre_mix.pdb ,  15429 atoms found
+    Succeed to read file SH3_D_pre_mix.pdb ,  15425 atoms found
     Insert mol in system
     Insert 4 mol of 2 residues each
     insert mol   1, water mol   ..., time=0...
@@ -979,7 +979,7 @@ file: 1y0m_pdb2gmx.itp
     coor_file    : .../top_sys/1y0m_water_ion.gro
     top_file     : .../top_sys/1y0m_water_ion.top
     tpr          : .../top_sys/genion_1y0m_water_ion.tpr
-    mdp          : .../gromacs/template/mini.mdp
+    mdp          : ...gromacs/template/mini.mdp
     nt           : 0
     ntmpi        : 0
     sys_history  : 0
@@ -991,7 +991,7 @@ file: 1y0m_pdb2gmx.itp
     coor_file    : .../top_D_SH3/SH3_D_neutral.gro
     top_file     : .../top_D_SH3/SH3_D_neutral.top
     tpr          : .../top_D_SH3/genion_SH3_D_neutral.tpr
-    mdp          : .../gromacs/template/mini.mdp
+    mdp          : ...gromacs/template/mini.mdp
     xtc          : .../em_SH3/1y0m.trr
     edr          : .../em_SH3/1y0m.edr
     log          : .../em_SH3/1y0m.log
@@ -1508,10 +1508,10 @@ separate file: 1y0m_pdb2gmx.itp
                      pdb2gmx_option_dict=pdb2gmx_option_dict)
         os.chdir(start_dir)
 
-    def cyclic_peptide_top(self, out_folder, name=None, check_file_out=True):
+    def cyclic_peptide_top(self, out_folder, name=None, check_file_out=True, ff="charmm36-jul2017"):
         """Prepare a topologie for a cyclic peptide
 
-            1. Create a peptide topologie with NH2 Cter and COO- Nter using``add_top()``.
+            1. Create a peptide topologie with NH3+ Cter and COO- Nter using``add_top()``.
             2. Delete useless termini atoms.
             3. Change atom types, names and charges.
             4. Add backbone bonds, angle and dihedral parameters.
@@ -1554,7 +1554,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_pdb2gmx.top
         Protein_chain_A
-        Succeed to read file ...cyclic/top/no_cyclic_5vav_pdb2gmx.pdb ,  211 atoms found
+        Succeed to read file ...cyclic/top/no_cyclic_5vav_pdb2gmx.pdb ,  212 atoms found
         Succeed to save file ...cyclic/top/5vav_pdb2gmx.pdb
         >>> cyclic_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
         -Create pbc box
@@ -1587,18 +1587,32 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
 
         # Create peptide topologie with NH2 Cter and COO- Nter
         self.add_top(out_folder=out_folder, name="no_cyclic_" + name,
-                     water="tip3p", ff="charmm36-jul2017",
+                     water="tip3p", ff=ff,
                      pdb2gmx_option_dict={'vsite': 'no', 'ignh': None, 'ter': None},
-                     check_file_out=False, input_pdb2gmx=N_ter_dic["NH2"] + "\n" + C_ter_dic["COO-"])
+                     check_file_out=False, input_pdb2gmx=N_ter_dic["NH3+"] + "\n" + C_ter_dic["COO-"])
 
         # Make the top clean:
         top_pep = TopSys(self.top_file)
         mol_top = top_pep.itp_list[0].top_mol_list[0]
         res_num = mol_top.get_res_num()
 
+
+        # Define termini atoms:
+        # C-ter NH3
+        charmm_name_dict = {'NH1': 'H1'}
+        charmm_name_dict = {'NH2': 'H2'}
+        charmm_name_dict = {'NH3': 'H3'}
+        charmm_name_dict = {'N': 'N'}
+        charmm_name_dict = {'CA': 'CA'}
+        charmm_name_dict = {'HA1': 'HA1'}
+        charmm_name_dict = {'HA2': 'HA2'}
+
+
         # Delete useless ter atoms:
         del_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H2'], 'res_num': [1]}) +\
-            mol_top.get_selection_index(selec_dict={'atom_name': ['OT2'], 'res_num': [res_num]})
+            mol_top.get_selection_index(selec_dict={'atom_name': ['H3'], 'res_num': [1]}) +\
+            mol_top.get_selection_index(selec_dict={'atom_name': ['OT2', 'OC2'], 'res_num': [res_num]})
+
         mol_top.delete_atom(index_list=del_index)
 
         # Change atom type, name and charge :
@@ -1607,10 +1621,11 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         mol_top.atom_dict[chg_index]['charge'] = -0.470
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H1'], 'res_num': [1]})[0]
         mol_top.atom_dict[chg_index]['atom_name'] = 'HN'
+        mol_top.atom_dict[chg_index]['atom_type'] = 'H'
         mol_top.atom_dict[chg_index]['charge'] = 0.310
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
         mol_top.atom_dict[chg_index]['charge'] = mol_top.atom_dict[chg_index]['charge'] - 0.12
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['OT1'],
+        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['OT1', 'OC1'],
                                                             'res_num': [res_num]})[0]
         mol_top.atom_dict[chg_index]['atom_type'] = 'O'
         mol_top.atom_dict[chg_index]['atom_name'] = 'O'
@@ -1749,7 +1764,8 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         coor_pep = pdb_manip.Coor()
         coor_pep.read_pdb(self.coor_file, pqr_format=False)
         to_del_index = coor_pep.get_index_selection(selec_dict={'name': ['H2'], 'res_num': [1]})\
-            + coor_pep.get_index_selection(selec_dict={'name': ['OT2'], 'res_num': [res_num]})
+            + coor_pep.get_index_selection(selec_dict={'name': ['H3'], 'res_num': [1]})\
+            + coor_pep.get_index_selection(selec_dict={'name': ['OT2', 'OC2'], 'res_num': [res_num]})
 
         coor_pep.del_atom_index(to_del_index)
 
@@ -1758,7 +1774,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         chg_index = coor_pep.get_index_selection(selec_dict={'name': ['H1'], 'res_num': [1]})
         coor_pep.change_index_pdb_field(chg_index, {'name': 'HN'})
 
-        chg_index = coor_pep.get_index_selection(selec_dict={'name': ['OT1'], 'res_num': [res_num]})
+        chg_index = coor_pep.get_index_selection(selec_dict={'name': ['OT1', 'OC1'], 'res_num': [res_num]})
         coor_pep.change_index_pdb_field(chg_index, {'name': 'O'})
 
         # save pdb:
@@ -2254,6 +2270,14 @@ constraints="none")
         .. note::
             If ``name`` is not defined, the command will create a new .pdb and .top file \
             name after the object name and adding "_ion".
+
+        .. note ::
+            There might be some charge issues with amber forcefield for example.
+            There is a discrepency between the atom charge and the total charge column with amber.
+            In the itp charge is chown with a 2 decimal precision as in the rtp file it can be up to 
+            5 decimals.
+            Should consider using the total charge to deduce the atom charge and avoid errors.
+            Up to now it has been fixed using `round` function instead of `int` for system charge
         """
 
         if name is None:
@@ -2290,12 +2314,12 @@ constraints="none")
         print("-Add ions to the system with an ionic concentration of",
               ion_C, "M , sytem charge =", sys_charge, "water num=", water_num)
 
-        cation_num = int(ion_C / 55.5 * water_num)
+        cation_num = round(ion_C / 55.5 * water_num)
         # Check if anion_num (cation_num  + sys_charge) is negative,
         # raise the canion_num to the sys_charge absolute value
         if (cation_num + sys_charge) < 0:
-            cation_num = int(-1 * sys_charge)
-        anion_num = int(cation_num + sys_charge)
+            cation_num = round(-1 * sys_charge)
+        anion_num = round(cation_num + sys_charge)
 
         print("Add ions :", pname, ":", cation_num, " ", nname, ":", anion_num)
 
@@ -2370,9 +2394,9 @@ file: 1y0m_pdb2gmx.itp
 1y0m_water_ion.top -po out_mini.mdp -o genion_1y0m_water_ion.tpr -maxwarn 1
         -Add ions to the system with an ionic concentration of 0.15 M , sytem charge = 0.0 \
 water num= 62...
-        Add ions : NA : 16   CL : 16
+        Add ions : NA : 17   CL : 17
         gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o 1y0m_water_ion.gro \
--np 16 -pname NA -nn 16 -nname CL
+-np 17 -pname NA -nn 17 -nname CL
         >>> prot.em(out_folder=TEST_OUT+'/solvate_add_ions/em_SH3_water_ions/', nsteps=100, \
 constraints = "none")
         -Create the tpr file  1y0m.tpr
