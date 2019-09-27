@@ -1604,10 +1604,12 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
             N_type = 'N'
             HN_type = 'H'
             GLY_HA_type = 'H1'
+            angle_func = 1
         else:
             # For charmm
             N_type = 'NH1'
-            HN_type = 'HN'
+            HN_type = 'H'
+            angle_func = 5
 
         # Delete useless ter atoms:
         del_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H2'], 'res_num': [1]}) +\
@@ -1631,7 +1633,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         mol_top.atom_dict[chg_index]['atom_type'] = 'O'
         mol_top.atom_dict[chg_index]['atom_name'] = 'O'
         mol_top.atom_dict[chg_index]['charge'] = -0.51
-        if mol_top.atom_dict[1]['res_name'] == 'GLY':
+        if mol_top.atom_dict[1]['res_name'] == 'GLY' and ff.startswith('amber'):
             chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['HA1'], 'res_num': [1]})[0]
             mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
             chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['HA2'], 'res_num': [1]})[0]
@@ -1719,11 +1721,11 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         mol_top.pair_list.append({'ai': CB_index, 'aj': prev_C_index, 'funct': 1})
 
         # Angle:
-        mol_top.angl_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_O_index, 'funct': 5})
-        mol_top.angl_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index, 'funct': 5})
+        mol_top.angl_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_O_index, 'funct': angle_func})
+        mol_top.angl_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index, 'funct': angle_func})
 
-        mol_top.angl_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index, 'funct': 5})
-        mol_top.angl_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index, 'funct': 5})
+        mol_top.angl_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index, 'funct': angle_func})
+        mol_top.angl_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index, 'funct': angle_func})
 
         # Dihed: type 9
         mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
