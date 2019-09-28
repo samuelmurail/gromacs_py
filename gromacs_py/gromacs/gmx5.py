@@ -1567,9 +1567,11 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         gmx mdrun -s 5vav.tpr -deffnm 5vav -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
         .. note::
-            No options are allowed (forcefield, water model, termini capping) except for vsites.
+            No options are allowed (water model, termini capping) except for vsites.
         .. warning::
             Has not been tested with special residues like GLY or PRO !!
+
+            NEED To update charges for AMBER, they are different for termini and proper residues
         """
 
         N_ter_dic = {"NH3+": "0", "NH2": "1", "5TER": "2", "None": "3"}
@@ -1766,7 +1768,6 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         elif ff.startswith('amber'):
             mol_top.dihe_list.append({'ai': prev_CA_index, 'aj': N_index, 'ak': prev_C_index,
                                       'al': prev_O_index, 'funct': dihe_impr_func})
-            # TO CHECK
             mol_top.dihe_list.append({'ai': prev_C_index, 'aj': CA_index, 'ak': N_index,
                                       'al': HN_index, 'funct': dihe_impr_func})
 
