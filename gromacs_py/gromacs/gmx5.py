@@ -1603,13 +1603,19 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         if ff.startswith('amber'):
             N_type = 'N'
             HN_type = 'H'
+            HN_name = 'H'
             GLY_HA_type = 'H1'
             angle_func = 1
-        else:
+            dihe_func = 9
+            dihe_impr_func = 4
+        elif ff.startswith('charmm'):
             # For charmm
             N_type = 'NH1'
             HN_type = 'H'
+            HN_name = 'HN'
             angle_func = 5
+            dihe_func = 9
+            dihe_impr_func = 2
 
         # Delete useless ter atoms:
         del_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H2'], 'res_num': [1]}) +\
@@ -1623,7 +1629,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         mol_top.atom_dict[chg_index]['atom_type'] = N_type
         mol_top.atom_dict[chg_index]['charge'] = -0.470
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H1'], 'res_num': [1]})[0]
-        mol_top.atom_dict[chg_index]['atom_name'] = 'HN'
+        mol_top.atom_dict[chg_index]['atom_name'] = HN_name
         mol_top.atom_dict[chg_index]['atom_type'] = HN_type
         mol_top.atom_dict[chg_index]['charge'] = 0.310
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
@@ -1643,7 +1649,6 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
                                                             'res_num': [res_num]})[0]
         mol_top.atom_dict[chg_index]['atom_type'] = 'C'
         mol_top.atom_dict[chg_index]['charge'] = 0.51
-
 
         last_res_index = chg_index
 
@@ -1680,7 +1685,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         # check if res is PRO:
         if mol_top.atom_dict[1]['res_name'] != 'PRO':
             HN_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['HN'], 'res_num': [1]})[0]
+                'atom_name': [HN_name], 'res_num': [1]})[0]
         else:
             HN_index = mol_top.get_selection_index(selec_dict={
                 'atom_name': ['CD'], 'res_num': [1]})[0]
@@ -1729,34 +1734,41 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
 
         # Dihed: type 9
         mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
-                                  'al': prev_HA_index, 'funct': 9})
+                                  'al': prev_HA_index, 'funct': dihe_func})
         mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
-                                  'al': prev_CB_index, 'funct': 9})
+                                  'al': prev_CB_index, 'funct': dihe_func})
         mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
-                                  'al': prev_N_index, 'funct': 9})
+                                  'al': prev_N_index, 'funct': dihe_func})
 
         mol_top.dihe_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index,
-                                  'al': prev_O_index, 'funct': 9})
+                                  'al': prev_O_index, 'funct': dihe_func})
         mol_top.dihe_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index,
-                                  'al': prev_CA_index, 'funct': 9})
+                                  'al': prev_CA_index, 'funct': dihe_func})
 
         mol_top.dihe_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index,
-                                  'al': prev_O_index, 'funct': 9})
+                                  'al': prev_O_index, 'funct': dihe_func})
         mol_top.dihe_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index,
-                                  'al': prev_CA_index, 'funct': 9})
+                                  'al': prev_CA_index, 'funct': dihe_func})
 
         mol_top.dihe_list.append({'ai': HA_index, 'aj': CA_index, 'ak': N_index,
-                                  'al': prev_C_index, 'funct': 9})
+                                  'al': prev_C_index, 'funct': dihe_func})
         mol_top.dihe_list.append({'ai': CB_index, 'aj': CA_index, 'ak': N_index,
-                                  'al': prev_C_index, 'funct': 9})
+                                  'al': prev_C_index, 'funct': dihe_func})
         mol_top.dihe_list.append({'ai': C_index, 'aj': CA_index, 'ak': N_index,
-                                  'al': prev_C_index, 'funct': 9})
+                                  'al': prev_C_index, 'funct': dihe_func})
 
         # Dihed: type 2
-        mol_top.dihe_list.append({'ai': prev_C_index, 'aj': prev_CA_index, 'ak': N_index,
-                                  'al': prev_O_index, 'funct': 2})
-        mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': CA_index,
-                                  'al': HN_index, 'funct': 2})
+        if ff.startswith('charmm'):
+            mol_top.dihe_list.append({'ai': prev_C_index, 'aj': prev_CA_index, 'ak': N_index,
+                                      'al': prev_O_index, 'funct': dihe_impr_func})
+            mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': CA_index,
+                                      'al': HN_index, 'funct': dihe_impr_func})
+        elif ff.startswith('amber'):
+            mol_top.dihe_list.append({'ai': prev_CA_index, 'aj': N_index, 'ak': prev_C_index,
+                                      'al': prev_O_index, 'funct': dihe_impr_func})
+            # TO CHECK
+            mol_top.dihe_list.append({'ai': prev_C_index, 'aj': CA_index, 'ak': N_index,
+                                      'al': HN_index, 'funct': dihe_impr_func})
 
         # Cmap
         if ff.startswith('charmm'):
@@ -1777,8 +1789,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         # Correct pdb file:
         coor_pep = pdb_manip.Coor()
         coor_pep.read_pdb(self.coor_file, pqr_format=False)
-        to_del_index = coor_pep.get_index_selection(selec_dict={'name': ['H2'], 'res_num': [1]})\
-            + coor_pep.get_index_selection(selec_dict={'name': ['H3'], 'res_num': [1]})\
+        to_del_index = coor_pep.get_index_selection(selec_dict={'name': ['H2', 'H3'], 'res_num': [1]})\
             + coor_pep.get_index_selection(selec_dict={'name': ['OT2', 'OC2'], 'res_num': [res_num]})
 
         coor_pep.del_atom_index(to_del_index)
@@ -1786,7 +1797,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         # Change atom name :
 
         chg_index = coor_pep.get_index_selection(selec_dict={'name': ['H1'], 'res_num': [1]})
-        coor_pep.change_index_pdb_field(chg_index, {'name': 'HN'})
+        coor_pep.change_index_pdb_field(chg_index, {'name': HN_name})
 
         chg_index = coor_pep.get_index_selection(selec_dict={'name': ['OT1', 'OC1'], 'res_num': [res_num]})
         coor_pep.change_index_pdb_field(chg_index, {'name': 'O'})
