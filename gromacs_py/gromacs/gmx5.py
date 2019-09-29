@@ -439,9 +439,9 @@ class Itp:
                     # Read only indexes not the parameters (c0, c1 ...)
                     # May need some modifications :
                     elif field == 'bonds':
-                        #for i in range(3):
+                        # for i in range(3):
                         #    print("val:{} #{}#".format(i, line[i*5:(i+1)*5]))
-                        #ai, aj, funct = [int(line[i*5:(i+1)*5]) for i in range(3)]
+                        # ai, aj, funct = [int(line[i*5:(i+1)*5]) for i in range(3)]
                         ai, aj, funct = [int(col) for col in line_list[:3]]
                         local_top.bond_list.append({'ai': ai, 'aj': aj, 'funct': funct})
                     elif field == 'constraints':
@@ -774,8 +774,98 @@ class TopMol:
                                      'funct': param['funct']})
         self.vs4_list = new_vs4_list
 
+    def correct_charge_type(self, forcefield_path):
+        """ Correct the charge and atom type of an itp object,
+        base on a ff `.rtp` file.
+        This is specially usefull, to correct charge of termini resiudes
+        of a cyclicized peptide.
+        """
+
+        # First extract charge and type from the ff .rtp file
+        rtp_path = os.path.abspath(os.path.join(os_command.get_directory(forcefield_path), 'aminoacids.rtp'))
+        print('rtp=', rtp_path)
+        ff_rtp = Rtp(rtp_path)
+        print(ff_rtp.res_dict)
+
+        # Correct charges and type:
+        for atom in self.atom_dict.values():
+            #tot_charge += atom['charge']
+            #filout.write("{:>6}{:>11}{:>7}{:>7}{:>7}{:>7}{:>11.2f}{:>11}   ; qtot {:<6.2f} \n".
+            #             format(atom['num'], atom['atom_type'], atom['res_num'], atom['res_name'],
+            #                    atom['atom_name'], atom['charge_num'], atom['charge'],
+            #                    atom['mass'], tot_charge))
+            print(atom['res_name'], atom['atom_name'])
+
+
+
+class Rtp:
+    """Individual molecule topologie
+    """
+
+    def __init__(self, path):
+        """Read an itp file and extract [atoms] field
+        """
+        self.path = path
+        self.res_dict = {}
+        self.read_file()
+
+        # Then assigne the correct atom charge and type
+
+    def read_file(self):
+
+        field = None
+        atom_dict = {}
+        bond_list = []
+        impr_list = []
+
+        with open(self.path) as file:
+            for line in file:
+                line_strip = line.strip()
+                if len(line_strip) > 0:
+                    if line_strip[0] == "[":
+                        # Remove space and [ ], remove also comments
+                        field = line.replace(" ", "").split("]")[0][1:]
+
+                        if field not in ['bondedtype', 'atoms', 'bonds', 'impropers', '']:
+    
+                            if len(atom_dict) > 0:
+                                residue = {}
+                                residue['atom'] = atom_dict
+                                residue['bond'] = bond_list
+                                residue['impr'] = impr_list
+                                self.res_dict[res_name] = residue
+
+                            res_name = field
+                            atom_dict = {}
+                            bond_list = []
+                            impr_list = []
+                        continue
+
+                    if line_strip[0] != ";" and line_strip[0] != "#":
+                        line_list = line_strip.split()
+
+                        if field == 'atoms':
+                            atom_name = line_list[0]
+                            atom_type = line_list[1]
+                            atom_charge = float(line_list[2])
+                            charge_group = int(line_list[3])
+                            atom_dict[atom_name] = {"type": atom_type,
+                                                 "charge": atom_charge,
+                                                 "charge_group": charge_group}
+
+                        elif field == 'bonds':
+                            bond_list.append({'ai': line_list[0],
+                                              'aj': line_list[1]})
+
+                        elif field == 'impropers':
+                            impr_list.append({'ai': line_list[0],
+                                              'aj': line_list[1],
+                                              'ak': line_list[2],
+                                              'al': line_list[3]})
 
 # Position restraints files:
+
+
 def write_index_posre_file(atom_index_list, posre_file, type_val=1, fc=[1000, 1000, 1000]):
     """Write a pos restraint file based on atom index list
     """
@@ -1771,6 +1861,9 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
             for ai, aj, ak, al, am in cmap_list:
                 mol_top.cmap_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al, 'am': am, 'funct': 1})
 
+        # Correct charge and atom type base on ff .rtp file
+        mol_top.correct_charge_type(forcefield_path=top_pep.forcefield['path'])
+
         # Save itp:
 
         top_pep.itp_list[0].write_file(os.path.join(out_folder, name + "_pdb2gmx.itp"))
@@ -1800,7 +1893,6 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         # save pdb:
         coor_pep.write_pdb(pdb_out=os.path.join(out_folder, name + "_pdb2gmx.pdb"))
         self.coor_file = os.path.join(out_folder, name + "_pdb2gmx.pdb")
-
 
     #######################################################
     #############  SYSTEM CREATION FUNCTIONS  #############
@@ -2294,8 +2386,8 @@ constraints="none")
         .. note ::
             There might be some charge issues with amber forcefield for example.
             There is a discrepency between the atom charge and the total charge column with amber.
-            In the itp charge is chown with a 2 decimal precision as in the rtp file it can be up to 
-            5 decimals.
+            In the itp charge is chown with a 2 decimal precision as in the rtp file it can be
+            up to 5 decimals.
             Should consider using the total charge to deduce the atom charge and avoid errors.
             Up to now it has been fixed using `round` function instead of `int` for system charge
         """
