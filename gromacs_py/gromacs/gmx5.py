@@ -269,7 +269,7 @@ class TopSys:
                     itp_res_num = itp.res_num(name)
                     if itp_res_num is not None:
                         print("Get Res num of ", name, ":", itp_res_num,
-                              "total charge:", num * itp_res_num)
+                              "total number of residue:", num * itp_res_num)
                         self.res_num += num * itp_res_num
                         break
         return self.res_num
@@ -1672,6 +1672,34 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         >>> cyclic_top = TopSys(cyclic_pep.top_file)
         >>> print(cyclic_top.charge())
         0.0
+        >>> cyclic_top.prot_res_num()
+        Protein_chain_A 1
+        Get Res num of  Protein_chain_A : 14 total number of residue: 14
+        14
+        >>> cyclic_top.display() #doctest: +ELLIPSIS
+        Forcefield include :
+         {'name': 'charmm36-jul2017', 'fullname': 'charmm36-jul2017.ff/forcefield.itp', 'path': '...charmm36-jul2017.ff/forcefield.itp'}
+        -ITP file: 5vav_pdb2gmx
+        -molecules defined in the itp file:
+        * Protein_chain_A
+        -ITP file: tip3p
+        -molecules defined in the itp file:
+        * SOL
+        -ITP file: ions
+        -molecules defined in the itp file:
+        * OH
+        * LI
+        * NA
+        * K
+        * CS
+        * CL
+        * CA
+        * MG
+        * ZN
+        Mol List:
+         [{'name': 'Protein_chain_A', 'num': '1'}]
+        Mol Name:
+         CYC-MC12
         >>> cyclic_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f .../cyclic/top/5vav_pdb2gmx.pdb -o \
