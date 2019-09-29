@@ -774,7 +774,7 @@ class TopMol:
                                      'funct': param['funct']})
         self.vs4_list = new_vs4_list
 
-    def correct_charge_type(self, forcefield_path):
+    def correct_charge_type(self, forcefield):
         """ Correct the charge and atom type of an itp object,
         base on a ff `.rtp` file.
         This is specially usefull, to correct charge of termini resiudes
@@ -782,20 +782,38 @@ class TopMol:
         """
 
         # First extract charge and type from the ff .rtp file
+        forcefield_path = forcefield['path']
         rtp_path = os.path.abspath(os.path.join(os_command.get_directory(forcefield_path), 'aminoacids.rtp'))
-        print('rtp=', rtp_path)
+        if not os_command.check_file_exist(rtp_path):
+            rtp_path = os.path.abspath(os.path.join(os_command.get_directory(forcefield_path), 'merged.rtp'))
+
+        print('Read rtp file :', rtp_path)
         ff_rtp = Rtp(rtp_path)
-        print(ff_rtp.res_dict)
 
         # Correct charges and type:
-        for atom in self.atom_dict.values():
-            #tot_charge += atom['charge']
-            #filout.write("{:>6}{:>11}{:>7}{:>7}{:>7}{:>7}{:>11.2f}{:>11}   ; qtot {:<6.2f} \n".
-            #             format(atom['num'], atom['atom_type'], atom['res_num'], atom['res_name'],
-            #                    atom['atom_name'], atom['charge_num'], atom['charge'],
-            #                    atom['mass'], tot_charge))
-            print(atom['res_name'], atom['atom_name'])
+        for atom_num, atom in self.atom_dict.items():
+            res_name = atom['res_name']
+            resid = atom['res_num']
+            atom_name = atom['atom_name']
 
+            # With Amber disulfide cys are called CYX in the rtp and CYS in the itp
+            # Don't get sense but need to check the protonation state of cys
+            # By counting atoms
+            # With charmm disuldie cys is CYS2
+            if res_name == 'CYS':
+                if len(self.get_selection_index(selec_dict={'res_num': [resid], 'res_name': ['CYS']})) == 10:
+                    if forcefield['name'].startswith('amber'):
+                        res_name = 'CYX'
+                    elif forcefield['name'].startswith('charmm'):
+                        res_name = 'CYS2'
+            #print(atom)
+            #print(ff_rtp.res_dict[res_name]['atom'][atom_name])
+            atom_type = ff_rtp.res_dict[res_name]['atom'][atom_name]['type']
+            atom_charge = ff_rtp.res_dict[res_name]['atom'][atom_name]['charge']
+            if atom_type != atom['atom_type']:
+                print('Correct residue {:4} atom type {:4} to {:4}'.format(res_name, atom['atom_type'], atom_type))
+            self.atom_dict[atom_num]['atom_type'] = atom_type
+            self.atom_dict[atom_num]['charge'] = atom_charge
 
 
 class Rtp:
@@ -1643,9 +1661,17 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_pdb2gmx.top
+        Read rtp file : ...charmm36-jul2017.ff/merged.rtp
+        Correct residue GLY  atom type NH3  to NH1
+        Correct residue GLY  atom type HC   to H 
+        Correct residue ASP  atom type CC   to C
+        Correct residue ASP  atom type OC   to O
         Protein_chain_A
         Succeed to read file ...cyclic/top/no_cyclic_5vav_pdb2gmx.pdb ,  212 atoms found
         Succeed to save file ...cyclic/top/5vav_pdb2gmx.pdb
+        >>> cyclic_top = TopSys(cyclic_pep.top_file)
+        >>> print(cyclic_top.charge())
+        0.0
         >>> cyclic_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f .../cyclic/top/5vav_pdb2gmx.pdb -o \
@@ -1655,13 +1681,44 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
 ../top/5vav_pdb2gmx.top -po out_5vav.mdp -o 5vav.tpr -maxwarn 1
         -Launch the simulation 5vav.tpr
         gmx mdrun -s 5vav.tpr -deffnm 5vav -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+        >>> cyclic_amber_pep = GmxSys(name='5vav_amber', coor_file=TEST_PATH+'/5vav.pdb')
+        >>> cyclic_amber_pep.cyclic_peptide_top(out_folder=os.path.join(str(TEST_OUT),'cyclic/top'),\
+                                                ff='amber99sb-ildn') #doctest: +ELLIPSIS
+        -Create topologie
+        gmx pdb2gmx -f ...test/input/5vav.pdb -o no_cyclic_5vav_amber_pdb2gmx.pdb -p no_cyclic_5vav_amber_pdb2gmx.top -i \
+        no_cyclic_5vav_amber_posre.itp -water tip3p -ff amber99sb-ildn -ignh -ter -vsite no
+        Molecule topologie present in no_cyclic_5vav_amber_pdb2gmx.top , extract the topologie in a separate file: \
+        no_cyclic_5vav_amber_pdb2gmx.itp
+        Protein_chain_A
+        -ITP file: no_cyclic_5vav_amber_pdb2gmx.itp
+        -molecules defined in the itp file:
+        * Protein_chain_A
+        Rewrite topologie: no_cyclic_5vav_amber_pdb2gmx.top
+        Read rtp file : ...amber99sb-ildn.ff/aminoacids.rtp
+        Correct residue GLY  atom type N3   to N
+        Correct residue GLY  atom type HP   to H1
+        Correct residue GLY  atom type HP   to H1
+        Correct residue ASP  atom type O2   to O
+        Protein_chain_A
+        Succeed to read file ...cyclic/top/no_cyclic_5vav_amber_pdb2gmx.pdb ,  212 atoms found
+        Succeed to save file ...cyclic/top/5vav_amber_pdb2gmx.pdb
+        >>> cyclic_amber_top = TopSys(cyclic_amber_pep.top_file)
+        >>> print(cyclic_amber_top.charge())
+        0.0
+        >>> cyclic_amber_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
+        -Create pbc box
+        gmx editconf -f ...cyclic/top/5vav_amber_pdb2gmx.pdb -o ...cyclic/top/5vav_amber_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+        -Create the tpr file  5vav_amber.tpr
+        gmx grompp -f 5vav_amber.mdp -c ../top/5vav_amber_pdb2gmx_box.pdb -r ../top/5vav_amber_pdb2gmx_box.pdb -p \
+        ../top/5vav_amber_pdb2gmx.top -po out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
+        -Launch the simulation 5vav_amber.tpr
+        gmx mdrun -s 5vav_amber.tpr -deffnm 5vav_amber -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
         .. note::
             No options are allowed (water model, termini capping) except for vsites.
         .. warning::
             Has not been tested with special residues like GLY or PRO !!
 
-            NEED To update charges for AMBER, they are different for termini and proper residues
         """
 
         N_ter_dic = {"NH3+": "0", "NH2": "1", "5TER": "2", "None": "3"}
@@ -1693,54 +1750,54 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         # C-ter NH3
 
         if ff.startswith('amber'):
-            N_type = 'N'
-            HN_type = 'H'
+            #N_type = 'N'
+            #HN_type = 'H'
             HN_name = 'H'
-            GLY_HA_type = 'H1'
+            #GLY_HA_type = 'H1'
             angle_func = 1
             dihe_func = 9
             dihe_impr_func = 4
         elif ff.startswith('charmm'):
             # For charmm
-            N_type = 'NH1'
-            HN_type = 'H'
+            #N_type = 'NH1'
+            #HN_type = 'H'
             HN_name = 'HN'
             angle_func = 5
             dihe_func = 9
             dihe_impr_func = 2
 
         # Delete useless ter atoms:
-        del_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H2'], 'res_num': [1]}) +\
-            mol_top.get_selection_index(selec_dict={'atom_name': ['H3'], 'res_num': [1]}) +\
+        del_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H2', 'H3'], 'res_num': [1]}) +\
             mol_top.get_selection_index(selec_dict={'atom_name': ['OT2', 'OC2'], 'res_num': [res_num]})
 
         mol_top.delete_atom(index_list=del_index)
 
-        # Change atom type, name and charge :
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
-        mol_top.atom_dict[chg_index]['atom_type'] = N_type
-        mol_top.atom_dict[chg_index]['charge'] = -0.470
+        # Change atom name:
+        #chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
+        #mol_top.atom_dict[chg_index]['atom_type'] = N_type
+        #mol_top.atom_dict[chg_index]['charge'] = -0.470
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H1'], 'res_num': [1]})[0]
         mol_top.atom_dict[chg_index]['atom_name'] = HN_name
-        mol_top.atom_dict[chg_index]['atom_type'] = HN_type
-        mol_top.atom_dict[chg_index]['charge'] = 0.310
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
-        mol_top.atom_dict[chg_index]['charge'] = mol_top.atom_dict[chg_index]['charge'] - 0.12
+        #mol_top.atom_dict[chg_index]['atom_type'] = HN_type
+        #mol_top.atom_dict[chg_index]['charge'] = 0.310
+        #chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
+        #mol_top.atom_dict[chg_index]['charge'] = mol_top.atom_dict[chg_index]['charge'] - 0.12
         chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['OT1', 'OC1'],
                                                             'res_num': [res_num]})[0]
-        mol_top.atom_dict[chg_index]['atom_type'] = 'O'
+        #mol_top.atom_dict[chg_index]['atom_type'] = 'O'
         mol_top.atom_dict[chg_index]['atom_name'] = 'O'
-        mol_top.atom_dict[chg_index]['charge'] = -0.51
-        if mol_top.atom_dict[1]['res_name'] == 'GLY' and ff.startswith('amber'):
-            chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['HA1'], 'res_num': [1]})[0]
-            mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
-            chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['HA2'], 'res_num': [1]})[0]
-            mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
+        #mol_top.atom_dict[chg_index]['charge'] = -0.51
 
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['C'],
-                                                            'res_num': [res_num]})[0]
-        mol_top.atom_dict[chg_index]['atom_type'] = 'C'
-        mol_top.atom_dict[chg_index]['charge'] = 0.51
+        #if mol_top.atom_dict[1]['res_name'] == 'GLY' and ff.startswith('amber'):
+        #    chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['HA1'], 'res_num': [1]})[0]
+        #    mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
+        #    chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['HA2'], 'res_num': [1]})[0]
+        #    mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
+
+        #chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['C'],
+        #                                                    'res_num': [res_num]})[0]
+        #mol_top.atom_dict[chg_index]['atom_type'] = 'C'
+        #mol_top.atom_dict[chg_index]['charge'] = 0.51
 
         last_res_index = chg_index
 
@@ -1862,7 +1919,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
                 mol_top.cmap_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al, 'am': am, 'funct': 1})
 
         # Correct charge and atom type base on ff .rtp file
-        mol_top.correct_charge_type(forcefield_path=top_pep.forcefield['path'])
+        mol_top.correct_charge_type(forcefield=top_pep.forcefield)
 
         # Save itp:
 
