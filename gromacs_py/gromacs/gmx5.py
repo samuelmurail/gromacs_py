@@ -1713,72 +1713,66 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         mol_top.bond_list.append({'ai': N_index, 'aj': prev_C_index, 'funct': 1})
 
         # Pairs
-        mol_top.pair_list.append({'ai': N_index, 'aj': prev_HA_index, 'funct': 1})
-        mol_top.pair_list.append({'ai': N_index, 'aj': prev_N_index, 'funct': 1})
-        mol_top.pair_list.append({'ai': N_index, 'aj': prev_CB_index, 'funct': 1})
+        pair_list = [[N_index, prev_HA_index],
+                     [N_index, prev_N_index],
+                     [N_index, prev_CB_index],
+                     [HN_index, prev_O_index],
+                     [HN_index, prev_CA_index],
+                     [CA_index, prev_O_index],
+                     [CA_index, prev_CA_index],
+                     [HA_index, prev_C_index],
+                     [CB_index, prev_C_index]]
 
-        mol_top.pair_list.append({'ai': HN_index, 'aj': prev_O_index, 'funct': 1})
-        mol_top.pair_list.append({'ai': HN_index, 'aj': prev_CA_index, 'funct': 1})
+        for ai, aj in pair_list:
+            mol_top.pair_list.append({'ai': ai, 'aj': aj, 'funct': 1})
 
-        mol_top.pair_list.append({'ai': CA_index, 'aj': prev_O_index, 'funct': 1})
-        mol_top.pair_list.append({'ai': CA_index, 'aj': prev_CA_index, 'funct': 1})
-
-        mol_top.pair_list.append({'ai': HA_index, 'aj': prev_C_index, 'funct': 1})
-
-        mol_top.pair_list.append({'ai': CB_index, 'aj': prev_C_index, 'funct': 1})
 
         # Angle:
-        mol_top.angl_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_O_index, 'funct': angle_func})
-        mol_top.angl_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index, 'funct': angle_func})
 
-        mol_top.angl_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index, 'funct': angle_func})
-        mol_top.angl_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index, 'funct': angle_func})
+        angle_list = [[N_index, prev_C_index, prev_O_index],
+                      [N_index, prev_C_index, prev_CA_index],
+                      [HN_index, N_index, prev_C_index],
+                      [CA_index, N_index, prev_C_index]]
+
+        for ai, aj, ak in angle_list:
+            mol_top.angl_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'funct': angle_func})
 
         # Dihed: type 9
-        mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
-                                  'al': prev_HA_index, 'funct': dihe_func})
-        mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
-                                  'al': prev_CB_index, 'funct': dihe_func})
-        mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': prev_CA_index,
-                                  'al': prev_N_index, 'funct': dihe_func})
+        dihed_list = [[N_index, prev_C_index, prev_CA_index, prev_HA_index],
+                      [N_index, prev_C_index, prev_CA_index, prev_CB_index],
+                      [N_index, prev_C_index, prev_CA_index, prev_N_index],
+                      [HN_index, N_index, prev_C_index, prev_O_index],
+                      [HN_index, N_index, prev_C_index, prev_CA_index],
+                      [CA_index, N_index, prev_C_index, prev_O_index],
+                      [CA_index, N_index, prev_C_index, prev_CA_index],
+                      [HA_index, CA_index, N_index, prev_C_index],
+                      [CB_index, CA_index, N_index, prev_C_index],
+                      [C_index, CA_index, N_index, prev_C_index]]
 
-        mol_top.dihe_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index,
-                                  'al': prev_O_index, 'funct': dihe_func})
-        mol_top.dihe_list.append({'ai': HN_index, 'aj': N_index, 'ak': prev_C_index,
-                                  'al': prev_CA_index, 'funct': dihe_func})
-
-        mol_top.dihe_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index,
-                                  'al': prev_O_index, 'funct': dihe_func})
-        mol_top.dihe_list.append({'ai': CA_index, 'aj': N_index, 'ak': prev_C_index,
-                                  'al': prev_CA_index, 'funct': dihe_func})
-
-        mol_top.dihe_list.append({'ai': HA_index, 'aj': CA_index, 'ak': N_index,
-                                  'al': prev_C_index, 'funct': dihe_func})
-        mol_top.dihe_list.append({'ai': CB_index, 'aj': CA_index, 'ak': N_index,
-                                  'al': prev_C_index, 'funct': dihe_func})
-        mol_top.dihe_list.append({'ai': C_index, 'aj': CA_index, 'ak': N_index,
-                                  'al': prev_C_index, 'funct': dihe_func})
+        for ai, aj, ak, al in dihed_list:
+            mol_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al, 'funct': dihe_func})
 
         # Dihed: type 2
         if ff.startswith('charmm'):
-            mol_top.dihe_list.append({'ai': prev_C_index, 'aj': prev_CA_index, 'ak': N_index,
-                                      'al': prev_O_index, 'funct': dihe_impr_func})
-            mol_top.dihe_list.append({'ai': N_index, 'aj': prev_C_index, 'ak': CA_index,
-                                      'al': HN_index, 'funct': dihe_impr_func})
+            dihed_list_impr = [[prev_C_index, prev_CA_index, N_index, prev_O_index],
+                               [N_index, prev_C_index, CA_index, HN_index]]
         elif ff.startswith('amber'):
-            mol_top.dihe_list.append({'ai': prev_CA_index, 'aj': N_index, 'ak': prev_C_index,
-                                      'al': prev_O_index, 'funct': dihe_impr_func})
-            mol_top.dihe_list.append({'ai': prev_C_index, 'aj': CA_index, 'ak': N_index,
-                                      'al': HN_index, 'funct': dihe_impr_func})
+            dihed_list_impr = [[prev_CA_index, N_index, prev_C_index, prev_O_index],
+                               [prev_C_index, CA_index, N_index, HN_index]]
+
+        for ai, aj, ak, al in dihed_list_impr:
+            mol_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al, 'funct': dihe_impr_func})
 
         # Cmap
         if ff.startswith('charmm'):
-            mol_top.cmap_list.append({'ai': prev_2_C_index, 'aj': prev_N_index, 'ak': prev_CA_index,
-                                      'al': prev_C_index, 'am': N_index, 'funct': 1})
-            mol_top.cmap_list.append({'ai': prev_C_index, 'aj': N_index, 'ak': CA_index, 'al': C_index,
-                                      'am': next_N_index, 'funct': 1})
+            cmap_list = [[prev_2_C_index, prev_N_index, prev_CA_index, prev_C_index, N_index],
+                         [prev_C_index, N_index, CA_index, C_index, next_N_index]]
+
+            for ai, aj, ak, al, am in cmap_list:
+                mol_top.cmap_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al, 'am': am, 'funct': 1})
 
         # Save itp:
+
         top_pep.itp_list[0].write_file(os.path.join(out_folder, name + "_pdb2gmx.itp"))
         top_pep.itp_list[0].name = name + "_pdb2gmx.itp"
         top_pep.itp_list[0].fullname = name + "_pdb2gmx.itp"
