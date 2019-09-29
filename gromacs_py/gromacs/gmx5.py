@@ -1687,14 +1687,14 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         -Create topologie
         gmx pdb2gmx -f ...test/input/5vav.pdb -o no_cyclic_5vav_amber_pdb2gmx.pdb -p no_cyclic_5vav_amber_pdb2gmx.top \
 -i no_cyclic_5vav_amber_posre.itp -water tip3p -ff amber99sb-ildn -ignh -ter -vsite no
-        Molecule topologie present in no_cyclic_5vav_amber_pdb2gmx.top , extract the topologie in a separate file: \
-no_cyclic_5vav_amber_pdb2gmx.itp
+        Molecule topologie present in no_cyclic_5vav_amber_pdb2gmx.top , extract the topologie in a \
+separate file: no_cyclic_5vav_amber_pdb2gmx.itp
         Protein_chain_A
         -ITP file: no_cyclic_5vav_amber_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_amber_pdb2gmx.top
-        Read rtp file : /Users/smurail/Documents/Software/gromacs/local_2016.4/share/gromacs/top/amber99sb-ildn.ff/aminoacids.rtp
+        Read rtp file : ...amber99sb-ildn.ff/aminoacids.rtp
         Correct residue GLY  atom type N3   to N   
         Correct residue GLY  atom type HP   to H1  
         Correct residue GLY  atom type HP   to H1  
@@ -1707,7 +1707,8 @@ no_cyclic_5vav_amber_pdb2gmx.itp
         0.0
         >>> cyclic_amber_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
         -Create pbc box
-        gmx editconf -f ...cyclic/top/5vav_amber_pdb2gmx.pdb -o ...cyclic/top/5vav_amber_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+        gmx editconf -f ...cyclic/top/5vav_amber_pdb2gmx.pdb -o \
+...cyclic/top/5vav_amber_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         -Create the tpr file  5vav_amber.tpr
         gmx grompp -f 5vav_amber.mdp -c ../top/5vav_amber_pdb2gmx_box.pdb -r ../top/5vav_amber_pdb2gmx_box.pdb -p \
 ../top/5vav_amber_pdb2gmx.top -po out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
