@@ -1662,10 +1662,10 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_pdb2gmx.top
         Read rtp file : ...charmm36-jul2017.ff/merged.rtp
-        Correct residue GLY  atom type NH3  to NH1
-        Correct residue GLY  atom type HC   to H 
-        Correct residue ASP  atom type CC   to C
-        Correct residue ASP  atom type OC   to O
+        Correct residue GLY  atom type NH3  to NH1 
+        Correct residue GLY  atom type HC   to H   
+        Correct residue ASP  atom type CC   to C   
+        Correct residue ASP  atom type OC   to O   
         Protein_chain_A
         Succeed to read file ...cyclic/top/no_cyclic_5vav_pdb2gmx.pdb ,  212 atoms found
         Succeed to save file ...cyclic/top/5vav_pdb2gmx.pdb
@@ -1685,20 +1685,20 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         >>> cyclic_amber_pep.cyclic_peptide_top(out_folder=os.path.join(str(TEST_OUT),'cyclic/top'),\
                                                 ff='amber99sb-ildn') #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ...test/input/5vav.pdb -o no_cyclic_5vav_amber_pdb2gmx.pdb -p no_cyclic_5vav_amber_pdb2gmx.top -i \
-        no_cyclic_5vav_amber_posre.itp -water tip3p -ff amber99sb-ildn -ignh -ter -vsite no
+        gmx pdb2gmx -f ...test/input/5vav.pdb -o no_cyclic_5vav_amber_pdb2gmx.pdb -p no_cyclic_5vav_amber_pdb2gmx.top \
+-i no_cyclic_5vav_amber_posre.itp -water tip3p -ff amber99sb-ildn -ignh -ter -vsite no
         Molecule topologie present in no_cyclic_5vav_amber_pdb2gmx.top , extract the topologie in a separate file: \
-        no_cyclic_5vav_amber_pdb2gmx.itp
+no_cyclic_5vav_amber_pdb2gmx.itp
         Protein_chain_A
         -ITP file: no_cyclic_5vav_amber_pdb2gmx.itp
         -molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_amber_pdb2gmx.top
-        Read rtp file : ...amber99sb-ildn.ff/aminoacids.rtp
-        Correct residue GLY  atom type N3   to N
-        Correct residue GLY  atom type HP   to H1
-        Correct residue GLY  atom type HP   to H1
-        Correct residue ASP  atom type O2   to O
+        Read rtp file : /Users/smurail/Documents/Software/gromacs/local_2016.4/share/gromacs/top/amber99sb-ildn.ff/aminoacids.rtp
+        Correct residue GLY  atom type N3   to N   
+        Correct residue GLY  atom type HP   to H1  
+        Correct residue GLY  atom type HP   to H1  
+        Correct residue ASP  atom type O2   to O   
         Protein_chain_A
         Succeed to read file ...cyclic/top/no_cyclic_5vav_amber_pdb2gmx.pdb ,  212 atoms found
         Succeed to save file ...cyclic/top/5vav_amber_pdb2gmx.pdb
@@ -1710,7 +1710,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         gmx editconf -f ...cyclic/top/5vav_amber_pdb2gmx.pdb -o ...cyclic/top/5vav_amber_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         -Create the tpr file  5vav_amber.tpr
         gmx grompp -f 5vav_amber.mdp -c ../top/5vav_amber_pdb2gmx_box.pdb -r ../top/5vav_amber_pdb2gmx_box.pdb -p \
-        ../top/5vav_amber_pdb2gmx.top -po out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
+../top/5vav_amber_pdb2gmx.top -po out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         -Launch the simulation 5vav_amber.tpr
         gmx mdrun -s 5vav_amber.tpr -deffnm 5vav_amber -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
