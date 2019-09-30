@@ -200,7 +200,7 @@ class TopSys:
                         self.mol_comp.append({'name': line_list[0], 'num': line_list[1]})
 
     def display(self):
-        print("Forcefield include :\n", self.forcefield)
+        print("Forcefield include :\n", self.forcefield['name'])
         for itp in self.itp_list:
             itp.display()
         print("Mol List:\n", self.mol_comp)
@@ -1678,7 +1678,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         14
         >>> cyclic_top.display() #doctest: +ELLIPSIS
         Forcefield include :
-         {'name': 'charmm36-jul2017', 'fullname': 'charmm36-jul2017.ff/forcefield.itp', 'path': '...charmm36-jul2017.ff/forcefield.itp'}
+         charmm36-jul2017
         -ITP file: 5vav_pdb2gmx
         -molecules defined in the itp file:
         * Protein_chain_A
