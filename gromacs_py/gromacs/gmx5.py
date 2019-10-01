@@ -303,9 +303,28 @@ class TopSys:
         self.itp_list.append(mol_itp)
 
     def change_mol_num(self, mol_name, mol_num):
-        for mol in self.mol_comp:
+        """ Update molecule number.
+        And remove multiple molecule definition if they are consecutive.
+        """
+        
+
+        for i, mol in enumerate(self.mol_comp):
+
             if mol['name'] == mol_name:
                 mol['num'] = str(mol_num)
+                # Find other mol_name and remove them:
+                to_remove_index_list = []
+                for j in range(i+1, len(self.mol_comp)):
+                    if self.mol_comp[j]['name'] == mol_name:
+                        to_remove_index_list.append(j)
+                    else:
+                        break
+                if len(to_remove_index_list) > 0:
+                    for index in sorted(to_remove_index_list, reverse=True):
+                        del self.mol_comp[index]
+                break
+        print(self.mol_comp)
+
 
     def get_include_file_list(self):
         file_list = []
@@ -360,6 +379,17 @@ class TopSys:
 
         if name_change_flag:
             self.write_file(self.path)
+
+    #def clean_mol_name_num(self):
+#
+    #    # Change name in mol_comp
+    #    name_change_flag = False
+#
+    #    for mol in self.mol_comp:
+    #        print(mol)
+#
+    #    if name_change_flag:
+    #        self.write_file(self.path)
 
 
 class Itp:
