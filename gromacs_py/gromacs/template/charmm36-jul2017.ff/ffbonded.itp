@@ -1275,7 +1275,9 @@ MCH3	 CT3   2	0.167354
 MCH3	MCH3   2	0.093582
 MCH3	   S   2	0.195314
 ; Constraints added by Samuel Murail:
-MCH3    C   2   0.163357     ; Compute by hand
+MCH3     C   2   0.163357     ; Compute by hand dist ==  sqrt(d1**2 + d2**2 - 2*d1*d2*cos(theta)) 
+CN7    HN5   2   0.206832     ; d1=CN7-HN5=0.1111, d2=CN7-ON5=0.142, theta=CN7-ON5-HN5=109.0*pi/180
+CN7B   HN5   2   0.206832     ; same as CN7-HN5
 #endif
 ; angle-derived constraints for OH and SH groups in proteins
 ; The constraint A-C is calculated from the angle A-B-C and bonds A-B, B-C.
