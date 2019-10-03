@@ -203,7 +203,10 @@ class TopSys:
         print("Forcefield include :\n", self.forcefield['name'])
         for itp in self.itp_list:
             itp.display()
-        print("Mol List:\n", self.mol_comp)
+        print("Mol List:")
+        for mol in self.mol_comp:
+            print("   * {} {}".format(mol['num'], mol['name']))
+
         print("Mol Name:\n", self.name)
 
     def write_file(self, top_out):
@@ -1344,6 +1347,7 @@ file: 1y0m_pdb2gmx.itp
         # print("Coor : ", self.coor_file, "\nTop : ", self.top_file)
 
         # Order dict is only necessary for python 3.5, where dict are not ordered
+        # This is only require for doctest
         numbermap = {'name': 1,
                      'sim_name': 2,
                      '_coor_file': 3,
@@ -1727,7 +1731,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
         * MG
         * ZN
         Mol List:
-         [{'name': 'Protein_chain_A', 'num': '1'}]
+           * 1 Protein_chain_A
         Mol Name:
          CYC-MC12
         >>> cyclic_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
