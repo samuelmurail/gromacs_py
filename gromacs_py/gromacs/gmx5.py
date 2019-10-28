@@ -3016,7 +3016,7 @@ SAM_pdb2gmx.itp
     ##########################################################
 
     def add_mdp(self, mdp_template, mdp_options, folder_out="", check_file_out=True):
-        """Create the MD simulation input mdp file.
+        """Create the MD simulation input mdp file from a template.
 
         Read a template mdp file and replace define fields in mdp_options with the new value.
         In case the field name has a '-' , repalce it by : '_'.
@@ -3079,6 +3079,52 @@ SAM_pdb2gmx.itp
         filout.close()
 
         self.mdp = mdp_out
+
+
+    def create_mdp(self, mdp_options, folder_out="", check_file_out=True):
+        """Create the MD simulation input mdp file.
+
+        :param mdp_options: New parameters to use
+        :type mdp_options: dict
+
+        :param folder_out: Path for output file
+        :type folder_out: str, default=""
+
+        :param check_file_out: flag to check or not if file has already been created.
+            If the file is present then the command break.
+        :type check_file_out: bool, optional, default=True
+
+        **Object requirement(s):**
+
+            * self.sim_name
+
+        **Object field(s) changed:**
+
+            * self.mdp
+
+        """
+
+        mdp_out = self.sim_name + ".mdp"
+
+        if folder_out != "":
+            mdp_out = os.path.join(folder_out, mdp_out)
+
+        # Check if output files exist:
+        if check_file_out and os.path.isfile(mdp_out):
+            print("Mdp files not created, ", mdp_out, "already exist")
+            self.mdp = mdp_out
+            return
+
+        filout = open(mdp_out, 'w')
+
+        for key, value in mdp_options.items():
+            line = "    " + key + "\t           = " + str(value) + "\n"
+            filout.write(line)
+
+        filout.close()
+
+        self.mdp = mdp_out
+
 
     def add_ndx(self, ndx_cmd_input, ndx_name=None, folder_out="", check_file_out=True):
         """Create a ndx file using ``gmx make_ndx``
