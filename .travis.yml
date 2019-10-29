@@ -23,7 +23,7 @@ env:
     - PYTHON_VERSION=3.6
     - CONDA_DEPENDENCIES="gromacs pandoc ipython"
     - CONDA_CHANNELS="conda-forge bioconda"
-    - PIP_DEPENDENCIES="codecov pytest-cov==2.7.1"
+    - PIP_DEPENDENCIES="codecov pytest==3.8.1 pytest-cov==2.7.1"
 
 matrix:
     include:
