@@ -46,11 +46,12 @@ install:
   - cd apbs-pdb2pqr/pdb2pqr/
   - python2 scons/scons.py install 
   - export PATH="${HOME}/pdb2pqr/:$PATH"
+  - conda update -n base conda
 
 script:
   - cd ${TRAVIS_BUILD_DIR}
   # Test gromacs_py
-  - pytest --cov-report=xml --cov=gromacs_py 
+  - pytest -s -vvv --cov-report=xml --cov=gromacs_py 
   # Build Doc:
   - cd gromacs_py/doc
   - sphinx-build -b html . _build
