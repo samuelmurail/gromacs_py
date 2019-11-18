@@ -1617,10 +1617,16 @@ separate file: 1y0m_pdb2gmx.itp
         # Save initial pdb file:
         start_pdb = self.coor_file
 
+        if ff.startswith('amber'):
+            pdb2pqr_ff='AMBER'
+        else:
+            pdb2pqr_ff='CHARMM'
+
+
         # Compute protonation:
         pdb2pqr.compute_pdb2pqr(self.coor_file,
                                 "00_" + name + ".pqr",
-                                ff="CHARMM",
+                                ff=pdb2pqr_ff,
                                 check_file_out=True)
 
         # Correct His resname
