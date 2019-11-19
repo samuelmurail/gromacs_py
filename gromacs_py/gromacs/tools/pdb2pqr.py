@@ -63,20 +63,20 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
     >>> compute_pdb2pqr(os.path.join(TEST_PATH,'4n1m.pdb'), os.path.join(TEST_OUT, '4n1m.pqr')) #doctest: +ELLIPSIS
     Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
     Succeed to save file .../tmp_pdb2pqr.pdb
-    pdb2pqr.py --ff CHARMM --ffout CHARMM --chain .../tmp_pdb2pqr.pdb .../4n1m.pqr
+    pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../4n1m.pqr
     0
     >>> prot_coor = pdb_manip.Coor()
     >>> prot_coor.read_pdb(TEST_OUT+'/4n1m.pqr', pqr_format = True)
-    Succeed to read file .../4n1m.pqr ,  2548 atoms found
+    Succeed to read file .../4n1m.pqr ,  2549 atoms found
     >>> HSD_index = prot_coor.get_index_selection({'res_name' : ['HSD'], 'name':['CA']})
     >>> print(len(HSD_index))
-    5
+    4
     >>> HSE_index = prot_coor.get_index_selection({'res_name' : ['HSE'], 'name':['CA']})
     >>> print(len(HSE_index))
     0
     >>> HSP_index = prot_coor.get_index_selection({'res_name' : ['HSP'], 'name':['CA']})
     >>> print(len(HSP_index))
-    0
+    1
 
     .. note::
         Idealy I would need a pdb file with 3 different histidine protonation. I couldn't find one.
@@ -108,6 +108,7 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
                                       "--ff", ff,
                                       "--ffout", ff,
                                       "--chain",
+                                      "--ph-calc-method=propka",
                                       os.path.join(out_folder + "/tmp_pdb2pqr.pdb"), pdb_out])
 
     cmd_pdb2pqr.display()
