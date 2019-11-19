@@ -1047,7 +1047,7 @@ class Coor:
         >>> pdb2pqr.compute_pdb2pqr(os.path.join(TEST_PATH, '4n1m.pdb'), os.path.join(TEST_OUT, '4n1m.pqr')) #doctest: +ELLIPSIS
         Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
         Succeed to save file .../tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../4n1m.pqr
+        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../4n1m.pqr
         0
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(os.path.join(TEST_OUT, '4n1m.pqr'), pqr_format = True) #doctest: +ELLIPSIS
@@ -1129,7 +1129,7 @@ class Coor:
         >>> pdb2pqr.compute_pdb2pqr(os.path.join(TEST_OUT, '1jd4_A.pdb'), os.path.join(TEST_OUT, '1jd4.pqr')) #doctest: +ELLIPSIS
         Succeed to read file .../1jd4_A.pdb ,  793 atoms found
         Succeed to save file .../tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../1jd4.pqr
+        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../1jd4.pqr
         0
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(os.path.join(TEST_OUT, '1jd4.pqr'), pqr_format = True)
@@ -1233,7 +1233,7 @@ class Coor:
         >>> pdb2pqr.compute_pdb2pqr(os.path.join(TEST_PATH, '1dpx.pdb'), os.path.join(TEST_OUT, '1dpx.pqr')) #doctest: +ELLIPSIS
         Succeed to read file ...test/input/1dpx.pdb ,  1192 atoms found
         Succeed to save file .../tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../1dpx.pqr
+        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../1dpx.pqr
         0
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(os.path.join(TEST_OUT, '1dpx.pqr'), pqr_format = True)
@@ -1323,7 +1323,7 @@ class Coor:
         >>> pdb2pqr.compute_pdb2pqr(os.path.join(TEST_OUT, '1dpx_water.pdb'), os.path.join(TEST_OUT, '1dpx_water.pqr')) #doctest: +ELLIPSIS
         Succeed to read file .../1dpx_water.pdb ,  1192 atoms found
         Succeed to save file .../tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../1dpx_water.pqr
+        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../1dpx_water.pqr
         0
         >>> prot_coor = Coor()
         >>> prot_coor.read_pdb(os.path.join(TEST_OUT, '1dpx_water.pqr'), pqr_format = True) #doctest: +ELLIPSIS

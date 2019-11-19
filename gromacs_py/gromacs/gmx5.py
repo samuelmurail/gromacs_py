@@ -1005,7 +1005,7 @@ class GmxSys:
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3')) #doctest: +ELLIPSIS
     Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file tmp_pdb2pqr.pdb
-    pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka tmp_pdb2pqr.pdb 00_1y0m.pqr
+    pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka tmp_pdb2pqr.pdb 00_1y0m.pqr
     Succeed to read file 00_1y0m.pqr ,  996 atoms found
     Chain: A  Residue: 0 to 60
     Succeed to save file 01_1y0m_good_his.pdb
@@ -1582,7 +1582,7 @@ separate file: 1y0m_pdb2gmx.itp
         >>> prot.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_SH3/') #doctest: +ELLIPSIS
         Succeed to read file .../input/1y0m.pdb ,  648 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka tmp_pdb2pqr.pdb 00_1y0m.pqr
+        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka tmp_pdb2pqr.pdb 00_1y0m.pqr
         Succeed to read file 00_1y0m.pqr ,  996 atoms found
         Chain: A  Residue: 0 to 60
         Succeed to save file 01_1y0m_good_his.pdb

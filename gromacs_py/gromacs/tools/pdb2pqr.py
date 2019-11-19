@@ -63,7 +63,7 @@ def compute_pdb2pqr(pdb_in, pdb_out, ff="CHARMM", check_file_out=True):
     >>> compute_pdb2pqr(os.path.join(TEST_PATH,'4n1m.pdb'), os.path.join(TEST_OUT, '4n1m.pqr')) #doctest: +ELLIPSIS
     Succeed to read file ...test/input/4n1m.pdb ,  2530 atoms found
     Succeed to save file .../tmp_pdb2pqr.pdb
-    pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../4n1m.pqr
+    pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka .../tmp_pdb2pqr.pdb .../4n1m.pqr
     0
     >>> prot_coor = pdb_manip.Coor()
     >>> prot_coor.read_pdb(TEST_OUT+'/4n1m.pqr', pqr_format = True)

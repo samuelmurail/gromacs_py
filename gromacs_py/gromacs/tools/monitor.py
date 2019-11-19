@@ -195,7 +195,7 @@ def print_log_file(proc, func_input_dict, tail_line_num=20):
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3')) #doctest: +ELLIPSIS
     Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file tmp_pdb2pqr.pdb
-    pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka tmp_pdb2pqr.pdb 00_1y0m.pqr
+    pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka tmp_pdb2pqr.pdb 00_1y0m.pqr
     Succeed to read file 00_1y0m.pqr ,  996 atoms found
     Chain: A  Residue: 0 to 60
     Succeed to save file 01_1y0m_good_his.pdb
