@@ -3095,7 +3095,7 @@ SAM_pdb2gmx.itp
             # Print remaining options not founded is the mdp_template
             for key, value in local_mdp_opt.items():
                 line = "    " + key + "\t           = " + str(value) + "\n"
-                print("WARNING !!! ADDING unusual parameter :", key, "in the mdp file", self.mdp)
+                print("WARNING !!! ADDING unusual parameter : \"", key, "\"in the mdp file", self.mdp)
                 filout.write(line)
 
         filout.close()
@@ -3759,6 +3759,7 @@ SAM_pdb2gmx.itp
 
         os.chdir(start_dir)
 
+
     def production(self, out_folder, name=None, nsteps=400000, dt=0.005,
                    maxwarn=0, monitor=None, **mdp_options):
         """Run a production run.
@@ -3803,6 +3804,7 @@ SAM_pdb2gmx.itp
         self.run_md_sim(out_folder=out_folder, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, name="prod_" + name,
                         monitor=monitor, maxwarn=maxwarn)
+
 
     def extend_equi_prod(self, tpr_file=None, nsteps=200000, dt=0.005, monitor=None):
         """Extend a simulation run.
@@ -3865,6 +3867,171 @@ SAM_pdb2gmx.itp
         self.get_last_output()
 
         os.chdir(start_dir)
+
+
+    def em_CG(self, out_folder, name=None, nsteps=500000,
+                maxwarn=0, monitor=None, **mdp_options):
+        """Equilibrate a system a CG system:
+
+        1. equilibration of nsteps_HA with position restraints on Heavy Atoms with dt = dt_HA
+        2. equilibration of nsteps_CA with position restraints on Carbon Alpha with dt = dt
+        3. equilibration of nsteps_CA_LOW with position restraints on Carbon Alpha with Low \
+        restraints with dt = dt
+
+        :param out_folder: path of the output file folder
+        :type out_folder: str
+
+        :param name: name of the simulation to run
+        :type name: str, default=None
+
+        :param pdb_restr: reference coordinate file for position restraints
+        :type pdb_restr: str, default=None
+
+        :param nsteps: number of equilibration steps with BB constraints
+        :type nsteps: int, default=100000
+
+        :param dt: integration time step for BB equilibration
+        :type dt: float, default=0.002
+
+        :param mdp_options: Additional mdp parameters to use
+        :type mdp_options: dict
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+            * self.nt
+            * self.ntmpi
+            * self.gpu_id
+
+        **Object field(s) changed:**
+
+            * self.mdp
+            * self.tpr
+            * self.coor_file
+            * self.xtc
+        """
+
+        if name is None:
+            name = self.name
+
+        equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/martini_v2.x_new-rf.mdp")
+
+
+        mdp_options.update({'integrator':'steep', 'tcoupl':'no', 
+                            'nsteps': int(nsteps)})
+
+        self.run_md_sim(out_folder=out_folder, name="em_CG_" + name,
+                        mdp_template=equi_template_mdp,
+                        mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
+
+
+    def equi_CG(self, out_folder, name=None, pdb_restr=None, nsteps=500000, dt=0.02,
+                maxwarn=0, monitor=None, **mdp_options):
+        """Equilibrate a system a CG system:
+
+        1. equilibration of nsteps_HA with position restraints on Heavy Atoms with dt = dt_HA
+        2. equilibration of nsteps_CA with position restraints on Carbon Alpha with dt = dt
+        3. equilibration of nsteps_CA_LOW with position restraints on Carbon Alpha with Low \
+        restraints with dt = dt
+
+        :param out_folder: path of the output file folder
+        :type out_folder: str
+
+        :param name: name of the simulation to run
+        :type name: str, default=None
+
+        :param pdb_restr: reference coordinate file for position restraints
+        :type pdb_restr: str, default=None
+
+        :param nsteps: number of equilibration steps with BB constraints
+        :type nsteps: int, default=100000
+
+        :param dt: integration time step for BB equilibration
+        :type dt: float, default=0.002
+
+        :param mdp_options: Additional mdp parameters to use
+        :type mdp_options: dict
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+            * self.nt
+            * self.ntmpi
+            * self.gpu_id
+
+        **Object field(s) changed:**
+
+            * self.mdp
+            * self.tpr
+            * self.coor_file
+            * self.xtc
+        """
+
+        if name is None:
+            name = self.name
+        if pdb_restr is None:
+            pdb_restr = self.coor_file
+
+        equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/martini_v2.x_new-rf.mdp")
+
+        mdp_options.update({'nsteps': int(nsteps), 'define': '-DPOSRES', 'dt': dt})
+        self.run_md_sim(out_folder=out_folder, name="equi_CG_BB_" + name,
+                        pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
+                        mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
+
+
+    def prod_CG(self, out_folder, name=None, nsteps=5000000, dt=0.02,
+                maxwarn=0, monitor=None, **mdp_options):
+        """Equilibrate a system a CG system:
+
+        1. equilibration of nsteps_HA with position restraints on Heavy Atoms with dt = dt_HA
+        2. equilibration of nsteps_CA with position restraints on Carbon Alpha with dt = dt
+        3. equilibration of nsteps_CA_LOW with position restraints on Carbon Alpha with Low \
+        restraints with dt = dt
+
+        :param out_folder: path of the output file folder
+        :type out_folder: str
+
+        :param name: name of the simulation to run
+        :type name: str, default=None
+
+        :param nsteps: number of equilibration steps with BB constraints
+        :type nsteps: int, default=100000
+
+        :param dt: integration time step for BB equilibration
+        :type dt: float, default=0.002
+
+        :param mdp_options: Additional mdp parameters to use
+        :type mdp_options: dict
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+            * self.nt
+            * self.ntmpi
+            * self.gpu_id
+
+        **Object field(s) changed:**
+
+            * self.mdp
+            * self.tpr
+            * self.coor_file
+            * self.xtc
+        """
+
+        if name is None:
+            name = self.name
+
+        equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/martini_v2.x_new-rf.mdp")
+
+        mdp_options.update({'nsteps': int(nsteps), 'define': '', 'dt': dt})
+        self.run_md_sim(out_folder=out_folder, name="prod_CG_" + name,
+                        mdp_template=equi_template_mdp,
+                        mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
+
 
     def get_last_output(self):
         """In a case of a simulation restart, outputs edr, log, gro and xtc files
