@@ -137,7 +137,7 @@ class TopSys:
                 if line[:6] == '#endif':
                     ifdef = False
                 # Check include files
-                if not ifdef and line[:8] == '#include':
+                if not ifdef and line.startswith('#include'):
                     # get the file name to include:
                     file_name = line.split()[1][1:-1]
                     # remove '"' , path and .itp:
@@ -167,13 +167,13 @@ class TopSys:
                         # print("name =", include, "fullname = ",file_name, "path = ",path)
                         self.itp_list.append(Itp(name=include, fullname=file_name, path=path))
                 # Check field
-                elif not ifdef and line[0] == "[":
+                elif not ifdef and line.startswith("["):
                     # Remove space and [ ]
                     field = line.strip()[1:-1].strip()
                     # print(field)
                     continue
                 # Check in the field :
-                elif not ifdef and line[0] != ";" and line.strip() != "":
+                elif not ifdef and not line[0].startswith(";") and line.strip() != "":
                     if field == 'moleculetype':
                         # in the case where mol param are present in the top file
                         # Convert the top to an itp
@@ -433,12 +433,15 @@ class Itp:
                     line_list = line.split()
                     posre_file = line_list[1][1:-1]
                     self.posres_file.append({'def': posre_def, 'file': posre_file})
-                if line[0] == "[":
+                if line.strip().startswith("["):
                     # Remove space and [ ], remove also comments
                     field = line.replace(" ", "").split("]")[0][1:]
                     continue
                 if line[0] != ";" and line[0] != "#" and line.strip() != "":
-                    line_list = line.split()
+                    # Remove commentary in the line
+                    line_comment = line.split(';')
+                    line_list = line_comment[0].split()
+                    #print(line_list)
 
                     if field == 'moleculetype':
                         # Check if a top_mol already exist, if yes append it to the top_mol_list
@@ -502,6 +505,11 @@ class Itp:
                         ai, aj, ak, al, am, funct = [int(col) for col in line_list[:6]]
                         local_top.vs4_list.append({'ai': ai, 'aj': aj, 'ak': ak, 'al': al,
                                                    'am': am, 'funct': funct})
+                    elif field == 'position_restraints':
+                        # With MARTINI topologie kx, ky, kz can be strings, so no int() conversions
+                        ai, funct, kx, ky, kz = [col for col in line_list[:5]]
+                        local_top.pos_restr.append({'ai': int(ai), 'funct': int(funct), 'kx': kx,
+                                                   'ky': ky, 'kz': kz})
                     # else:
                     #   raise ValueError('Unknown field : '+field)
 
@@ -611,6 +619,7 @@ class TopMol:
         self.cmap_list = []
         self.vs3_list = []
         self.vs4_list = []
+        self.pos_restr = []
 
     def get_charge(self):
         self.charge = 0
@@ -701,6 +710,13 @@ class TopMol:
             filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['aj'],
                                                                    param['ak'], param['al'],
                                                                    param['am'], param['funct']))
+
+        # Print position restraints
+        filout.write("\n[ position_restraints ]\n;  ai    funct         kx          ky          kz\n")
+        for param in self.pos_restr:
+            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['funct'],
+                                                                   param['kx'], param['ky'],
+                                                                   param['kz'], ))
 
     def delete_atom(self, index_list):
         # Remove atom:
