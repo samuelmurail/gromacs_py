@@ -17,16 +17,16 @@
 ; NON-BONDED INTERACTIONS FLAGS
     ns-type                 = Grid
     nstlist                 = 10
-    rlist                   = 1.0
+    rlist                   = 1.2
     vdwtype                 = cut-off
     vdw-modifier            = force-switch
-    rvdw                    = 1.0
+    rvdw                    = 1.2
     rvdw-switch             = 1.0
     cutoff-scheme           = Verlet
     coulombtype             = PME
-    rcoulomb                = 1.0
+    rcoulomb                = 1.2
     fourierspacing          = 0.12
-    DispCorr                = EnerPres
+    DispCorr                = no
 
 ; TEMPERATURE COUPLING FLAGS
     tcoupl                  = v-rescale

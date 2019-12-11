@@ -1,8 +1,5 @@
 ;	File 'equi.mdp' was generated
 ;	By user: Samuel Murail 
-;   Parameters for charmm36 taken from:
-;   http://manual.gromacs.org/documentation/2018/user-guide/force-fields.html
-
 
 ; GENERAL INPUT FLAGS
     title                   = Equilibrate
@@ -10,23 +7,20 @@
 
 ; RUN FLAGS
     integrator              = md
-    dt                      = 0.002  ; Use 2fs
-    nsteps                  = 5000000 ; 1 ns
+    dt                      = 0.005  ; Use 5fs with virtual sites
+    nsteps                  = 200000 ; 1 ns
     pbc                     = xyz
 
 ; NON-BONDED INTERACTIONS FLAGS
     ns-type                 = Grid
     nstlist                 = 10
     rlist                   = 1.0
-    vdwtype                 = cut-off
-    vdw-modifier            = force-switch
-    rvdw                    = 1.0
-    rvdw-switch             = 1.0
-    cutoff-scheme           = Verlet
-    coulombtype             = PME
+    coulombtype             = pme
     rcoulomb                = 1.0
+    vdwtype                 = cut-off
+    rvdw                    = 1.0
+    cutoff-scheme           = Verlet
     fourierspacing          = 0.12
-    DispCorr                = EnerPres
 
 ; TEMPERATURE COUPLING FLAGS
     tcoupl                  = v-rescale
@@ -43,25 +37,28 @@
     refcoord-scaling        = com
 
 ; OTHER FLAGS
-    nstcalcenergy           = 100 ; Default value
+    nstcalcenergy           = 100
     comm_mode               = Linear
-    nstcomm                 = 100 ; Default value
-    comm_grps               = system ; Default value
+    nstcomm                 = 100
+    DispCorr                = EnerPres
 
 ; CONSTRAINT FLAGS
     disre                   = simple
-    constraints             = h-bonds
+    constraints             = all-bonds
     constraint_algorithm    = lincs
-    lincs-iter              = 1 ; Default value
-    lincs-order             = 4 ; Default value
-    lincs_warnangle         = 30 ; Default value
+    lincs-iter              = 1
+    lincs-order             = 6
+    lincs_warnangle         = 45
+    comm_grps               = system
+    disre-fc                = 1000
+    nstdisreout             = 0
 
 ; OUTPUT FLAGS
-    nstxout                 = 500000
-    nstvout                 = 500000
+    nstxout                 = 200000
+    nstvout                 = 200000
     nstfout                 = 0
     nstlog                  = 5000
     nstenergy               = 5000
     nstxout-compressed      = 5000
-    energygrps              = System ; Use only one group is mandatory for GPU acceleration
+    energygrps              = System
 

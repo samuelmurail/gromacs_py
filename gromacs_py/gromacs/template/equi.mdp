@@ -21,6 +21,7 @@
     rvdw                    = 1.0
     cutoff-scheme           = Verlet
     fourierspacing          = 0.12
+    DispCorr                = EnerPres
 
 ; TEMPERATURE COUPLING FLAGS
     tcoupl                  = v-rescale
@@ -40,15 +41,14 @@
     nstcalcenergy           = 100
     comm_mode               = Linear
     nstcomm                 = 100
-    DispCorr                = EnerPres
 
 ; CONSTRAINT FLAGS
     disre                   = simple
-    constraints             = all-bonds
+    constraints             = h-bonds
     constraint_algorithm    = lincs
     lincs-iter              = 1
-    lincs-order             = 6
-    lincs_warnangle         = 45
+    lincs-order             = 4
+    lincs_warnangle         = 30
     comm_grps               = system
     disre-fc                = 1000
     nstdisreout             = 0

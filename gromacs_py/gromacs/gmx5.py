@@ -1018,7 +1018,7 @@ class GmxSys:
     >>> ###################################
     >>> ####   Create the topologie:   ###
     >>> ###################################
-    >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3')) #doctest: +ELLIPSIS
+    >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), vsite='hydrogens') #doctest: +ELLIPSIS
     Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
     Succeed to save file tmp_pdb2pqr.pdb
     pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka tmp_pdb2pqr.pdb 00_1y0m.pqr
@@ -1061,7 +1061,7 @@ file: 1y0m_pdb2gmx.itp
     >>> ####    Create a D peptide      ###
     >>> ###################################
     >>> pep = GmxSys(name='D')
-    >>> pep.create_peptide(sequence='D', out_folder=os.path.join(TEST_OUT, 'top_D'), em_nsteps=100, equi_nsteps=0) #doctest: +ELLIPSIS
+    >>> pep.create_peptide(sequence='D', out_folder=os.path.join(TEST_OUT, 'top_D'), em_nsteps=100, equi_nsteps=0, vsite='hydrogens') #doctest: +ELLIPSIS
     -Make peptide: D
     residue name:X
     residue name:D
@@ -1174,7 +1174,7 @@ file: 1y0m_pdb2gmx.itp
     >>> ###################################
     >>> ####   Equilibrate the system   ###
     >>> ###################################
-    >>> equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
+    >>> equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi_vsites.mdp")
     >>> mdp_options = {'nsteps': 100, 'define': '-DPOSRES', 'dt': 0.001}
     >>> prot.run_md_sim(out_folder=os.path.join(TEST_OUT, 'equi_HA_D_SH3'), name="equi_HA_D_SH3",\
                         mdp_template=equi_template_mdp,\
@@ -1559,7 +1559,7 @@ separate file: 1y0m_pdb2gmx.itp
         os.chdir(start_dir)
 
     def prepare_top(self, out_folder, name=None,
-                    vsite="hydrogens", ignore_ZN=True, ff="charmm36-jul2017"):
+                    vsite="none", ignore_ZN=True, ff="charmm36-jul2017"):
         """Prepare the topologie of a protein:
 
             1. compute hisdine protonation with ``pdb2pqr``
@@ -1595,7 +1595,7 @@ separate file: 1y0m_pdb2gmx.itp
         >>> TEST_OUT = getfixture('tmpdir')
         >>> # Create the topologie of a protein and do a minimisation:
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
-        >>> prot.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_SH3/') #doctest: +ELLIPSIS
+        >>> prot.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_SH3/', vsite='hydrogens') #doctest: +ELLIPSIS
         Succeed to read file .../input/1y0m.pdb ,  648 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
         pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka tmp_pdb2pqr.pdb 00_1y0m.pqr
@@ -1709,7 +1709,7 @@ separate file: 1y0m_pdb2gmx.itp
         >>> cyclic_pep.cyclic_peptide_top(out_folder=os.path.join(str(TEST_OUT),'cyclic/top')) #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f ...input/5vav.pdb -o no_cyclic_5vav_pdb2gmx.pdb -p no_cyclic_5vav_pdb2gmx.top -i no_cyclic_5vav_posre.itp -water tip3p -ff \
-charmm36-jul2017 -ignh -ter -vsite no
+charmm36-jul2017 -ignh -ter -vsite none
         Molecule topologie present in no_cyclic_5vav_pdb2gmx.top , extract the topologie in a \
 separate file: no_cyclic_5vav_pdb2gmx.itp
         Protein_chain_A
@@ -1770,7 +1770,7 @@ separate file: no_cyclic_5vav_pdb2gmx.itp
                                                 ff='amber99sb-ildn') #doctest: +ELLIPSIS
         -Create topologie
         gmx pdb2gmx -f ...test/input/5vav.pdb -o no_cyclic_5vav_amber_pdb2gmx.pdb -p no_cyclic_5vav_amber_pdb2gmx.top \
--i no_cyclic_5vav_amber_posre.itp -water tip3p -ff amber99sb-ildn -ignh -ter -vsite no
+-i no_cyclic_5vav_amber_posre.itp -water tip3p -ff amber99sb-ildn -ignh -ter -vsite none
         Molecule topologie present in no_cyclic_5vav_amber_pdb2gmx.top , extract the topologie in a \
 separate file: no_cyclic_5vav_amber_pdb2gmx.itp
         Protein_chain_A
@@ -1822,7 +1822,7 @@ separate file: no_cyclic_5vav_amber_pdb2gmx.itp
         # Create peptide topologie with NH2 Cter and COO- Nter
         self.add_top(out_folder=out_folder, name="no_cyclic_" + name,
                      water="tip3p", ff=ff,
-                     pdb2gmx_option_dict={'vsite': 'no', 'ignh': None, 'ter': None},
+                     pdb2gmx_option_dict={'vsite': 'none', 'ignh': None, 'ter': None},
                      check_file_out=False, input_pdb2gmx=N_ter_dic["NH3+"] + "\n" + C_ter_dic["COO-"])
 
         # Make the top clean:
@@ -2685,7 +2685,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
                       ion_C=ion_C)
 
     def create_peptide(self, sequence, out_folder, N_ter="None", C_ter="COOH",
-                       em_nsteps=1000, equi_nsteps=10000, posre_post="_pep"):
+                       em_nsteps=1000, equi_nsteps=10000, posre_post="_pep", vsite='none'):
         """Create a linear peptide structure and topologie:
 
             1. Create a peptide with pymol with one more residue G at the \
@@ -2718,7 +2718,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         >>> TEST_OUT = getfixture('tmpdir')
         >>> pep = GmxSys(name='SAM_pep')
         >>> pep.create_peptide(sequence='SAM', out_folder=os.path.join(str(TEST_OUT), 'peptide'), \
-em_nsteps=100, equi_nsteps=100) #doctest: +ELLIPSIS
+em_nsteps=100, equi_nsteps=100, vsite='hydrogens') #doctest: +ELLIPSIS
         -Make peptide: SAM
         residue name:X
         residue name:S
@@ -2770,7 +2770,7 @@ SAM_pdb2gmx.itp
         self.add_top(out_folder=os.path.join(out_folder,"00_top"),
                      name=sequence, water="tip3p",
                      ff="charmm36-jul2017",
-                     pdb2gmx_option_dict={'vsite': 'hydrogens',
+                     pdb2gmx_option_dict={'vsite': vsite,
                                           'ignh': None, 'ter': None},
                      check_file_out=False,
                      input_pdb2gmx=N_ter_dic[N_ter] + "\n" + C_ter_dic[C_ter],
@@ -2782,10 +2782,16 @@ SAM_pdb2gmx.itp
 
         # Do sa short equi:
         if equi_nsteps > 0:
+
+            if vsite != 'none':
+                mdp_template = os.path.join(GROMACS_MOD_DIRNAME, "template/equi_vsites.mdp")
+            else:
+                mdp_template = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
+
             self.run_md_sim(out_folder=os.path.join(out_folder, "02_equi_vacuum"),
                             name="equi_vacuum_" + sequence,
                             pdb_restr=None,
-                            mdp_template=os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp"),
+                            mdp_template=mdp_template,
                             maxwarn=1,
                             mdp_options={'nsteps': int(equi_nsteps),
                                          'dt': 0.001,
@@ -3590,7 +3596,7 @@ SAM_pdb2gmx.itp
 
     def equi_three_step(self, out_folder, name=None, pdb_restr=None, nsteps_HA=100000,
                         nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.005, dt_HA=0.002,
-                        maxwarn=0, monitor=None, **mdp_options):
+                        maxwarn=0, monitor=None, vsite='none', **mdp_options):
         """Equilibrate a system in 3 steps:
 
         1. equilibration of nsteps_HA with position restraints on Heavy Atoms with dt = dt_HA
@@ -3646,7 +3652,11 @@ SAM_pdb2gmx.itp
         if pdb_restr is None:
             pdb_restr = self.coor_file
 
-        equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
+        if vsite != 'none':
+            equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi_vsites.mdp")
+        else:
+            equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
+
 
         mdp_options.update({'nsteps': int(nsteps_HA), 'define': '-DPOSRES', 'dt': dt_HA})
         self.run_md_sim(out_folder=os.path.join(out_folder, "00_equi_HA"), name="equi_HA_" + name,
@@ -3668,7 +3678,7 @@ SAM_pdb2gmx.itp
                         no_constr_nsteps=1000, constr_nsteps=1000,
                         pdb_restr=None, nsteps_HA=100000,
                         nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.005, dt_HA=0.002,
-                        maxwarn=0, iter_num=3, monitor=None, **mdp_options):
+                        maxwarn=0, iter_num=3, monitor=None, vsite='none', **mdp_options):
         """ Minimize a system in 2 steps:
 
         1. minimisation without bond constraints
@@ -3745,7 +3755,7 @@ SAM_pdb2gmx.itp
                 local_out_folder = out_folder+"/sys_equi/"
                 self.equi_three_step(local_out_folder, name=name, pdb_restr=pdb_restr, nsteps_HA=nsteps_HA,
                                      nsteps_CA=nsteps_CA, nsteps_CA_LOW=nsteps_CA_LOW, dt=dt, dt_HA=dt_HA,
-                                     maxwarn=maxwarn, monitor=monitor, **mdp_options)
+                                     maxwarn=maxwarn, monitor=monitor, vsite=vsite, **mdp_options)
                 break
 
             except RuntimeError as e:
@@ -3761,7 +3771,7 @@ SAM_pdb2gmx.itp
 
 
     def production(self, out_folder, name=None, nsteps=400000, dt=0.005,
-                   maxwarn=0, monitor=None, **mdp_options):
+                   maxwarn=0, monitor=None, vsite='none', **mdp_options):
         """Run a production run.
 
         :param out_folder: path of the output file folder
@@ -3798,7 +3808,10 @@ SAM_pdb2gmx.itp
         if name is None:
             name = self.name
 
-        equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
+        if vsite != 'none':
+            equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi_vsites.mdp")
+        else:
+            equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
 
         mdp_options.update({'nsteps': int(nsteps), 'dt': dt, 'define': ''})
         self.run_md_sim(out_folder=out_folder, mdp_template=equi_template_mdp,
