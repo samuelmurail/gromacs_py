@@ -58,6 +58,7 @@ if __name__ == "__main__":
     out_folder  = args.o
     sys_name    = args.name
     maxwarn     = args.maxwarn
+    vsite = "hydrogens"
 
     # Peptide args:
     sequence = args.seq
@@ -72,7 +73,7 @@ if __name__ == "__main__":
         peptide.gpu_id = args.gpuid
 
     peptide.create_peptide(sequence=sequence, out_folder=out_folder + "/" + sequence,
-                           em_nsteps=em_nsteps, equi_nsteps=pep_step, posre_post="_pep")
+                           em_nsteps=em_nsteps, equi_nsteps=pep_step, posre_post="_pep", vsite=vsite)
     peptide.display()
 
     # Starting system args:
@@ -98,9 +99,12 @@ if __name__ == "__main__":
     CA_LOW_step = 1000 * args.CA_LOW_time / dt
     PROD_step = 1000 * args.Prod_time / dt
 
-    sys_pep_prot.em_equi_three_step_iter_error(out_folder=out_folder + "/em_equi_prot_" + sequence + "/", name=sys_name, nsteps_HA=HA_step, nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, maxwarn=maxwarn)
+    sys_pep_prot.em_equi_three_step_iter_error(out_folder=out_folder + "/em_equi_prot_" + sequence + "/",
+                                               name=sys_name, nsteps_HA=HA_step, nsteps_CA=CA_step,
+                                               nsteps_CA_LOW=CA_LOW_step, maxwarn=maxwarn,
+                                               vsite=vsite)
 
     sys_pep_prot.production(out_folder=out_folder + "/prod_prot_" + sequence + "/",
-                            name=sys_name, nsteps=PROD_step, dt=dt, maxwarn=maxwarn)
+                            name=sys_name, nsteps=PROD_step, dt=dt, maxwarn=maxwarn, vsite=vsite)
 
     sys_pep_prot.display()
