@@ -7,7 +7,7 @@
 
 ; RUN FLAGS
     integrator              = md
-    dt                      = 0.005  ; Use 5fs with virtual sites
+    dt                      = 0.002  ; Use 2fs without virtual sites
     nsteps                  = 200000 ; 1 ns
     pbc                     = xyz
 
