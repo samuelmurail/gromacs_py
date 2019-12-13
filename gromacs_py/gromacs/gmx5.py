@@ -383,17 +383,6 @@ class TopSys:
         if name_change_flag:
             self.write_file(self.path)
 
-    #def clean_mol_name_num(self):
-#
-    #    # Change name in mol_comp
-    #    name_change_flag = False
-#
-    #    for mol in self.mol_comp:
-    #        print(mol)
-#
-    #    if name_change_flag:
-    #        self.write_file(self.path)
-
 
 class Itp:
     """Itp topologie in gromacs format
@@ -3093,8 +3082,8 @@ SAM_pdb2gmx.itp
                 if line.split():
                     line_split = line.split()
                     for key, value in local_mdp_opt.items():
-                        if line_split[0] == key.replace("_", "-") or line_split[0] == key:
-                            line = "    " + key + "\t           = " + str(value) + "\n"
+                        if line_split[0].lower() == key.replace("_", "-").lower() or line_split[0].lower() == key.lower():
+                            line = "    " + key.lower() + "\t           = " + str(value) + "\n"
                             del local_mdp_opt[key]
                             break
                 filout.write(line)
@@ -3146,7 +3135,7 @@ SAM_pdb2gmx.itp
         filout = open(mdp_out, 'w')
 
         for key, value in mdp_options.items():
-            line = "    " + key + "\t           = " + str(value) + "\n"
+            line = "    " + key.lower() + "\t           = " + str(value) + "\n"
             filout.write(line)
 
         filout.close()
