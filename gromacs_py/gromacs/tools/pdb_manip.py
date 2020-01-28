@@ -1265,6 +1265,105 @@ class Coor:
 
         return self
 
+    def correct_ion_octa(self, ion_name):
+        """ For specified ion, create an octahedral dummy model described by a set of 6 cationic
+        dummy atoms connected around a central metal atom. 
+        From Duarte et al. J Phys Chem B 2014.
+        
+        :param ion_name: name of metal present in .pdb to transform in octahedral dummy model
+        :type ion_name: str
+
+        :Example:
+
+        >>> TEST_OUT = str(getfixture('tmpdir'))
+        >>> prot_coor = Coor()
+        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1jd4.pdb')) #doctest: +ELLIPSIS
+        Succeed to read file .../1jd4.pdb ,  1586 atoms found
+        >>> ion_index = prot_coor.get_index_selection({'res_name' : ['ZN']})
+        >>> print(len(ion_index))
+        2
+        >>> prot_coor.correct_ion_octa('ZN') #doctest: +ELLIPSIS
+        <...Coor object at 0x...
+        >>> ion_index = prot_coor.get_index_selection({'res_name' : ['ZN']})
+        >>> print(len(ion_index))
+        14
+
+        """
+
+        index = 0
+        new_atom_dict = dict()
+
+        for atom_num, atom in sorted(self.atom_dict.items()):
+            if ion_name in atom["name"]:
+
+                ion_atom = atom.copy()
+                ion_atom["num"] = index
+                new_atom_dict[index] = ion_atom
+                index += 1
+
+                ion_atom = atom.copy()
+                ion_atom["name"] = "D1"
+                ion_atom["num"] = index
+                ion_atom["xyz"] = np.array([ion_atom["xyz"][0]+float(0.9), 
+                                            ion_atom["xyz"][1], 
+                                            ion_atom["xyz"][2]])
+                new_atom_dict[index] = ion_atom
+                index += 1
+
+                ion_atom = atom.copy()
+                ion_atom["name"] = "D2"
+                ion_atom["num"] = index
+                ion_atom["xyz"] = np.array([ion_atom["xyz"][0]-float(0.9), 
+                                            ion_atom["xyz"][1], 
+                                            ion_atom["xyz"][2]])
+                new_atom_dict[index] = ion_atom
+                index += 1
+
+                ion_atom = atom.copy()
+                ion_atom["name"] = "D3"
+                ion_atom["num"] = index
+                ion_atom["xyz"] = np.array([ion_atom["xyz"][0], 
+                                            ion_atom["xyz"][1]+float(0.9), 
+                                            ion_atom["xyz"][2]])
+                new_atom_dict[index] = ion_atom
+                index += 1
+
+                ion_atom = atom.copy()
+                ion_atom["name"] = "D4"
+                ion_atom["num"] = index
+                ion_atom["xyz"] = np.array([ion_atom["xyz"][0], 
+                                            ion_atom["xyz"][1]-float(0.9), 
+                                            ion_atom["xyz"][2]])
+                new_atom_dict[index] = ion_atom
+                index += 1
+
+                ion_atom = atom.copy()
+                ion_atom["name"] = "D5"
+                ion_atom["num"] = index
+                ion_atom["xyz"] = np.array([ion_atom["xyz"][0], 
+                                            ion_atom["xyz"][1], 
+                                            ion_atom["xyz"][2]+float(0.9)])
+                new_atom_dict[index] = ion_atom
+                index += 1
+
+                ion_atom = atom.copy()
+                ion_atom["name"] = "D6"
+                ion_atom["num"] = index
+                ion_atom["xyz"] = np.array([ion_atom["xyz"][0], 
+                                            ion_atom["xyz"][1], 
+                                            ion_atom["xyz"][2]-float(0.9)])
+                new_atom_dict[index] = ion_atom
+                index += 1
+
+            else:
+                atom["num"] = index
+                new_atom_dict[index] = atom
+                index += 1
+
+        self.atom_dict = new_atom_dict
+
+        return self
+
     def water_to_ATOM(self):
         """ Change `HETATM` field of water to `ATOM`, as pdb2pqr only use ATOM field.
 
