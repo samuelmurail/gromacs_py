@@ -410,7 +410,7 @@ class Itp:
         posre_def = ""
         with open(self.path) as file:
             for line in file:
-                #print("Itp line: \"{}\" ".format(line))
+                # print("Itp line: \"{}\" ".format(line))
                 # Check posres include:
                 if line[:6] == '#ifdef':
                     ifdef = True
@@ -497,8 +497,13 @@ class Itp:
                     elif field == 'position_restraints':
                         # With MARTINI topologie kx, ky, kz can be strings, so no int() conversions
                         ai, funct, kx, ky, kz = [col for col in line_list[:5]]
-                        local_top.pos_restr.append({'ai': int(ai), 'funct': int(funct), 'kx': kx,
-                                                   'ky': ky, 'kz': kz})
+                        if ifdef:
+                            local_top.if_pos_restr.append({'def': posre_def, 'ai': int(ai), 'funct': int(funct), 'kx': kx,
+                                                           'ky': ky, 'kz': kz})
+                        else:
+                            local_top.pos_restr.append({'ai': int(ai), 'funct': int(funct), 'kx': kx,
+                                                           'ky': ky, 'kz': kz})
+
                     # else:
                     #   raise ValueError('Unknown field : '+field)
 
@@ -609,6 +614,7 @@ class TopMol:
         self.vs3_list = []
         self.vs4_list = []
         self.pos_restr = []
+        self.if_pos_restr = []
 
     def get_charge(self):
         self.charge = 0
@@ -648,6 +654,7 @@ class TopMol:
         tot_charge = 0
         for atom in self.atom_dict.values():
             tot_charge += atom['charge']
+            # print('ATOM:',atom)
             filout.write("{:>6}{:>11}{:>7}{:>7}{:>7}{:>7}{:>11.2f}{:>11}   ; qtot {:<6.2f} \n".
                          format(atom['num'], atom['atom_type'], atom['res_num'], atom['res_name'],
                                 atom['atom_name'], atom['charge_num'], atom['charge'],
@@ -704,8 +711,28 @@ class TopMol:
         filout.write("\n[ position_restraints ]\n;  ai    funct         kx          ky          kz\n")
         for param in self.pos_restr:
             filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['funct'],
-                                                                   param['kx'], param['ky'],
-                                                                   param['kz'], ))
+                                                              param['kx'], param['ky'],
+                                                              param['kz']))
+        if len(self.if_pos_restr) > 0:
+            def_str = ''
+            def_end_flag = False
+            for param in self.if_pos_restr:
+
+                if param['def'] != def_str:
+                    def_str = param['def']
+                    if def_end_flag:
+                        filout.write("#endif\n\n")
+
+                    def_end_flag = True
+                    filout.write("\n#ifdef " + param['def'] + "\n")
+                    filout.write("\n[ position_restraints ]\n;  ai    funct         kx          ky          kz\n")
+
+
+                filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['funct'],
+                                                                  param['kx'], param['ky'],
+                                                                  param['kz']))
+            filout.write("#endif\n\n")
+    
 
     def delete_atom(self, index_list):
         # Remove atom:
@@ -2765,6 +2792,9 @@ SAM_pdb2gmx.itp
                      input_pdb2gmx=N_ter_dic[N_ter] + "\n" + C_ter_dic[C_ter],
                      posre_post=posre_post)
 
+
+        # Create the box:
+        # self.create_box()
         # Minimize the peptide:
         self.em(out_folder=os.path.join(out_folder, "01_mini"), nsteps=em_nsteps, constraints="none",
                 create_box_flag=True)
