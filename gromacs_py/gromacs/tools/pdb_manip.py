@@ -1654,7 +1654,7 @@ class Coor:
         
         return index_array[dist_mat_good]
 
-    def compute_rmsd_to(self, atom_sel_2, selec_dict={'name': 'CA'}):
+    def compute_rmsd_to(self, atom_sel_2, selec_dict={'name': ['CA']}):
         """ Compute RMSD between two atom_dict
         Then return the RMSD value.
 
@@ -1679,11 +1679,11 @@ class Coor:
         coor_array_1 = np.array([atom['xyz'] for key, atom in sel_1_coor.atom_dict.items()])
         coor_array_2 = np.array([atom['xyz'] for key, atom in sel_2_coor.atom_dict.items()])
 
-        #print(coor_array_1)
-        #print(coor_array_2)
+        #print(coor_array_1.shape)
+        #print(coor_array_2.shape)
 
         rmsd = np.sqrt(np.sum(np.square(coor_array_1 - coor_array_2) / len(sel_1_coor.atom_dict)))
-
+        
         return rmsd
 
     def dist_under_index(self, atom_sel_2, cutoff=10.0):
@@ -1953,62 +1953,16 @@ class Multi_Coor:
     on the atom num and the crystal packing info.
 
 
-    :param atom_dict: dictionnary of atom
-    :type atom_dict: dict
+    :param coor_list: list of dictionnary of atom
+    :type coor_listt: list
 
     :param crystal_pack: crystal packing
     :type crystal_pack: str
-
-    **Atom dictionnary parameters**
-
-    :param field: pdb field
-    :type field: str
-
-    :param num: atom number
-    :type num: int
-
-    :param name: atom name
-    :type name: str
-
-    :param alter_loc: atom number
-    :type alter_loc: str
-
-    :param res_name: residue name (3 letters)
-    :type res_name: str
-
-    :param chain: chain ID
-    :type chain: str
-
-    :param res_num: residue number (based on pdb file)
-    :type res_num: int
-
-    :param uniq_resid: unique residue number
-    :type uniq_resid: int
-
-    :param insert_res: atom number
-    :type insert_res: str
-
-    :param xyz: coordinate
-    :type x: numpy array
-
-    :param occ: occupation
-    :type occ: float
-
-    :param beta: beta flactor
-    :type beta: float
-
-
-    .. note::
-        The atom num index in the dictionnary, is not the same as the
-        ``atom_num`` field of the dictionnary.
 
     .. note::
         Files necessary for testing : ../test/input/1y0m.pdb, ../test/input/1rxz.pdb
         and ../test/input/4n1m.pdb.
         To do the unitary test, execute pdb_mani.py (-v for verbose mode)
-
-    .. todo::
-        Add an atom class ?
 
     """
 
@@ -2029,10 +1983,10 @@ class Multi_Coor:
 
         :Example:
 
-        >>> prot_coor = Coor()
-        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1y0m.pdb')) #doctest: +ELLIPSIS
-        Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
-
+        >>> VIP_coor = Multi_Coor()
+        >>> VIP_coor.read_pdb(os.path.join(TEST_PATH, '2rri.pdb')) #doctest: +ELLIPSIS
+        Read 20 Model(s)
+        Succeed to read file gromacs_py/test/input/2rri.pdb, 479 atoms found
         """
 
         atom_index = 0
@@ -2047,7 +2001,7 @@ class Multi_Coor:
                 if line.startswith("CRYST1"):
                     self.crystal_pack = line
                 if line.startswith("MODEL"):
-                    print('Read Model {}'.format(model_num))
+                    #print('Read Model {}'.format(model_num))
                     model_num += 1
                 if line.startswith("ENDMDL"):
                     if len(model_coor.atom_dict) != 0:
@@ -2107,7 +2061,10 @@ class Multi_Coor:
                     model_coor.atom_dict[atom_index] = atom
                     atom_index += 1
 
-        print("Succeed to read file", os.path.relpath(pdb_in), ", ", atom_index, "atoms found")
+        print('Read {} Model(s)'.format(len(self.coor_list)))
+        print("Succeed to read file {}, {} atoms found".format(
+            os.path.relpath(pdb_in),
+            len(self.coor_list[0].atom_dict)))
 
     def write_pdb(self, pdb_out, check_file_out=True):
         """Write a pdb file.
@@ -2116,12 +2073,12 @@ class Multi_Coor:
         :type pdb_out: str
 
         :Example:
-
         >>> TEST_OUT = str(getfixture('tmpdir'))
-        >>> prot_coor = Coor()
-        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1y0m.pdb')) #doctest: +ELLIPSIS
-        Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
-        >>> prot_coor.write_pdb(os.path.join(TEST_OUT, 'tmp.pdb')) #doctest: +ELLIPSIS
+        >>> VIP_coor = Multi_Coor()
+        >>> VIP_coor.read_pdb(os.path.join(TEST_PATH, '2rri.pdb')) #doctest: +ELLIPSIS
+        Read 20 Model(s)
+        Succeed to read file gromacs_py/test/input/2rri.pdb, 479 atoms found
+        >>> VIP_coor.write_pdb(os.path.join(TEST_OUT, 'tmp.pdb')) #doctest: +ELLIPSIS
         Succeed to save file .../tmp.pdb
 
         """
@@ -2162,7 +2119,7 @@ class Multi_Coor:
                     atom["xyz"][2],
                     atom["occ"],
                     atom["beta"]))
-            filout.write("END\nENDMDL\n".format())
+            filout.write("ENDMDL\n".format())
 
         filout.write("TER\n")
         filout.close()
@@ -2170,7 +2127,7 @@ class Multi_Coor:
         print("Succeed to save file", os.path.relpath(pdb_out))
         return
 
-    def compute_rmsd_to(self, atom_sel_2, selec_dict={'name': 'CA'}):
+    def compute_rmsd_to(self, atom_sel_2, selec_dict={'name': ['CA']}):
         """ Compute RMSD between two atom_dict
         Then return the RMSD value.
 
@@ -2185,8 +2142,55 @@ class Multi_Coor:
 
         :Example:
 
-        >>> prot_coor = Coor()
-
+        >>> TEST_OUT = str(getfixture('tmpdir'))
+        >>> VIP_coor = Multi_Coor()
+        >>> VIP_coor.read_pdb(os.path.join(TEST_PATH, '2rri.pdb')) #doctest: +ELLIPSIS
+        Read 20 Model(s)
+        Succeed to read file gromacs_py/test/input/2rri.pdb, 479 atoms found
+        >>> aa_seq = VIP_coor.coor_list[0].get_aa_seq()['A']
+        >>> print(aa_seq)
+        HSDAVFTDNYTRLRKQMAVKKYLNSILNG
+        >>> linear_pep = Coor()
+        >>> pep_out = os.path.join(TEST_OUT, 'tmp_pep.pdb')
+        >>> pdb_pep = linear_pep.make_peptide(aa_seq, pep_out) #doctest: +ELLIPSIS
+        -Make peptide: HSDAVFTDNYTRLRKQMAVKKYLNSILNG
+        residue name:X
+        residue name:H
+        residue name:S
+        residue name:D
+        residue name:A
+        residue name:V
+        residue name:F
+        residue name:T
+        residue name:D
+        residue name:N
+        residue name:Y
+        residue name:T
+        residue name:R
+        residue name:L
+        residue name:R
+        residue name:K
+        residue name:Q
+        residue name:M
+        residue name:A
+        residue name:V
+        residue name:K
+        residue name:K
+        residue name:Y
+        residue name:L
+        residue name:N
+        residue name:S
+        residue name:I
+        residue name:L
+        residue name:N
+        residue name:G
+        Succeed to save file ...tmp_pep.pdb
+        >>> linear_pep.read_pdb(pdb_pep) #doctest: +ELLIPSIS
+        Succeed to read file ...tmp_pep.pdb ,  240 atoms found
+        >>> rmsd_list = VIP_coor.compute_rmsd_to(linear_pep)
+        >>> rmsd_str = ['{:.2f}'.format(i) for i in rmsd_list]
+        >>> rmsd_str
+        ['58.57', '58.40', '58.74', '58.35', '58.60', '58.53', '58.49', '58.40', '58.45', '58.27', '58.52', '58.34', '58.57', '58.33', '58.34', '58.63', '58.61', '58.40', '58.55', '58.32']
         """
 
         rmsd_list = []
