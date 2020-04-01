@@ -665,10 +665,17 @@ class Coor:
             filout.write(self.crystal_pack)
         for atom_num, atom in sorted(self.atom_dict.items()):
             # print(pdb_dict[atom_num]["name"])
-            filout.write("{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}\n".format(
+
+            # Atom name should start a column 14, with the type of atom ex: with atom type 'C': ' CH3'
+            # for 2 letters atom type, it should start at coulumn 13 ex: with atom type 'FE': 'FE1' 
+            name = atom["name"]
+            if len(name) <= 3 and name[0] in ['C', 'H', 'O', 'N', 'S', 'P']:
+                name = " " + name
+
+            filout.write("{:6s}{:5d} {:4s}{:1s}{:3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}\n".format(
                 atom["field"],
                 atom["num"],
-                atom["name"],
+                name,
                 atom["alter_loc"],
                 atom["res_name"],
                 atom["chain"],
