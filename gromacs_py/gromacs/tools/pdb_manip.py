@@ -586,9 +586,9 @@ class Coor:
 
         with open(pdb_in) as pdbfile:
             for line in pdbfile:
-                if line[:6] == "CRYST1":
+                if line.startswith("CRYST1"):
                     self.crystal_pack = line
-                if line[:4] == 'ATOM' or line[:6] == "HETATM":
+                if line.startswith('ATOM') or line.startswith("HETATM"):
 
                     field = line[:6].strip()
                     atom_num = int(line[6:11])
@@ -1654,6 +1654,38 @@ class Coor:
         
         return index_array[dist_mat_good]
 
+    def compute_rmsd_to(self, atom_sel_2, selec_dict={'name': 'CA'}):
+        """ Compute RMSD between two atom_dict
+        Then return the RMSD value.
+
+        :param atom_sel_1: atom dictionnary
+        :type atom_sel_1: dict
+
+        :param atom_sel_2: atom dictionnary
+        :type atom_sel_2: dict
+
+        :return: distance
+        :rtype: float
+
+        :Example:
+
+        >>> prot_coor = Coor()
+
+        """
+
+        sel_1_coor = self.select_part_dict(selec_dict=selec_dict)
+        sel_2_coor = atom_sel_2.select_part_dict(selec_dict=selec_dict)
+
+        coor_array_1 = np.array([atom['xyz'] for key, atom in sel_1_coor.atom_dict.items()])
+        coor_array_2 = np.array([atom['xyz'] for key, atom in sel_2_coor.atom_dict.items()])
+
+        #print(coor_array_1)
+        #print(coor_array_2)
+
+        rmsd = np.sqrt(np.sum(np.square(coor_array_1 - coor_array_2) / len(sel_1_coor.atom_dict)))
+
+        return rmsd
+
     def dist_under_index(self, atom_sel_2, cutoff=10.0):
         """ Check is distance between atoms of self.coor is under cutoff with
         atoms of group 1.
@@ -1912,6 +1944,260 @@ class Coor:
 
         filout.close()
         print("Succeed to save concat file: ", pdb_out)
+
+
+class Multi_Coor:
+    """ Topologie base on coordinates like pdb or gro.
+
+    The coor object containt a a list of dictionnary of atoms indexed
+    on the atom num and the crystal packing info.
+
+
+    :param atom_dict: dictionnary of atom
+    :type atom_dict: dict
+
+    :param crystal_pack: crystal packing
+    :type crystal_pack: str
+
+    **Atom dictionnary parameters**
+
+    :param field: pdb field
+    :type field: str
+
+    :param num: atom number
+    :type num: int
+
+    :param name: atom name
+    :type name: str
+
+    :param alter_loc: atom number
+    :type alter_loc: str
+
+    :param res_name: residue name (3 letters)
+    :type res_name: str
+
+    :param chain: chain ID
+    :type chain: str
+
+    :param res_num: residue number (based on pdb file)
+    :type res_num: int
+
+    :param uniq_resid: unique residue number
+    :type uniq_resid: int
+
+    :param insert_res: atom number
+    :type insert_res: str
+
+    :param xyz: coordinate
+    :type x: numpy array
+
+    :param occ: occupation
+    :type occ: float
+
+    :param beta: beta flactor
+    :type beta: float
+
+
+    .. note::
+        The atom num index in the dictionnary, is not the same as the
+        ``atom_num`` field of the dictionnary.
+
+    .. note::
+        Files necessary for testing : ../test/input/1y0m.pdb, ../test/input/1rxz.pdb
+        and ../test/input/4n1m.pdb.
+        To do the unitary test, execute pdb_mani.py (-v for verbose mode)
+
+    .. todo::
+        Add an atom class ?
+
+    """
+
+    def __init__(self):
+        self.coor_list = []
+        self.crystal_pack = None
+
+    def read_pdb(self, pdb_in, pqr_format=False):
+        """Read a pdb file and return atom informations as a dictionnary indexed on the atom num.
+        The fonction can also read pqr files if specified with ``pqr_format = True``,
+        it will only change the column format of beta and occ factors.
+
+        :param pdb_in: path of the pdb file to read
+        :type pdb_in: str
+
+        :param pqr_format: Flag for .pqr file format reading.
+        :type pqr_format: bool, default=False
+
+        :Example:
+
+        >>> prot_coor = Coor()
+        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1y0m.pdb')) #doctest: +ELLIPSIS
+        Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
+
+        """
+
+        atom_index = 0
+        uniq_resid = -1
+        old_res_num = -1
+        model_num = 1
+
+        model_coor = Coor()
+
+        with open(pdb_in) as pdbfile:
+            for line in pdbfile:
+                if line.startswith("CRYST1"):
+                    self.crystal_pack = line
+                if line.startswith("MODEL"):
+                    print('Read Model {}'.format(model_num))
+                    model_num += 1
+                if line.startswith("ENDMDL"):
+                    if len(model_coor.atom_dict) != 0:
+                        self.coor_list.append(model_coor)
+                        model_coor = Coor()
+                        atom_index = 0
+                        uniq_resid = -1
+                        old_res_num = -1
+
+                if line.startswith('ATOM') or line.startswith("HETATM"):
+
+                    field = line[:6].strip()
+                    atom_num = int(line[6:11])
+                    atom_name = line[12:16].strip()
+                    
+                    res_name = line[17:20].strip()
+                    chain = line[21]
+                    res_num = int(line[22:26])
+                    insert_res = line[26:27]
+                    xyz = np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])])
+                    if pqr_format:
+                        alter_loc = ""
+                        res_name = line[16:20].strip()
+                        occ, beta = line[54:62].strip(), line[62:70].strip()
+                    else:
+                        alter_loc = line[16:17]
+                        res_name = line[17:20].strip()
+                        occ, beta = line[54:60].strip(), line[60:66].strip()
+
+                    if occ == "":
+                        occ = 0.0
+                    else:
+                        occ = float(occ)
+
+                    if beta == "":
+                        beta = 0.0
+                    else:
+                        beta = float(beta)
+
+                    if res_num != old_res_num:
+                        uniq_resid += 1
+                        old_res_num = res_num
+
+                    atom = {"field": field,
+                            "num": atom_num,
+                            "name": atom_name,
+                            "alter_loc": alter_loc,
+                            "res_name": res_name,
+                            "chain": chain,
+                            "res_num": res_num,
+                            "uniq_resid": uniq_resid,
+                            "insert_res": insert_res,
+                            "xyz": xyz,
+                            "occ": occ,
+                            "beta": beta}
+
+                    model_coor.atom_dict[atom_index] = atom
+                    atom_index += 1
+
+        print("Succeed to read file", os.path.relpath(pdb_in), ", ", atom_index, "atoms found")
+
+    def write_pdb(self, pdb_out, check_file_out=True):
+        """Write a pdb file.
+
+        :param pdb_out: path of the pdb file to write
+        :type pdb_out: str
+
+        :Example:
+
+        >>> TEST_OUT = str(getfixture('tmpdir'))
+        >>> prot_coor = Coor()
+        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1y0m.pdb')) #doctest: +ELLIPSIS
+        Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
+        >>> prot_coor.write_pdb(os.path.join(TEST_OUT, 'tmp.pdb')) #doctest: +ELLIPSIS
+        Succeed to save file .../tmp.pdb
+
+        """
+
+        if check_file_out and os_command.check_file_and_create_path(pdb_out):
+            print("PDB file {} already exist, file not saved".format(pdb_out))
+            return
+
+        filout = open(pdb_out, 'w')
+        if self.crystal_pack is not None:
+            filout.write(self.crystal_pack)
+
+        model = 1
+        for model_coor in self.coor_list:
+            filout.write("MODEL {}\n".format(model))
+            model += 1
+
+            for atom_num, atom in sorted(model_coor.atom_dict.items()):
+                # print(pdb_dict[atom_num]["name"])
+
+                # Atom name should start a column 14, with the type of atom ex: with atom type 'C': ' CH3'
+                # for 2 letters atom type, it should start at coulumn 13 ex: with atom type 'FE': 'FE1' 
+                name = atom["name"]
+                if len(name) <= 3 and name[0] in ['C', 'H', 'O', 'N', 'S', 'P']:
+                    name = " " + name
+
+                filout.write("{:6s}{:5d} {:4s}{:1s}{:3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}\n".format(
+                    atom["field"],
+                    atom["num"],
+                    name,
+                    atom["alter_loc"],
+                    atom["res_name"],
+                    atom["chain"],
+                    atom["res_num"],
+                    atom["insert_res"],
+                    atom["xyz"][0],
+                    atom["xyz"][1],
+                    atom["xyz"][2],
+                    atom["occ"],
+                    atom["beta"]))
+            filout.write("END\nENDMDL\n".format())
+
+        filout.write("TER\n")
+        filout.close()
+
+        print("Succeed to save file", os.path.relpath(pdb_out))
+        return
+
+    def compute_rmsd_to(self, atom_sel_2, selec_dict={'name': 'CA'}):
+        """ Compute RMSD between two atom_dict
+        Then return the RMSD value.
+
+        :param atom_sel_1: atom dictionnary
+        :type atom_sel_1: dict
+
+        :param atom_sel_2: atom dictionnary
+        :type atom_sel_2: dict
+
+        :return: distance
+        :rtype: float
+
+        :Example:
+
+        >>> prot_coor = Coor()
+
+        """
+
+        rmsd_list = []
+
+        for atom_coor in self.coor_list:
+
+            rmsd = atom_coor.compute_rmsd_to(atom_sel_2, selec_dict=selec_dict)
+
+            rmsd_list.append(rmsd)
+
+        return rmsd_list
 
 
 if __name__ == "__main__":
