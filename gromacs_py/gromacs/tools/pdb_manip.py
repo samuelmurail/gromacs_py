@@ -1676,8 +1676,8 @@ class Coor:
         sel_1_coor = self.select_part_dict(selec_dict=selec_dict)
         sel_2_coor = atom_sel_2.select_part_dict(selec_dict=selec_dict)
 
-        coor_array_1 = np.array([atom['xyz'] for key, atom in sel_1_coor.atom_dict.items()])
-        coor_array_2 = np.array([atom['xyz'] for key, atom in sel_2_coor.atom_dict.items()])
+        coor_array_1 = np.array([atom['xyz'] for key, atom in sorted(sel_1_coor.atom_dict.items())])
+        coor_array_2 = np.array([atom['xyz'] for key, atom in sorted(sel_2_coor.atom_dict.items())])
 
         #print(coor_array_1.shape)
         #print(coor_array_2.shape)
