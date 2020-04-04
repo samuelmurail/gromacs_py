@@ -24,6 +24,15 @@ except ImportError:
     print("Relative import from . fails, use absolute import instead")
     import os_command
 
+# Autorship information
+__author__ = "Samuel Murail"
+__copyright__ = "Copyright 2020, RPBS"
+__credits__ = ["Samuel Murail"]
+__license__ = "GNU General Public License v2.0"
+__maintainer__ = "Samuel Murail"
+__email__ = "samuel.murail@u-paris.fr"
+__status__ = "Production"
+
 # Test folder path
 PDB_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PATH = os.path.abspath(os.path.join(PDB_LIB_DIR, "../../test/input/"))
@@ -1568,6 +1577,8 @@ class Coor:
         for atom_num, atom in self.atom_dict.items():
             atom['xyz'] += vector
 
+        return
+
     def center_of_mass(self, selec_dict={}):
         """ Compute the center of mass of a selection
         Avoid using atoms with 2 letters atom name like NA Cl ...
@@ -1686,6 +1697,58 @@ class Coor:
         
         return rmsd
 
+    def rotation(self, tau_x, tau_y, tau_z):
+        """ Compute coordinates of a system after a rotation on x, y and z axis.
+
+        :param tau_x: angle of rotation (degrees) on the x axis 
+        :type tau_x: float
+
+        :param tau_y: angle of rotation (degrees) on the y axis 
+        :type tau_y: float
+
+        :param tau_z: angle of rotation (degrees) on the z axis 
+        :type tau_z: float
+
+        >>> prot_coor = Coor()
+        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1y0m.pdb')) #doctest: +ELLIPSIS
+        Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
+        >>> com_1y0m = prot_coor.center_of_mass()
+        >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*com_1y0m))
+        x:16.01 y:0.45 z:8.57
+        >>> prot_coor.rotation(90, 90, 90)
+        >>> com_1y0m = prot_coor.center_of_mass()
+        >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*com_1y0m)) #doctest: +ELLIPSIS
+        x:9.98 y:-4.03 z:-14.63
+
+        """
+
+        coor_array = np.array([atom['xyz'] for key, atom in sorted(self.atom_dict.items())])
+
+        tau_x = np.degrees(tau_x)
+        tau_y = np.degrees(tau_y)
+        tau_z = np.degrees(tau_z)
+
+        x_rot_mat = np.array([[1, 0, 0],
+                              [0, np.cos(tau_x), -np.sin(tau_x)],
+                              [0, np.sin(tau_x), np.cos(tau_x)]])
+
+        y_rot_mat = np.array([[np.cos(tau_y), 0, np.sin(tau_y)],
+                              [0, 1, 0],
+                              [-np.sin(tau_y), 0, np.cos(tau_y)]])
+
+        z_rot_mat = np.array([[np.cos(tau_z), -np.sin(tau_z), 0],
+                              [np.sin(tau_z), np.cos(tau_z), 0],
+                              [0, 0, 1]])
+
+        rotation_matrix = np.dot(np.dot(x_rot_mat, y_rot_mat), z_rot_mat)
+
+        coor_array = np.dot(coor_array, rotation_matrix)
+
+        for i, atom_num in enumerate(self.atom_dict):
+            self.atom_dict[atom_num]['xyz'] = coor_array[i]
+
+        return
+
     def dist_under_index(self, atom_sel_2, cutoff=10.0):
         """ Check is distance between atoms of self.coor is under cutoff with
         atoms of group 1.
@@ -1701,10 +1764,10 @@ class Coor:
         :type cutoff: float, default=10.0
         """
 
-        coor_array = np.array([atom['xyz'] for key, atom in self.atom_dict.items()])
-        index_array = np.array([key for key, atom in self.atom_dict.items()])
+        coor_array = np.array([atom['xyz'] for key, atom in sorted(self.atom_dict.items())])
+        index_array = np.array([key for key, atom in sorted(self.atom_dict.items())])
 
-        coor_array_2 = np.array([atom['xyz'] for key, atom in atom_sel_2.atom_dict.items()])
+        coor_array_2 = np.array([atom['xyz'] for key, atom in sorted(atom_sel_2.atom_dict.items())])
 
         #Compute distance matrix
         dist_mat = distance_matrix(coor_array, coor_array_2)
