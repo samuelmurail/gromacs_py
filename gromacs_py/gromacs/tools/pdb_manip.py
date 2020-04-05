@@ -1784,25 +1784,172 @@ class Coor:
 
         :Example:
 
+        >>> TEST_OUT = str(getfixture('tmpdir'))
         >>> prot_coor = Coor()
+        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1jd4.pdb')) #doctest: +ELLIPSIS
+        Succeed to read file .../1jd4.pdb ,  1586 atoms found
+        >>> chain_A = prot_coor.select_part_dict(selec_dict={'chain': ['A']})
+        >>> chain_B = prot_coor.select_part_dict(selec_dict={'chain': ['B']})
+        >>> rmsd = chain_A.compute_rmsd_to(chain_B)
+        >>> print('RMSD before alignement is {:.2f} Å'.format(rmsd))
+        RMSD before alignement is 37.47 Å
+        >>> chain_A.align_to(chain_B)
+        >>> rmsd = chain_A.compute_rmsd_to(chain_B)
+        >>> print('RMSD after alignement is {:.2f} Å'.format(rmsd))
+        RMSD after alignement is 0.06 Å
+        >>> chain_A.align_to(chain_B)
+        >>> rmsd = chain_A.compute_rmsd_to(chain_B)
+        >>> print('RMSD after 2nd alignement is {:.2f} Å'.format(rmsd))
+        RMSD after 2nd alignement is 0.06 Å
 
         """
 
         sel_1_coor = self.select_part_dict(selec_dict=selec_dict)
         sel_2_coor = atom_sel_2.select_part_dict(selec_dict=selec_dict)
 
+
         coor_array_1 = np.array([atom['xyz'] for key, atom in sorted(sel_1_coor.atom_dict.items())])
         coor_array_2 = np.array([atom['xyz'] for key, atom in sorted(sel_2_coor.atom_dict.items())])
+        all_coor_array_1 = np.array([atom['xyz'] for key, atom in sorted(self.atom_dict.items())])
 
-        #print(coor_array_1.shape)
-        #print(coor_array_2.shape)
+        centroid_1 = coor_array_1.mean(axis=0)
+        centroid_2 = coor_array_2.mean(axis=0)
+        coor_array_1 -= centroid_1
+        coor_array_2 -= centroid_2
 
-        rmsd = np.sqrt(np.sum(np.square(coor_array_1 - coor_array_2) / len(sel_1_coor.atom_dict)))
-        
-        return rmsd
+        rot_mat = Coor.kabsch(coor_array_1, coor_array_2)
+        #rot_mat = Coor.quaternion_rotate(coor_array_1, coor_array_2)
+
+        all_coor_array_1 -= centroid_1
+        all_coor_array_1 = np.dot(all_coor_array_1, rot_mat)
+        all_coor_array_1 += centroid_2
+
+        for i, atom_num in enumerate(sorted(self.atom_dict)):
+            self.atom_dict[atom_num]['xyz'] = all_coor_array_1[i]
+
+        return
 
 
-    def rotation(self, tau_x, tau_y, tau_z):
+    @staticmethod
+    def kabsch(coor_1, coor_2):
+        """
+        Source: https://github.com/charnley/rmsd/blob/master/rmsd/calculate_rmsd.py
+        Using the Kabsch algorithm with two sets of paired point P and Q, centered
+        around the centroid. Each vector set is represented as an NxD
+        matrix, where D is the the dimension of the space.
+        The algorithm works in three steps:
+        - a centroid translation of P and Q (assumed done before this function
+          call)
+        - the computation of a covariance matrix C
+        - computation of the optimal rotation matrix U
+        For more info see http://en.wikipedia.org/wiki/Kabsch_algorithm
+        Parameters
+        ----------
+        P : array
+            (N,D) matrix, where N is points and D is dimension.
+        Q : array
+            (N,D) matrix, where N is points and D is dimension.
+        Returns
+        -------
+        U : matrix
+            Rotation matrix (D,D)
+        """
+
+        # Computation of the covariance matrix
+        C = np.dot(np.transpose(coor_1), coor_2)
+
+        # Computation of the optimal rotation matrix
+        # This can be done using singular value decomposition (SVD)
+        # Getting the sign of the det(V)*(W) to decide
+        # whether we need to correct our rotation matrix to ensure a
+        # right-handed coordinate system.
+        # And finally calculating the optimal rotation matrix U
+        # see http://en.wikipedia.org/wiki/Kabsch_algorithm
+
+        V, S, W = np.linalg.svd(C)
+        d = (np.linalg.det(V) * np.linalg.det(W)) < 0.0
+
+        if d:
+            print('d<0')
+            S[-1] = -S[-1]
+            V[:, -1] = -V[:, -1]
+
+        # Create Rotation matrix U
+        rot_mat = np.dot(V, W)
+
+        return rot_mat
+
+    @staticmethod
+    def quaternion_transform(r):
+        """
+        Source: https://github.com/charnley/rmsd/blob/master/rmsd/calculate_rmsd.py
+        Get optimal rotation
+        note: translation will be zero when the centroids of each molecule are the
+        same
+        """
+        Wt_r = Coor.makeW(*r).T
+        Q_r = Coor.makeQ(*r)
+        rot = Wt_r.dot(Q_r)[:3, :3]
+        return rot
+
+
+    @staticmethod
+    def makeW(r1, r2, r3, r4=0):
+        """
+        Source: https://github.com/charnley/rmsd/blob/master/rmsd/calculate_rmsd.py
+        matrix involved in quaternion rotation
+        """
+        W = np.asarray([
+            [r4, r3, -r2, r1],
+            [-r3, r4, r1, r2],
+            [r2, -r1, r4, r3],
+            [-r1, -r2, -r3, r4]])
+        return W
+
+
+    @staticmethod
+    def makeQ(r1, r2, r3, r4=0):
+        """
+        Source: https://github.com/charnley/rmsd/blob/master/rmsd/calculate_rmsd.py
+        matrix involved in quaternion rotation
+        """
+        Q = np.asarray([
+            [r4, -r3, r2, r1],
+            [r3, r4, -r1, r2],
+            [-r2, r1, r4, r3],
+            [-r1, -r2, -r3, r4]])
+        return Q
+
+
+    @staticmethod
+    def quaternion_rotate(X, Y):
+        """
+        Source: https://github.com/charnley/rmsd/blob/master/rmsd/calculate_rmsd.py
+        Calculate the rotation
+        Parameters
+        ----------
+        X : array
+            (N,D) matrix, where N is points and D is dimension.
+        Y: array
+            (N,D) matrix, where N is points and D is dimension.
+        Returns
+        -------
+        rot : matrix
+            Rotation matrix (D,D)
+        """
+        N = X.shape[0]
+        W = np.asarray([Coor.makeW(*Y[k]) for k in range(N)])
+        Q = np.asarray([Coor.makeQ(*X[k]) for k in range(N)])
+        Qt_dot_W = np.asarray([np.dot(Q[k].T, W[k]) for k in range(N)])
+        # NOTE UNUSED W_minus_Q = np.asarray([W[k] - Q[k] for k in range(N)])
+        A = np.sum(Qt_dot_W, axis=0)
+        eigen = np.linalg.eigh(A)
+        r = eigen[1][:, eigen[0].argmax()]
+        rot = Coor.quaternion_transform(r)
+        return rot
+
+
+    def rotation_angle(self, tau_x, tau_y, tau_z):
         """ Compute coordinates of a system after a rotation on x, y and z axis.
 
         :param tau_x: angle of rotation (degrees) on the x axis 
@@ -1820,7 +1967,7 @@ class Coor:
         >>> com_1y0m = prot_coor.center_of_mass()
         >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*com_1y0m))
         x:16.01 y:0.45 z:8.57
-        >>> prot_coor.rotation(90, 90, 90)
+        >>> prot_coor.rotation_angle(90, 90, 90)
         >>> com_1y0m = prot_coor.center_of_mass()
         >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*com_1y0m)) #doctest: +ELLIPSIS
         x:9.98 y:-4.03 z:-14.63
@@ -1849,7 +1996,7 @@ class Coor:
 
         coor_array = np.dot(coor_array, rotation_matrix)
 
-        for i, atom_num in enumerate(self.atom_dict):
+        for i, atom_num in enumerate(sorted(self.atom_dict)):
             self.atom_dict[atom_num]['xyz'] = coor_array[i]
 
         return
