@@ -1582,6 +1582,7 @@ class Coor:
     def center_of_mass(self, selec_dict={}):
         """ Compute the center of mass of a selection
         Avoid using atoms with 2 letters atom name like NA Cl ...
+        If selection is empy, take all atoms.
 
         :param selec_dict: selection dictionnary
         :type selec_dict: dict, default={}
@@ -1623,6 +1624,75 @@ class Coor:
                     mass_tot += mass
 
         return com_array / mass_tot
+
+    def centroid(self, selec_dict={}):
+        """ Compute the centroid of a selection
+        If selection is empy, take all atoms.
+
+        :param selec_dict: selection dictionnary
+        :type selec_dict: dict, default={}
+
+        :Example:
+
+        >>> prot_coor = Coor()
+        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1y0m.pdb')) #doctest: +ELLIPSIS
+        Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
+        >>> com_1y0m = prot_coor.centroid()
+        >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*com_1y0m))
+        x:16.03 y:0.44 z:8.57
+
+        """
+
+        com_array = np.zeros(3)
+        num_tot = 0
+
+        for atom_num, atom in self.atom_dict.items():
+            selected = True
+            # print("atom_num:",atom_num,"atom:",atom)
+            for selection in selec_dict.keys():
+                # print("select",selection, selec_dict[selection],".")
+                # print("selection=",selection)
+                # print("atom:",atom)
+                # print("atom",atom[selection],".")
+                if atom[selection] not in selec_dict[selection]:
+                    selected = False
+                    break
+            if selected:
+                com_array += atom['xyz']
+                num_tot += 1
+
+        return com_array / num_tot
+
+
+    def get_box_dim(self, selec_dict={}):
+        """ Compute the x, y, z dimension of a selection
+
+        :param selec_dict: selection dictionnary
+        :type selec_dict: dict, default={}
+
+        :Example:
+
+        >>> prot_coor = Coor()
+        >>> prot_coor.read_pdb(os.path.join(TEST_PATH, '1y0m.pdb')) #doctest: +ELLIPSIS
+        Succeed to read file ...test/input/1y0m.pdb ,  648 atoms found
+        >>> box_1y0m = prot_coor.get_box_dim()
+        >>> print("x:{:.2f} y:{:.2f} z:{:.2f}".format(*box_1y0m))
+        x:39.14 y:29.36 z:31.19
+
+        .. warning::
+            Atom name must start with its type letter (H, C, N, O, P, S).
+        """
+
+        if len(selec_dict) > 0:
+            sel_coor = self.select_part_dict(selec_dict=selec_dict)
+            coor_array = np.array([atom['xyz'] for key, atom in sorted(sel_coor.atom_dict.items())])
+        else:
+            coor_array = np.array([atom['xyz'] for key, atom in sorted(self.atom_dict.items())])
+
+        min_val = np.amin(coor_array, axis=0)
+        max_val = np.amax(coor_array, axis=0)
+
+        return max_val - min_val
 
     def get_index_dist_between(self, atom_sel_2, cutoff_min=0, cutoff_max=10):
         """ Check is distance between atoms of self.atom_dict is under cutoff
@@ -1692,10 +1762,45 @@ class Coor:
 
         #print(coor_array_1.shape)
         #print(coor_array_2.shape)
+        diff = coor_array_1 - coor_array_2
+        N = len(coor_array_1)
+
+        rmsd = np.sqrt((diff * diff).sum() / N)
+        
+        return rmsd
+
+    def align_to(self, atom_sel_2, selec_dict={'name': ['CA']}):
+        """ Compute RMSD between two atom_dict
+        Then return the RMSD value.
+
+        :param atom_sel_1: atom dictionnary
+        :type atom_sel_1: dict
+
+        :param atom_sel_2: atom dictionnary
+        :type atom_sel_2: dict
+
+        :return: distance
+        :rtype: float
+
+        :Example:
+
+        >>> prot_coor = Coor()
+
+        """
+
+        sel_1_coor = self.select_part_dict(selec_dict=selec_dict)
+        sel_2_coor = atom_sel_2.select_part_dict(selec_dict=selec_dict)
+
+        coor_array_1 = np.array([atom['xyz'] for key, atom in sorted(sel_1_coor.atom_dict.items())])
+        coor_array_2 = np.array([atom['xyz'] for key, atom in sorted(sel_2_coor.atom_dict.items())])
+
+        #print(coor_array_1.shape)
+        #print(coor_array_2.shape)
 
         rmsd = np.sqrt(np.sum(np.square(coor_array_1 - coor_array_2) / len(sel_1_coor.atom_dict)))
         
         return rmsd
+
 
     def rotation(self, tau_x, tau_y, tau_z):
         """ Compute coordinates of a system after a rotation on x, y and z axis.
