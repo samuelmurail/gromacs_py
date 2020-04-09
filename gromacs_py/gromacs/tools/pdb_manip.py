@@ -7,11 +7,10 @@
 #####################################
 """
 
-__author__ = "Samuel Murail"
-
 import os
 import sys
 import time
+
 import numpy as np
 from numpy.linalg import norm
 from numpy import sin, cos
@@ -24,14 +23,6 @@ except ImportError:
     print("Relative import from . fails, use absolute import instead")
     import os_command
 
-# Autorship information
-__author__ = "Samuel Murail"
-__copyright__ = "Copyright 2020, RPBS"
-__credits__ = ["Samuel Murail"]
-__license__ = "GNU General Public License v2.0"
-__maintainer__ = "Samuel Murail"
-__email__ = "samuel.murail@u-paris.fr"
-__status__ = "Production"
 
 # Test folder path
 PDB_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -1938,7 +1929,7 @@ class Coor:
         Succeed to read file .../1dpx.pdb ,  1192 atoms found
         >>> rmsd, align_sel = prot_1_coor.align_seq_coor_to(prot_2_coor)
         ----------------------------------------NYFPQYPEYAIETARLRTFEAWPRNLKQKP--HQLAEAGF
-                                                |   |  | | | | *|  | *  *  | *  ||*||
+                                                |   |  | | | | *|  | *  *  | *  ||*||   
         KVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQINSRWWCNDGRTPGSRNLCNIPC
         <BLANKLINE>
         FYTGVGDRVRCFSCGGGLMDWNDNDEPWEQHALWLSQCRFVKLMKGQLYIDTVAAKPV
@@ -2007,7 +1998,7 @@ AFPLVFLIFNIFYWITYKLVPR'
         >>> align_seq_1, align_seq_2 = Coor.align_seq(seq_1, seq_2)
         >>> Coor.print_align_seq(align_seq_1, align_seq_2)
         -------------AQDMVSPPPPIADEPLTVNTGIYLIECYSLDDKAETFKVNAFLSLSWKDRRLAFDPVRS-GVRVKTY
-                     |   |   * |   *||*| |*|| |  *| | |  ||** **  |*|* ***||   | || |
+                     |   |   * |   *||*| |*|| |  *| | |  ||** **  |*|* ***||   | || |   
         APSEFLDKLMGKVSGYDARIRPNFKGPPVNVTCNIFINSFGSIAETTMDYRVNIFLRQQWNDPRLAYSEYPDDSLDLDPS
         <BLANKLINE>
         EPEAIWIPEIRFVNVENARDADVV----DISVSPDGTVQYLERFSARVLSPLDFRRYPFDSQTLHIYLIVRSVDTRNIVL
@@ -2015,15 +2006,15 @@ AFPLVFLIFNIFYWITYKLVPR'
         MLDSIWKPDLFFANEKGANFHEVTTDNKLLRISKNGNVLYSIRITLVLACPMDLKNFPMDVQTCIMQLESFGYTMNDLIF
         <BLANKLINE>
         AVDLEKVGKNDDVFLTGWDIESFTAVV-KPANFALEDRLESK---LDYQLRISRQYFSYIPNIILPMLFILFISWTAFW-
-          * ** *  |     *  | |*     *  ||| |    |*   || |||||**   *| || |* *|*|||**||**
+          * ** *  |     *  | |*     *  ||| |    |*   || |||||**   *| || |* *|*|||**||** 
         EWD-EK-GAVQ--VADGLTLPQFILKEEKDLRYCTKHYNTGKFTCIEARFHLERQMGYYLIQMYIPSLLIVILSWVSFWI
         <BLANKLINE>
         -STSYEANVTLVVSTLIAHIAFNILVETNLPKTPYMTYTGAIIFMIYLFYFVAVIEVTVQHYL-KVESQP--ARAASITR
-           |  *|* * ||*|||  | |   |||***| *|      | |  ** * *||* || ||| || ||   |**  *
+           |  *|* * ||*|||  | |   |||***| *|      | |  ** * *||* || ||| || ||   |**  *  
         NMDAAPARVGLGITTVLTMTTQSSGSRASLPKVSYVKAIDIWMAVCLLFVFSALLEYAAVNFIARAGTKLFISRAKRIDT
         <BLANKLINE>
         ASRIAFPVVFLLANII--LAFLFFGF
-        |**|***|***| **|  ||| |
+        |**|***|***| **|  ||| |   
         VSRVAFPLVFLIFNIFYWITYKLVPR
         <BLANKLINE>
         """
