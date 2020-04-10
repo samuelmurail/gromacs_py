@@ -1,0 +1,42 @@
+# This file was created Wed Feb 19 00:04:16 2020
+# Created by:
+#                      :-) GROMACS - gmx energy, 2016.4 (-:
+# 
+# Executable:   /Users/smurail/Documents/Software/gromacs/local_2016.4/bin/gmx
+# Data prefix:  /Users/smurail/Documents/Software/gromacs/local_2016.4
+# Working dir:  /Users/smurail/Documents/Cours/Advanced_MD/phenol_pratical/GAFF/density_sim/prod
+# Command line:
+#   gmx energy -f prod_phenol.edr -o volume.xvg
+# gmx energy is part of G R O M A C S:
+#
+# Gravel Rubs Often Many Awfully Cauterized Sores
+#
+@    title "GROMACS Energies"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "(nm^3)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Volume"
+    0.000000  171.237213
+    5.000000  135.081039
+   10.000000   94.224792
+   15.000000   59.942383
+   20.000000   58.125397
+   25.000000   56.655384
+   30.000000   55.556736
+   35.000000   54.061279
+   40.000000   52.718613
+   45.000000   52.660431
+   50.000000   51.646774
+   55.000000   51.385674
+   60.000000   50.982174
+   65.000000   51.189754
+   70.000000   51.167587
+   75.000000   51.193901
+   80.000000   51.400517
+   85.000000   50.398926

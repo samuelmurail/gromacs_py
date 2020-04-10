@@ -19,11 +19,13 @@ from shutil import copy as shutil_copy
 
 # In case gmx5 is launched as main, relative import will failed
 try:
+    from .tools import monitor
     from .tools import os_command
     from .tools import pdb_manip
     from .tools import pdb2pqr
 except ImportError:
     print("Relative import from .tools fails, use absolute import instead")
+    import tools.monitor as monitor
     import tools.os_command as os_command
     import tools.pdb_manip as pdb_manip
     import tools.pdb2pqr as pdb2pqr
@@ -335,7 +337,6 @@ class TopSys:
                         del self.mol_comp[index]
                 break
         print(self.mol_comp)
-
 
     def get_include_file_list(self):
         file_list = []
@@ -3684,7 +3685,6 @@ SAM_pdb2gmx.itp
         else:
             equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
 
-
         mdp_options.update({'nsteps': int(nsteps_HA), 'define': '-DPOSRES', 'dt': dt_HA})
         self.run_md_sim(out_folder=os.path.join(out_folder, "00_equi_HA"), name="equi_HA_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
@@ -3700,12 +3700,13 @@ SAM_pdb2gmx.itp
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
 
-
     def em_equi_three_step_iter_error(self, out_folder, name=None,
-                        no_constr_nsteps=1000, constr_nsteps=1000,
-                        pdb_restr=None, nsteps_HA=100000,
-                        nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.005, dt_HA=0.002,
-                        maxwarn=0, iter_num=3, monitor=None, vsite='none', **mdp_options):
+                                      no_constr_nsteps=1000, constr_nsteps=1000,
+                                      pdb_restr=None, nsteps_HA=100000,
+                                      nsteps_CA=200000, nsteps_CA_LOW=400000,
+                                      dt=0.005, dt_HA=0.002, maxwarn=0,
+                                      iter_num=3, monitor=None, vsite='none',
+                                      **mdp_options):
         """ Minimize a system in 2 steps:
 
         1. minimisation without bond constraints
@@ -3774,28 +3775,27 @@ SAM_pdb2gmx.itp
 
         for iter in range(iter_num):
             try:
-                local_out_folder = out_folder+"/sys_em/"
+                local_out_folder = out_folder + "/sys_em/"
                 self.em_2_steps(local_out_folder, name=name, no_constr_nsteps=no_constr_nsteps, constr_nsteps=constr_nsteps,
                                 posres="", create_box_flag=False, **mdp_options)
                 self.convert_trj(traj=False)
 
-                local_out_folder = out_folder+"/sys_equi/"
+                local_out_folder = out_folder + "/sys_equi/"
                 self.equi_three_step(local_out_folder, name=name, pdb_restr=pdb_restr, nsteps_HA=nsteps_HA,
                                      nsteps_CA=nsteps_CA, nsteps_CA_LOW=nsteps_CA_LOW, dt=dt, dt_HA=dt_HA,
                                      maxwarn=maxwarn, monitor=monitor, vsite=vsite, **mdp_options)
                 break
 
             except RuntimeError as e:
-                print('Run {}/{} failed because of: {}'.format(iter+1, iter_num, e.args))
+                print('Run {}/{} failed because of: {}'.format(iter + 1, iter_num, e.args))
                 os.chdir(start_dir)
                 # Remove directories
-                for dir_to_del in [out_folder+"/sys_em/", out_folder+"/sys_equi/"]:
+                for dir_to_del in [out_folder + "/sys_em/", out_folder + "/sys_equi/"]:
                     if os_command.check_directory_exist(dir_to_del):
                         os_command.delete_directory(dir_to_del)
                 self = copy.deepcopy(start_sys)
 
         os.chdir(start_dir)
-
 
     def production(self, out_folder, name=None, nsteps=400000, dt=0.005,
                    maxwarn=0, monitor=None, vsite='none', **mdp_options):
@@ -3844,7 +3844,6 @@ SAM_pdb2gmx.itp
         self.run_md_sim(out_folder=out_folder, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, name="prod_" + name,
                         monitor=monitor, maxwarn=maxwarn)
-
 
     def extend_equi_prod(self, tpr_file=None, nsteps=200000, dt=0.005, monitor=None):
         """Extend a simulation run.
@@ -3908,9 +3907,8 @@ SAM_pdb2gmx.itp
 
         os.chdir(start_dir)
 
-
     def em_CG(self, out_folder, name=None, nsteps=500000,
-                maxwarn=0, monitor=None, **mdp_options):
+              maxwarn=0, monitor=None, **mdp_options):
         """Equilibrate a system a CG system:
 
         1. equilibration of nsteps_HA with position restraints on Heavy Atoms with dt = dt_HA
@@ -3957,14 +3955,12 @@ SAM_pdb2gmx.itp
 
         equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/martini_v2.x_new-rf.mdp")
 
-
-        mdp_options.update({'integrator':'steep', 'tcoupl':'no', 
+        mdp_options.update({'integrator': 'steep', 'tcoupl': 'no',
                             'nsteps': int(nsteps)})
 
         self.run_md_sim(out_folder=out_folder, name="em_CG_" + name,
                         mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
-
 
     def equi_CG(self, out_folder, name=None, pdb_restr=None, nsteps=500000, dt=0.02,
                 maxwarn=0, monitor=None, **mdp_options):
@@ -4021,7 +4017,6 @@ SAM_pdb2gmx.itp
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
 
-
     def prod_CG(self, out_folder, name=None, nsteps=5000000, dt=0.02,
                 maxwarn=0, monitor=None, **mdp_options):
         """Equilibrate a system a CG system:
@@ -4071,7 +4066,6 @@ SAM_pdb2gmx.itp
         self.run_md_sim(out_folder=out_folder, name="prod_CG_" + name,
                         mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn, monitor=monitor)
-
 
     def get_last_output(self):
         """In a case of a simulation restart, outputs edr, log, gro and xtc files
@@ -4186,7 +4180,7 @@ SAM_pdb2gmx.itp
         """
 
         print("-Extract energy")
-        #print('\n'.join(selection_list))
+        # print('\n'.join(selection_list))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(output_xvg):
@@ -4195,11 +4189,11 @@ SAM_pdb2gmx.itp
             cmd_convert = os_command.Command([GMX_BIN, "energy",
                                               "-f", self.edr,
                                               "-o", output_xvg])
-    
+
             cmd_convert.display()
             cmd_convert.run(com_input='\n'.join(selection_list))
-    
-        ener_pd = os_command.read_xvg(output_xvg)
+
+        ener_pd = monitor.read_xvg(output_xvg)
 
         if not keep_ener_file:
             os_command.delete_file(output_xvg)

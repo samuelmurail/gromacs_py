@@ -23,6 +23,15 @@ except ImportError:
     print("Relative import from . fails, use absolute import instead")
     import os_command
 
+# Autorship information
+__author__ = "Samuel Murail"
+__copyright__ = "Copyright 2020, RPBS"
+__credits__ = ["Samuel Murail"]
+__license__ = "GNU General Public License v2.0"
+__maintainer__ = "Samuel Murail"
+__email__ = "samuel.murail@u-paris.fr"
+__status__ = "Production"
+
 
 # Test folder path
 PDB_LIB_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -5,17 +5,29 @@
 """ Collection of function to monitor a simulation in real time.
 """
 
-__author__ = "Samuel Murail"
+import time
+import os
 
 import matplotlib
 import matplotlib.pyplot as plt
-import time
-import os
+import pandas as pd
+
 from . import os_command
+
+
+# Autorship information
+__author__ = "Samuel Murail"
+__copyright__ = "Copyright 2020, RPBS"
+__credits__ = ["Samuel Murail"]
+__license__ = "GNU General Public License v2.0"
+__maintainer__ = "Samuel Murail"
+__email__ = "samuel.murail@u-paris.fr"
+__status__ = "Production"
 
 # Test folder path
 MONITOR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PATH = os.path.abspath(os.path.join(MONITOR_LIB_DIR, "../../test/input/"))
+
 
 
 def isnotebook():
@@ -34,6 +46,45 @@ def isnotebook():
             return False  # Other type (?)
     except NameError:
         return False      # Probably standard Python interpreter
+
+
+def read_xvg(xvg_file, x_axis='time'):
+    """ Read a `.xvg` file and return a pandas dataframe.
+
+    :param xvg_file: path of the xvg file
+    :type xvg_file: string
+
+    :param x_axis: name of first column
+    :type xvg_file: string (Default: 'time')
+
+    :Example:
+
+    >>> xvg_file = os.path.join(TEST_PATH, 'volume.xvg')
+    >>> vol_df = read_xvg(xvg_file)
+    >>> vol_df.head()
+       time      Volume
+    0   0.0  171.237213
+    1   5.0  135.081039
+    2  10.0   94.224792
+    3  15.0   59.942383
+    4  20.0   58.125397
+    """
+
+    y_label_list = []
+
+    # Get first line without command in output file:
+    with open(xvg_file, 'r') as file_in:
+        for first_line, line in enumerate(file_in):
+            if line.startswith("@ s"):
+                y_label_list.append(line.split("\"")[1])
+            if not line.startswith(("#", "@")):
+                break
+
+    ener_pd = pd.read_csv(xvg_file, comment='#',
+                          skiprows=first_line,
+                          sep=r'\s+',
+                          names=[x_axis] + y_label_list)
+    return(ener_pd)
 
 
 def simulation_plot(proc, func_input_dict, refresh_time=1.0):

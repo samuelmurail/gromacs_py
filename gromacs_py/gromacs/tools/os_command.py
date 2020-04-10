@@ -12,7 +12,14 @@ import pandas as pd
 
 from . import monitor
 
+# Autorship information
 __author__ = "Samuel Murail"
+__copyright__ = "Copyright 2020, RPBS"
+__credits__ = ["Samuel Murail"]
+__license__ = "GNU General Public License v2.0"
+__maintainer__ = "Samuel Murail"
+__email__ = "samuel.murail@u-paris.fr"
+__status__ = "Production"
 
 # Test folder path
 OS_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -271,9 +278,9 @@ def read_xvg(xvg_file, x_axis='time'):
                     break
 
         ener_pd = pd.read_csv(xvg_file, comment='#',
-                                skiprows=first_line,
-                                sep='\s+',
-                                names=[x_axis]+y_label_list)
+                              skiprows=first_line,
+                              sep='\s+',
+                              names=[x_axis] + y_label_list)
         return(ener_pd)
 
 
