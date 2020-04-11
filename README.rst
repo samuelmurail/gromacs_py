@@ -150,7 +150,7 @@ Or simply use one command to do all previous commands:
 Authors
 ---------------------------------------
 
-* **Samuel Murail**, Maitre de conférence - `Université Paris Diderot <https://www.univ-paris-diderot.fr>`_, `CMPLI <http://bfa.univ-paris-diderot.fr/equipe-8/>`_.
+* `Samuel Murail <https://samuelmurail.github.io/PersonalPage/>`_, Associate Professor - `Université Paris Diderot <https://www.univ-paris-diderot.fr>`_, `CMPLI <http://bfa.univ-paris-diderot.fr/equipe-8/>`_.
 
 See also the list of `contributors <https://github.com/samuelmurail/gromacs_py/contributors>`_ who participated in this project.
 
