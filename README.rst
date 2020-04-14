@@ -83,23 +83,15 @@ Compatibility
 Quick install
 ---------------------------------------
 
-Add several conda channels for dependencies:
+If gromacs (version >= 5.1) is already install, then install you need to install the `gromacs_py` library, and add the gromacs `gmx` command in the environmnent variable `$PATH`:
 
 .. code-block:: bash
 
-   conda config --add channels conda-forge
-   conda config --add channels bioconda
-   conda config --add channels samuel.murail
+   pip install gromacs_py
 
-Then install `gromacs_py`:
+   # Add gromacs 'gmx' path:
+   export PATH='*path_to_gromacs*/bin/':$PATH
 
-.. code-block:: bash
-
-   conda install gromacs_py
-
-see `Installation <https://gromacs-py.readthedocs.io/en/latest/install.html>`_ for details.
-
-.. _github: https://github.com/samuelmurail/gromacs_py
 
 Tutorial
 ---------------------------------------
