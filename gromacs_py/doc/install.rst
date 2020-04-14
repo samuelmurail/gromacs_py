@@ -7,19 +7,11 @@ Conda installation
 Quick Start
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Add several conda channels for dependencies:
+If gromacs (version >= 5.1) is already install, then install tou just need to install the `gromacs_py` library:
 
 .. code-block:: bash
 
-	conda config --add channels conda-forge
-	conda config --add channels bioconda
-	conda config --add channels samuel.murail
-
-Then install `gromacs_py`:
-
-.. code-block:: bash
-
-	conda install gromacs_py
+	pip install gromacs_py
 
 In a new environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,8 +57,6 @@ Finally test the installation using `pytest`:
 Without Conda
 ---------------------------------------
 
-
-
 Get the gromacs_py library from `github`_.
 
 .. code-block:: bash
@@ -79,22 +69,23 @@ Get the gromacs_py library from `github`_.
 Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. python 3 libraries:  
+1. python 3 libraries installed when you launch the pip command:  
 	* numpy
 	* scipy
 	* pandas
 	* matplotlib
 	* Sphinx and sphinx-argparse (only for building documentation)
+	* `Os_Command_py`_
+	* `PDB_Manip_py`_
+	* `PDB2PQR`_ using the package `pdb2pqr_htmd_propka30`_ a python 3 version developped by `tonigi`_ and adapted to use successfully propka3.0.
 
-2. `pdb2pqr`_:
+.. _Os_Command_py: https://github.com/samuelmurail/os_command_py
+.. _PDB_Manip_py: https://github.com/samuelmurail/pdb_manip_py
+.. _PDB2PQR: http://www.poissonboltzmann.org/
+.. _pdb2pqr_htmd_propka30: https://github.com/samuelmurail/apbs-pdb2pqr/tree/htmd-fixups
+.. _tonigi: https://github.com/tonigi/apbs-pdb2pqr
 
-.. code-block:: bash
-
-	git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
-	cd apbs-pdb2pqr/pdb2pqr/
-	python scons/scons.py install --prefix=$HOME
-
-3. `Gromacs`_
+2. `Gromacs`_
 
 Get source code from `gromacs website`__ and follow the following command for a quick and dirty install (for more details see `gromacs 2019 install guide`__)
 
@@ -120,7 +111,6 @@ In my case I add to change few options to ``cmake``:
 	source ../../local-gromacs-2019.2/bin/GMXRC
 
 
-.. _pdb2pqr: http://www.poissonboltzmann.org/
 .. _Gromacs: http://www.gromacs.org/
 __ http://manual.gromacs.org/documentation/
 __ http://manual.gromacs.org/documentation/2019/install-guide/index.html
@@ -135,8 +125,6 @@ Add in your ~/.bashrc :
 
 	# Add gromacs 'gmx' path:
 	export PATH='*path_to_gromacs*/bin/':$PATH
-	# Add pdb2pqr 'pdb2pqr.py' path:
-	export PATH='*path_to_apbs-pdb2pqr/pdb2pqr/':$PATH
 
 
 Make the documentation
@@ -168,10 +156,16 @@ Launch test with `doctest`_, will check that module’s docstrings are up-to-dat
 
 .. code-block:: bash
 
-	$ ./test_gromacs_py.py
-	tools.os_command:  	 TestResults(failed=0, attempted=19)
-	tools.pdb_manip:	 TestResults(failed=0, attempted=127)
-	tools.pdb2pqr:  	 TestResults(failed=0, attempted=11)
-	gromacs.gmx5:    	 TestResults(failed=0, attempted=52)
+	$ pytest
+	================================= test session starts =================================
+	platform darwin -- Python 3.7.6, pytest-5.4.1, py-1.8.1, pluggy-0.13.1
+	rootdir: /Users/smurail/Documents/Code/gromacs_py_test, inifile: pytest.ini
+	plugins: cov-2.8.1
+	collected 13 items
+
+	gromacs_py/gromacs/gmx5.py ...........                                          [ 84%]
+	gromacs_py/gromacs/tools/monitor.py ..                                          [100%]
+
+	=========================== 13 passed in 103.74s (0:01:43) ============================
 
 .. _doctest: https://docs.python.org/3/library/doctest.html
