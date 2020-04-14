@@ -2,12 +2,9 @@ name: gromacs_py
 channels:
   - conda-forge
   - bioconda
-  - acellera
 dependencies:
   - python=3.7
-  - gromacs 
-  - htmd-pdb2pqr
+  - gromacs=2019.1 
   - pip
   - pip:
     - gromacs_py
-

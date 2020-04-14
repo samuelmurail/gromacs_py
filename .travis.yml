@@ -8,8 +8,6 @@ language: generic
 os:
   - linux
 
-sudo: false
-
 git:
   depth: false
 
