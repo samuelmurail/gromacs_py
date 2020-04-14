@@ -11,6 +11,10 @@ import copy
 import pandas as pd
 from shutil import copy as shutil_copy
 
+from os_command_py import os_command
+from pdb_manip_py import pdb_manip
+from pdb_manip_py import pdb2pqr
+
 # Needed because relative imports ..tools don't work
 # Need to define package to gromacs_py to import ..tools
 # Otherwise package will be gromacs and won't know gromacs_py.tools
@@ -20,15 +24,9 @@ from shutil import copy as shutil_copy
 # In case gmx5 is launched as main, relative import will failed
 try:
     from .tools import monitor
-    from .tools import os_command
-    from .tools import pdb_manip
-    from .tools import pdb2pqr
 except ImportError:
     print("Relative import from .tools fails, use absolute import instead")
     import tools.monitor as monitor
-    import tools.os_command as os_command
-    import tools.pdb_manip as pdb_manip
-    import tools.pdb2pqr as pdb2pqr
 
 
 # Autorship information

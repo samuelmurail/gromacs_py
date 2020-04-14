@@ -44,6 +44,12 @@ setup(
         "sphinx_rtd_theme",
         "sphinx-argparse",
         "nbsphinx",
+        "pytest",
+        "codecov",
+        "pytest-cov",
+        "os_command_py",
+        "pdb2pqr_htmd_propka30",
+        "pdb_manip_py",
     ],
     include_package_data=True,
 )

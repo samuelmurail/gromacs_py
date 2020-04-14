@@ -23,7 +23,6 @@ env:
     - PYTHON_VERSION=3.6
     - CONDA_DEPENDENCIES="gromacs pandoc ipython"
     - CONDA_CHANNELS="conda-forge bioconda"
-    - PIP_DEPENDENCIES="pytest==5.2.2 codecov pytest-cov"
 
 matrix:
     include:
@@ -41,11 +40,11 @@ install:
   # Install gromacs_py
   - pip install -r requirements.txt
   # Install pdb2pqr
-  - cd ..
-  - git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
-  - cd apbs-pdb2pqr/pdb2pqr/
-  - python2 scons/scons.py install 
-  - export PATH="${HOME}/pdb2pqr/:$PATH"
+  # - cd ..
+  # - git clone https://github.com/Electrostatics/apbs-pdb2pqr.git --branch master --depth=1
+  # - cd apbs-pdb2pqr/pdb2pqr/
+  # - python2 scons/scons.py install 
+  # - export PATH="${HOME}/pdb2pqr/:$PATH"
 
 script:
   - cd ${TRAVIS_BUILD_DIR}

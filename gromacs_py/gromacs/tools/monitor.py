@@ -12,7 +12,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from . import os_command
+from os_command_py import os_command
 
 
 # Autorship information
