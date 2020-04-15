@@ -1,7 +1,7 @@
 numpy
 scipy
 pandas
-matplotlib
+matplotlib==3.2.1
 sphinx-argparse
 sphinx_rtd_theme
 nbsphinx
