@@ -2,7 +2,7 @@ numpy
 scipy
 pandas
 matplotlib
-sphinx-argparse
+sphinx-argparse==0.2.5
 sphinx_rtd_theme
 nbsphinx
 pytest
