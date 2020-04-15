@@ -1,6 +1,6 @@
 numpy==1.18.2
 scipy==1.4.1
-pandas
+pandas==1.0.3
 matplotlib
 sphinx-argparse
 sphinx_rtd_theme
