@@ -8,6 +8,6 @@ nbsphinx==0.6.0
 pytest==5.4.1
 codecov==2.0.22
 pytest-cov==2.8.1
-os_command_py
+os_command_py==1.0.3
 pdb2pqr_htmd_propka30
 pdb_manip_py
