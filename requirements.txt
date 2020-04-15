@@ -7,7 +7,7 @@ sphinx_rtd_theme
 nbsphinx
 pytest
 codecov
-pytest-cov
+pytest-cov==2.8.1
 os_command_py
 pdb2pqr_htmd_propka30
 pdb_manip_py
