@@ -6,7 +6,7 @@ sphinx-argparse
 sphinx_rtd_theme
 nbsphinx
 pytest
-codecov
+codecov==2.0.22
 pytest-cov
 os_command_py
 pdb2pqr_htmd_propka30
