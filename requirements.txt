@@ -5,7 +5,7 @@ matplotlib==3.2.1
 sphinx-argparse==0.2.5
 sphinx_rtd_theme==0.4.3
 nbsphinx==0.6.0
-pytest
+pytest==5.4.1
 codecov
 pytest-cov
 os_command_py
