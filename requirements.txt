@@ -1,5 +1,5 @@
 numpy
-scipy
+scipy==1.4.1
 pandas
 matplotlib
 sphinx-argparse
