@@ -3,7 +3,7 @@ scipy
 pandas
 matplotlib
 sphinx-argparse
-sphinx_rtd_theme
+sphinx_rtd_theme==0.4.3
 nbsphinx
 pytest
 codecov
