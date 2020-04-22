@@ -437,7 +437,7 @@ class Itp:
                     # Remove commentary in the line
                     line_comment = line.split(';')
                     line_list = line_comment[0].split()
-                    #print(line_list)
+                    # print(line_list)
 
                     if field == 'moleculetype':
                         # Check if a top_mol already exist, if yes append it to the top_mol_list
@@ -509,7 +509,7 @@ class Itp:
                                                            'ky': ky, 'kz': kz})
                         else:
                             local_top.pos_restr.append({'ai': int(ai), 'funct': int(funct), 'kx': kx,
-                                                           'ky': ky, 'kz': kz})
+                                                        'ky': ky, 'kz': kz})
 
                     # else:
                     #   raise ValueError('Unknown field : '+field)
@@ -734,12 +734,10 @@ class TopMol:
                     filout.write("\n#ifdef " + param['def'] + "\n")
                     filout.write("\n[ position_restraints ]\n;  ai    funct         kx          ky          kz\n")
 
-
                 filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(param['ai'], param['funct'],
                                                                   param['kx'], param['ky'],
                                                                   param['kz']))
             filout.write("#endif\n\n")
-    
 
     def delete_atom(self, index_list):
         # Remove atom:
@@ -878,8 +876,8 @@ class TopMol:
                         res_name = 'CYX'
                     elif forcefield['name'].startswith('charmm'):
                         res_name = 'CYS2'
-            #print(atom)
-            #print(ff_rtp.res_dict[res_name]['atom'][atom_name])
+            # print(atom)
+            # print(ff_rtp.res_dict[res_name]['atom'][atom_name])
             atom_type = ff_rtp.res_dict[res_name]['atom'][atom_name]['type']
             atom_charge = ff_rtp.res_dict[res_name]['atom'][atom_name]['charge']
             if atom_type != atom['atom_type']:
@@ -940,8 +938,8 @@ class Rtp:
                             atom_charge = float(line_list[2])
                             charge_group = int(line_list[3])
                             atom_dict[atom_name] = {"type": atom_type,
-                                                 "charge": atom_charge,
-                                                 "charge_group": charge_group}
+                                                    "charge": atom_charge,
+                                                    "charge_group": charge_group}
 
                         elif field == 'bonds':
                             bond_list.append({'ai': line_list[0],
