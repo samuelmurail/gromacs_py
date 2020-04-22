@@ -36,6 +36,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
+    python_requires='>=3.0',
     install_requires=[
         "numpy",
         "scipy",
@@ -51,5 +52,14 @@ setup(
         "pdb2pqr_htmd_propka30",
         "pdb_manip_py",
     ],
-    include_package_data=True,
+    package_data={
+        'gromacs_py': ['gromacs/template/*mdp',
+                       'gromacs/template/charmm36-jul2017.ff/*',
+                       'test/input/*pdb'],
+    },
+    project_urls={
+        'Bug Reports': 'https://github.com/samuelmurail/gromacs_py/issues',
+        'Funding': 'https://www.impots.gouv.fr/portail/',
+        'Source': 'https://github.com/samuelmurail/gromacs_py',
+    },
 )
