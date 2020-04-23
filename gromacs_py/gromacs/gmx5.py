@@ -3101,7 +3101,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type out_folder: str
 
         :param check_file_out: flag to check or not if file has already
-        been created. If the file is present then the command break.
+            been created. If the file is present then the command break.
         :type check_file_out: bool, optional, default=True
 
         **Object requirement(s):**
@@ -3344,7 +3344,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type folder_out: str, default=""
 
         :param check_file_out: flag to check or not if file has already been
-        created. If the file is present then the command break.
+            created. If the file is present then the command break.
         :type check_file_out: bool, optional, default=True
 
         **Object requirement(s):**
@@ -3407,7 +3407,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type folder_out: str, default=""
 
         :param check_file_out: flag to check or not if file has already
-        been created. If the file is present then the command break.
+            been created. If the file is present then the command break.
         :type check_file_out: bool, optional, default=True
 
         **Object requirement(s):**
@@ -3455,7 +3455,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type folder_out: str, default=""
 
         :param check_file_out: flag to check or not if file has already
-        been created. If the file is present then the command break.
+            been created. If the file is present then the command break.
         :type check_file_out: bool, optional, default=True
 
         **Object requirement(s):**
@@ -3518,7 +3518,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type folder_out: str, default=""
 
         :param check_file_out: flag to check or not if file has already
-        been created. If the file is present then the command break.
+            been created. If the file is present then the command break.
         :type check_file_out: bool, optional, default=True
 
         :param \**grompp_options: Optional arguments for ``gmx grompp``
@@ -3591,11 +3591,11 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         Launch the simulation using ``gmx mdrun``
 
         :param check_file_out: flag to check or not if file has already been
-        created. If the file is present then the command break.
+            created. If the file is present then the command break.
         :type check_file_out: bool, optional, default=True
 
         :param cpi: checkpoint file, if defined, it will restart a simulation
-        and run ``nsteps``.
+            and run ``nsteps``.
         :type cpi: str, default=None
 
         :param nsteps: Number of steps to run, (-2 : will use mdp parameter)
@@ -3605,8 +3605,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type rerun: bool, default=False
 
         :param monitor: option to monitor a simulation, if not none monitor
-        should contains two values: ``function`` the function to be ran while
-        simulation is running and ``input`` parameters for the function.
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function.
         :type rerun: dict, default=None
 
         **Object requirement(s):**
@@ -3744,8 +3745,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type maxwarn: int, default=0
 
         :param monitor: option to monitor a simulation, if not none monitor
-        should contains two values: ``function`` the function to be ran while
-        simulation is running and ``input`` parameters for the function
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
         :type rerun: dict, default=None
 
         **Object requirement(s):**
@@ -3804,11 +3806,11 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type nsteps: int, default=1000
 
         :param posres: option for the ``define`` variable in the mdp file,
-        need to be define to have postion restraints
+            need to be define to have postion restraints.
         :type posres: str, default=""
 
         :param create_box_flag: flag to create or not a box to the input coor
-        file.
+            file.
         :type create_box_flagt: bool, optional, default=False
 
         :param mdp_options: Additional mdp parameters to use
@@ -3865,12 +3867,11 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type constr_nsteps: int, default=1000
 
         :param posres: option for the ``define`` variable in the mdp file,
-        need to be \
-        define to have postion restraints
+            need to be define to have postion restraints.
         :type posres: str, default=""
 
         :param create_box_flag: flag to create or not a box to the input coor
-        file.
+            file.
         :type create_box_flag: bool, optional, default=False
 
         :param mdp_options: Additional mdp parameters to use
@@ -3935,7 +3936,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type nsteps_CA: int, default=200000
 
         :param nsteps_CA_LOW: number of equilibration steps with CA_LOW
-        constraints
+            constraints
         :type nsteps_CA_LOW: int, default=400000
 
         :param dt_HA: integration time step for HA equilibration
@@ -4046,7 +4047,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type nsteps_CA: int, default=200000
 
         :param nsteps_CA_LOW: number of equilibration steps with CA_LOW
-        constraints
+            constraints
         :type nsteps_CA_LOW: int, default=400000
 
         :param dt_HA: integration time step for HA equilibration
