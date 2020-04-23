@@ -1872,8 +1872,9 @@ separate file: no_cyclic_5vav_amber_pdb2gmx.itp
             dihe_func = 9
             dihe_impr_func = 2
 
-        # Delete useless ter atoms:
-        del_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H2', 'H3'], 'res_num': [1]}) +\
+        # Delete useless ter atoms (HN1 and HN2 are for PRO):
+        to_del_name_n_ter = ['H2', 'H3', 'HN2', 'HN1']
+        del_index = mol_top.get_selection_index(selec_dict={'atom_name': to_del_name_n_ter, 'res_num': [1]}) +\
             mol_top.get_selection_index(selec_dict={'atom_name': ['OT2', 'OC2'], 'res_num': [res_num]})
 
         mol_top.delete_atom(index_list=del_index)
@@ -1882,8 +1883,11 @@ separate file: no_cyclic_5vav_amber_pdb2gmx.itp
         #chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
         #mol_top.atom_dict[chg_index]['atom_type'] = N_type
         #mol_top.atom_dict[chg_index]['charge'] = -0.470
-        chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H1'], 'res_num': [1]})[0]
-        mol_top.atom_dict[chg_index]['atom_name'] = HN_name
+
+        if mol_top.atom_dict[1]['res_name'] != 'PRO':
+            chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['H1', 'HN1'], 'res_num': [1]})[0]
+            mol_top.atom_dict[chg_index]['atom_name'] = HN_name
+
         #mol_top.atom_dict[chg_index]['atom_type'] = HN_type
         #mol_top.atom_dict[chg_index]['charge'] = 0.310
         #chg_index = mol_top.get_selection_index(selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
@@ -2040,7 +2044,7 @@ separate file: no_cyclic_5vav_amber_pdb2gmx.itp
         # Correct pdb file:
         coor_pep = pdb_manip.Coor()
         coor_pep.read_pdb(self.coor_file, pqr_format=False)
-        to_del_index = coor_pep.get_index_selection(selec_dict={'name': ['H2', 'H3'], 'res_num': [1]})\
+        to_del_index = coor_pep.get_index_selection(selec_dict={'name': to_del_name_n_ter, 'res_num': [1]})\
             + coor_pep.get_index_selection(selec_dict={'name': ['OT2', 'OC2'], 'res_num': [res_num]})
 
         coor_pep.del_atom_index(to_del_index)
