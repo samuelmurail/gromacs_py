@@ -1815,8 +1815,8 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
                                 check_file_out=True)
 
         # Correct His resname
-        coor_in = pdb_manip.Coor()
-        coor_in.read_pdb(pdb_in="00_" + name + ".pqr", pqr_format=True)
+        coor_in = pdb_manip.Coor(pdb_in="00_" + name + ".pqr",
+                                 pqr_format=True)
         coor_in.correct_his_name()
         coor_in.correct_cys_name()
         coor_in.correct_water_name()
@@ -2239,8 +2239,7 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         self.top_file = os.path.join(out_folder, name + "_pdb2gmx.top")
 
         # Correct pdb file:
-        coor_pep = pdb_manip.Coor()
-        coor_pep.read_pdb(self.coor_file, pqr_format=False)
+        coor_pep = pdb_manip.Coor(self.coor_file)
         to_del_index = coor_pep.get_index_selection(
             selec_dict={'name': to_del_name_n_ter, 'res_num': [1]})\
             + coor_pep.get_index_selection(
@@ -3149,8 +3148,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         # Before doing the concat, Change the chain of mol_pdb to "Y",
         # this step is necessary for vmd to reognize the inserted mol
-        mol_coor = pdb_manip.Coor()
-        mol_coor.read_pdb(mol_gromacs.coor_file)
+        mol_coor = pdb_manip.Coor(mol_gromacs.coor_file)
         mol_coor.change_pdb_field({"chain": "Y"})
         mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
         mol_length = int(mol_coor.get_aa_num() / mol_num)
@@ -3172,8 +3170,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         # Do the molecule insertion with the pdb_manip module:
 
-        sys_pdb = pdb_manip.Coor()
-        sys_pdb.read_pdb(concat_sys)
+        sys_pdb = pdb_manip.Coor(concat_sys)
 
         sys_pdb.insert_mol(pdb_out=new_name + ".pdb", out_folder=".",
                            mol_chain="Y",
@@ -3201,8 +3198,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                               mol_num=mol_num)
 
         # Get the new water num after peptide insertion:
-        sys_dict = pdb_manip.Coor()
-        sys_dict.read_pdb(pdb_in=self.coor_file)
+        sys_dict = pdb_manip.Coor(pdb_in=self.coor_file)
         water_res = sys_dict.get_attribute_selection(
             selec_dict={"res_name": ["SOL"]}, attribute='uniq_resid')
         print("Water num:", len(water_res))
