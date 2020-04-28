@@ -961,14 +961,38 @@ class TopMol:
                         res_name = 'CYX'
                     elif forcefield['name'].startswith('charmm'):
                         res_name = 'CYS2'
+
+            # With gromacs all histidine are called HIS !
+            if res_name == 'HIS':
+                if len(self.get_selection_index(
+                        selec_dict={'res_num': [resid],
+                                    'res_name': ['HIS']})) == 18:
+                    if forcefield['name'].startswith('amber'):
+                        res_name = 'HIP'
+                    elif forcefield['name'].startswith('charmm'):
+                        res_name = 'HSP'
+                elif len(self.get_selection_index(
+                        selec_dict={'res_num': [resid],
+                                    'atom_name': ['HE2']})) == 1:
+                    if forcefield['name'].startswith('amber'):
+                        res_name = 'HIE'
+                    elif forcefield['name'].startswith('charmm'):
+                        res_name = 'HSE'
+                else:
+                    if forcefield['name'].startswith('amber'):
+                        res_name = 'HID'
+                    elif forcefield['name'].startswith('charmm'):
+                        res_name = 'HSD'
+
             # print(atom)
             # print(ff_rtp.res_dict[res_name]['atom'][atom_name])
             atom_type = ff_rtp.res_dict[res_name]['atom'][atom_name]['type']
             atom_charge = \
                 ff_rtp.res_dict[res_name]['atom'][atom_name]['charge']
             if atom_type != atom['atom_type']:
-                print('Correct residue {:4} atom type {:4} to {:4}'.format(
-                    res_name, atom['atom_type'], atom_type))
+                print('Correct residue {:4} atom {:4} atom type {:4} '
+                      'to {:4}'.format(res_name, atom['atom_name'],
+                                       atom['atom_type'], atom_type))
             self.atom_dict[atom_num]['atom_type'] = atom_type
             self.atom_dict[atom_num]['charge'] = atom_charge
 
@@ -1892,10 +1916,10 @@ extract the topologie in a separate file: no_cyclic_5vav_pdb2gmx.itp
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_pdb2gmx.top
         Read rtp file : ...charmm36-jul2017.ff/merged.rtp
-        Correct residue GLY  atom type NH3  to NH1...
-        Correct residue GLY  atom type HC   to H  ...
-        Correct residue ASP  atom type CC   to C  ...
-        Correct residue ASP  atom type OC   to O  ...
+        Correct residue GLY  atom N    atom type NH3  to NH1...
+        Correct residue GLY  atom HN   atom type HC   to H  ...
+        Correct residue ASP  atom C    atom type CC   to C  ...
+        Correct residue ASP  atom O    atom type OC   to O  ...
         Protein_chain_A
         Succeed to read file ...cyclic/top/no_cyclic_5vav_pdb2gmx.pdb ,  \
 212 atoms found
@@ -1961,10 +1985,10 @@ extract the topologie in a separate file: no_cyclic_5vav_amber_pdb2gmx.itp
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_amber_pdb2gmx.top
         Read rtp file : ...amber99sb-ildn.ff/aminoacids.rtp
-        Correct residue GLY  atom type N3   to N ...
-        Correct residue GLY  atom type HP   to H1...
-        Correct residue GLY  atom type HP   to H1...
-        Correct residue ASP  atom type O2   to O ...
+        Correct residue GLY  atom N    atom type N3   to N ...
+        Correct residue GLY  atom HA1  atom type HP   to H1...
+        Correct residue GLY  atom HA2  atom type HP   to H1...
+        Correct residue ASP  atom O    atom type O2   to O ...
         Protein_chain_A
         Succeed to read file ...cyclic/top/no_cyclic_5vav_amber_pdb2gmx.pdb \
 ,  212 atoms found
