@@ -53,7 +53,12 @@ setup(
         "pdb_manip_py",
     ],
     package_data={
-        'gromacs_py': ['gromacs/template/*mdp',
+        'gromacs_py': ['LICENSE',
+                       'README.rst',
+                       'gromacs_py/doc/*rst',
+                       'gromacs_py/doc/*py',
+                       'gromacs_py/doc/notebook/00_basic_example.ipynb',
+                       'gromacs/template/*mdp',
                        'gromacs/template/charmm36-jul2017.ff/*',
                        'test/input/*pdb'],
     },
