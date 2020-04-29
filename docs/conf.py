@@ -31,6 +31,7 @@ release = u''
 import sys
 import os
 
+sys.path.append('../')
 
 # -- General configuration ---------------------------------------------------
 
