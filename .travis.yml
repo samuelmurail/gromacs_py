@@ -27,6 +27,8 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.5
         - os: linux
+          env: GROMACS_VERSION=2020.2
+        - os: linux
           env: PYTHON_VERSION=3.7
         - os: osx
           env: GROMACS_VERSION=2018.5
