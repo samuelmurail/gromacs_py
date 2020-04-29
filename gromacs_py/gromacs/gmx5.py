@@ -2710,7 +2710,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
     def add_ions(self, out_folder, name=None, ion_C=0.15, pname="NA",
                  nname="CL", solv_name="SOL", check_file_out=True):
-        r"""Add ion in a system to neutralise the sys_charge and to reach the
+        """Add ion in a system to neutralise the sys_charge and to reach the
         ionic concentration ``ion_C``.
 
         Ion number are computed using the water number and the charge of the
