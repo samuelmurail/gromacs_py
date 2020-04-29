@@ -26,8 +26,8 @@ matrix:
     include:
         - os: linux
           env: PYTHON_VERSION=3.5
-        - os: linux
-          env: GROMACS_VERSION=2020
+#        - os: linux
+#          env: GROMACS_VERSION=2020 # Still not working
         - os: linux
           env: PYTHON_VERSION=3.8
         - os: osx

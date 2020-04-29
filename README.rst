@@ -47,14 +47,9 @@ Main features:
    - Position constraints file ``.itp`` creation
    - Cyclic petide topologie
 
-* Coordinate manipulation:
-   - Changing atom names, chain, coordinates, ...
-   - Insertion of *N* copy of a molecule in a system for *flooding* simulation
-   - Linear peptide creation
-
 * Advanced simulation tools:
    - Monitor a simulation while running
-   - Interrupt a simulation if a criterion is met
+   - Interrupt a simulation if a criterion is met (Not implemented yet)
 
 
 Compatibility
@@ -69,6 +64,7 @@ Compatibility
    - 5.0
 
 * Supported Python versions:
+   - 3.8*
    - 3.7*
    - 3.6*
    - 3.5*
@@ -109,25 +105,25 @@ Seven successive steps are used:
 .. code-block:: bash
 
    # Create topologie
-   gromacs_py/create_top.py -f gromacs_py/test/input/1y0m.pdb  -o tmp/1y0m/top -vsite
+   create_top.py -f gromacs_py/test/input/1y0m.pdb  -o tmp/1y0m/top -vsite
 
    # Minimize the protein structure
-   gromacs_py/minimize_pdb.py -f tmp/1y0m/top/1y0m_pdb2gmx_box.pdb -p tmp/1y0m/top/1y0m_pdb2gmx.top -o tmp/1y0m/em/  -n em_1y0m -nt 2
+   minimize_pdb.py -f tmp/1y0m/top/1y0m_pdb2gmx_box.pdb -p tmp/1y0m/top/1y0m_pdb2gmx.top -o tmp/1y0m/em/  -n em_1y0m -nt 2
 
    # Add water and ions
-   gromacs_py/solvate_ions.py -f tmp/1y0m/em/em_1y0m_compact.pdb -p tmp/1y0m/top/1y0m_pdb2gmx.top -o tmp/1y0m_water_ions/top/  -n 1y0m_water_ions
+   solvate_ions.py -f tmp/1y0m/em/em_1y0m_compact.pdb -p tmp/1y0m/top/1y0m_pdb2gmx.top -o tmp/1y0m_water_ions/top/  -n 1y0m_water_ions
 
    # Minimize the system
-   gromacs_py/minimize_pdb.py -f tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.gro -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/em/  -n em_1y0m
+   minimize_pdb.py -f tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.gro -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/em/  -n em_1y0m
 
    # Do three small equilibrations with postion contraints on heavy atoms (first), Carbon alpha (second) and low constraint on Carbon alpha (third)
-   gromacs_py/equi_3_step.py -f tmp/1y0m_water_ions/em/em_1y0m_compact.pdb -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/  -n 1y0m -HA_time 0.1 -CA_time 0.1 -CA_LOW_time 0.1
+   equi_3_step.py -f tmp/1y0m_water_ions/em/em_1y0m_compact.pdb -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/  -n 1y0m -HA_time 0.1 -CA_time 0.1 -CA_LOW_time 0.1
 
    # Small production run of 0.1 ns
-   gromacs_py/production.py -f tmp/1y0m_water_ions/02_equi_CA_LOW/equi_CA_LOW_1y0m.gro -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/03_prod -n 1y0m -time 0.1
+   production.py -f tmp/1y0m_water_ions/02_equi_CA_LOW/equi_CA_LOW_1y0m.gro -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/03_prod -n 1y0m -time 0.1
 
    # Extension of the simulation
-   gromacs_py/extend.py -s tmp/1y0m_water_ions/03_prod/prod_1y0m.tpr -time 0.2
+   extend.py -s tmp/1y0m_water_ions/03_prod/prod_1y0m.tpr -time 0.2
 
    # Remove simulation files
    rm -r ./tmp
@@ -136,7 +132,7 @@ Or simply use one command to do all previous commands:
 
 .. code-block:: bash
 
-   gromacs_py/top_em_equi_3_step_prod.py -f gromacs_py/test/input/1y0m.pdb -o tmp/1y0m -vsite -HA_time 0.1 -CA_time 0.1 -CA_LOW_time 0.1 -prod_time 0.3
+   top_em_equi_3_step_prod.py -f gromacs_py/test/input/1y0m.pdb -o tmp/1y0m -vsite -HA_time 0.1 -CA_time 0.1 -CA_LOW_time 0.1 -prod_time 0.3
 
 Authors
 ---------------------------------------
