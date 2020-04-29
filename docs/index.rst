@@ -12,12 +12,16 @@
    :caption: Table of Contents:
 
    readme
-   install
+   installation
    notebook/00_basic_example.ipynb
    gmx_sys
    gmx_top
    tools
    script
+   contributing
+   authors
+   history
+
 
 Indices and tables
 ------------------
