@@ -18,7 +18,7 @@ branches:
 env:
   global:
     - GROMACS_VERSION=2019.1 
-    - PYTHON_VERSION=3.6
+    - PYTHON_VERSION=3.7
     - CONDA_DEPENDENCIES="gromacs pandoc ipython"
     - CONDA_CHANNELS="conda-forge bioconda"
 
@@ -27,9 +27,9 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.5
         - os: linux
-          env: GROMACS_VERSION=2020.2
+          env: GROMACS_VERSION=2020.1
         - os: linux
-          env: PYTHON_VERSION=3.7
+          env: PYTHON_VERSION=3.8
         - os: osx
           env: GROMACS_VERSION=2018.5
 
