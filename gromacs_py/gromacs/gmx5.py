@@ -2710,7 +2710,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
     def add_ions(self, out_folder, name=None, ion_C=0.15, pname="NA",
                  nname="CL", solv_name="SOL", check_file_out=True):
-        """Add ion in a system to neutralise the sys_charge and to reach the
+        r"""Add ion in a system to neutralise the sys_charge and to reach the
         ionic concentration ``ion_C``.
 
         Ion number are computed using the water number and the charge of the
@@ -2977,9 +2977,9 @@ sytem charge = 0.0 water num= 62...
         """Create a linear peptide structure and topologie:
 
             1. Create a peptide with pymol with one more residue G at the
-                beginning of the peptide. This residue will then be change to an
-                ACE. NH2 terminaison raise some issue with virtual sites and
-                cannot be used.
+                beginning of the peptide. This residue will then be change to
+                an ACE. NH2 terminaison raise some issue with virtual sites
+                and cannot be used.
             2. Create the topologie using ``add_top()``
             3. Minimise the structure using ``em()``
             4. Do a vacuum equilibration of the peptide using ``run_md_sim()``
