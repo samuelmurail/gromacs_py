@@ -17,7 +17,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gromacs_py',
-    version="1.0.2",
+    version="1.0.3",
     packages=find_packages(),
     description='Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software.',
     long_description=open('README.rst', encoding='utf-8').read(),
@@ -53,11 +53,9 @@ setup(
         "pdb_manip_py",
     ],
     package_data={
-        'gromacs_py': ['LICENSE',
-                       'README.rst',
-                       'gromacs_py/doc/*rst',
-                       'gromacs_py/doc/*py',
-                       'gromacs_py/doc/notebook/00_basic_example.ipynb',
+        'gromacs_py': ['doc/*rst',
+                       'doc/*py',
+                       'doc/notebook/00_basic_example.ipynb',
                        'gromacs/template/*mdp',
                        'gromacs/template/charmm36-jul2017.ff/*',
                        'test/input/*pdb'],
