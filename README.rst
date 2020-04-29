@@ -1,13 +1,9 @@
-
-
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1455734.svg
    :target: https://doi.org/10.5281/zenodo.1455734
-
 
 .. image:: https://readthedocs.org/projects/gromacs-py/badge/?version=latest
    :target: https://gromacs-py.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-
 
 .. image:: https://travis-ci.org/samuelmurail/gromacs_py.svg?branch=master
     :target: https://travis-ci.org/samuelmurail/gromacs_py
@@ -17,6 +13,9 @@
 
 .. image:: https://anaconda.org/samuel.murail/gromacs_py/badges/version.svg
   :target: https://anaconda.org/samuel.murail/gromacs_py
+
+.. image:: https://badge.fury.io/py/gromacs-py.svg
+   :target: https://badge.fury.io/py/gromacs-py
 
 Gromacs_py
 =======================================
