@@ -7,12 +7,12 @@ import doctest
 import shutil
 
 # Module to test:
-import gromacs.gmx5
+import gromacs_py.gromacs.gmx5 as gmx
 
 __author__ = "Samuel Murail"
 
 
-print("gromacs location package :",gromacs.gmx5.__file__)
-print("gromacs.gmx5:    \t", doctest.testmod(gromacs.gmx5))
+print("gromacs location package :", gmx.__file__)
+print("gromacs.gmx5:    \t", doctest.testmod(gmx))
 
 shutil.rmtree('gromacs_py_test_out', ignore_errors=True)

@@ -50,7 +50,7 @@ script:
   # Need to add --ignore to avoid weird error, see: https://github.com/pytest-dev/pytest/issues/4782
   - pytest --ignore ci-helpers --cov-report=xml --cov=gromacs_py 
   # Build Doc:
-  - cd gromacs_py/doc
+  - cd docs
   - sphinx-build -b html . _build
 
 after_success:

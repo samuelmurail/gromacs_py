@@ -229,7 +229,7 @@ def print_log_file(proc, func_input_dict, tail_line_num=20):
     The ``func_input_dict`` should contains several keys:
 
     * `terms`: list of energetic terms to extract, eg. ['Potential',
-    'Temperature']
+        'Temperature']
     * `log`: path of the log file (Defined in ``os_command.run_background()``)
     * `refresh_time`: time interval to refresh log extract (default=1.0 s)
 

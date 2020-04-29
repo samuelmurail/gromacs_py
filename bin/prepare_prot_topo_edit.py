@@ -4,8 +4,11 @@
 atoms position restraints, (ii) second equilibration with alpha carbon position \
 restraints and (iii) finaly equilibration with weak alpha carbon position restraints
 """
+
 import argparse
-import gromacs.gmx5 as gmx
+import gromacs_py.gromacs.gmx5 as gmx
+
+print(gmx.__file__)
 
 __author__ = "Samuel Murail"
 
@@ -21,7 +24,8 @@ def parser_input():
     # Input
     parser.add_argument('-f', action="store", dest="f",
                         help='Input PDB file', required=True)
-
+    parser.add_argument('-p', action="store", dest="p",
+                        help='Input topology file', default="None")
     # Output
     parser.add_argument('-o', action="store", dest="o",
                         help='Output Directory', type=str, required=True)
@@ -46,17 +50,14 @@ def parser_input():
     parser.add_argument('-CA_LOW_time', action="store", dest="CA_LOW_time",
                         help='Equilibration with HA constraint time(ns), default = 10 ns',
                         type=float, default=10)
-
+    parser.add_argument('-maxwarn', action="store", dest="maxwarn",
+                        help='Total number of warnings allowed for the equilibration, default=0', type=int,
+                        default=0)
     parser.add_argument('-dt_HA', action="store", dest="dt_HA",
                         help='Equi HA dt, default=0.002 (2 fs)', type=float, default=0.002)
     parser.add_argument('-dt', action="store", dest="dt",
                         help='Equi CA, CA_LOW, dt, default=0.005 (5 fs)', type=float,
                         default=0.005)
-
-    parser.add_argument('-maxwarn', action="store", dest="maxwarn",
-                        help='Total number of warnings allowed for the equilibration, default=0', type=int,
-                        default=0)
-
     parser.add_argument('-nt', action="store", dest="nt",
                         help='Total number of threads to start, default=0', type=float,
                         default=0)
@@ -83,8 +84,8 @@ if __name__ == "__main__":
             exit
 
     sys_name = args.name
-    min_steps = args.min_steps
     maxwarn = args.maxwarn
+    min_steps = args.min_steps
     dt_HA = args.dt_HA
     dt = args.dt
     HA_step = 1000 * args.HA_time / dt_HA
@@ -97,13 +98,17 @@ if __name__ == "__main__":
     sys_top_folder = args.o + "/top_sys/"
     sys_em_equi_folder = args.o + "/em_equi_sys/"
 
-    prot_sys = gmx.GmxSys(name=sys_name, coor_file=args.f)
+    if args.p != "None":
+        prot_sys = gmx.GmxSys(name=sys_name, coor_file=args.f, top_file=args.p)
+    else:
+        prot_sys = gmx.GmxSys(name=sys_name, coor_file=args.f)
     prot_sys.nt = args.nt
     prot_sys.ntmpi = args.ntmpi
     if args.gpuid != "None":
         prot_sys.gpu_id = args.gpuid
 
-    prot_sys.prepare_top(out_folder=prot_top_folder, vsite=vsite)
+    if args.p == "None":
+        prot_sys.prepare_top(out_folder=prot_top_folder, vsite=vsite)
 
     prot_sys.create_box(dist=1.0, box_type="dodecahedron", check_file_out=True)
 

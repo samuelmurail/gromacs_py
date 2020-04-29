@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = u'Gromacs Py'
+project = u'Gromacs Python'
 copyright = u'2018, Samuel Murail'
 author = u'Samuel Murail'
 
@@ -30,9 +30,6 @@ release = u''
 
 import sys
 import os
-sys.path.insert(0, os.path.abspath('../'))
-sys.path.insert(0, os.path.abspath('../gromacs/'))
-sys.path.insert(0, os.path.abspath('../../'))
 
 
 # -- General configuration ---------------------------------------------------
@@ -122,7 +119,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'GromacsLibdoc'
+htmlhelp_basename = 'GromacsPyDoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -159,7 +156,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'gromacslib', u'Gromacs Py Documentation',
+    (master_doc, 'gromacs_py', u'Gromacs Py Documentation',
      [author], 1)
 ]
 
@@ -170,8 +167,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'GromacsLib', u'Gromacs Py Documentation',
-     author, 'GromacsLib', 'One line description of project.',
+    (master_doc, 'Gromacs_py', u'Gromacs Py Documentation',
+     author, 'GromacsPy', 'One line description of project.',
      'Miscellaneous'),
 ]
 
