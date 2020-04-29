@@ -9,7 +9,7 @@ Create topologie
 ---------------------------------------
 
 .. argparse::
-   :filename: ../create_top.py
+   :filename: ../bin/create_top.py
    :func: parser_input
    :prog: create_top.py
    :nodefault:
@@ -19,7 +19,7 @@ Solvate a system
 ---------------------------------------
 
 .. argparse::
-   :filename: ../solvate_ions.py
+   :filename: ../bin/solvate_ions.py
    :func: parser_input
    :prog: solvate_ions.py
    :nodefault:
@@ -32,7 +32,7 @@ Energy minimization
 ---------------------------------------
 
 .. argparse::
-   :filename: ../minimize_pdb.py
+   :filename: ../bin/minimize_pdb.py
    :func: parser_input
    :prog: minimize_pdb.py
    :nodefault:
@@ -41,7 +41,7 @@ Equilibration
 ---------------------------------------
 
 .. argparse::
-   :filename: ../equi_3_step.py
+   :filename: ../bin/equi_3_step.py
    :func: parser_input
    :prog: equi_3_step.py
    :nodefault:
@@ -50,7 +50,7 @@ Production
 ---------------------------------------
 
 .. argparse::
-   :filename: ../production.py
+   :filename: ../bin/production.py
    :func: parser_input
    :prog: production.py
    :nodefault:
@@ -64,7 +64,7 @@ Create peptide
 ---------------------------------------
 
 .. argparse::
-   :filename: ../create_peptide.py
+   :filename: ../bin/create_peptide.py
    :func: parser_input
    :prog: create_peptide.py
    :nodefault:
@@ -74,7 +74,7 @@ Minimize cyclic peptide
 ---------------------------------------
 
 .. argparse::
-   :filename: ../minimize_pdb_and_cyclic.py
+   :filename: ../bin/minimize_pdb_and_cyclic.py
    :func: parser_input
    :prog: minimize_pdb_and_cyclic.py
    :nodefault:
@@ -83,7 +83,7 @@ Insert n copy of a peptide in a system
 ---------------------------------------
 
 .. argparse::
-   :filename: ../sim_pep_prot.py
+   :filename: ../bin/sim_pep_prot.py
    :func: parser_input
    :prog: sim_pep_prot.py
    :nodefault:
