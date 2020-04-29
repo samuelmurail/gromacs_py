@@ -58,7 +58,8 @@ setup(
                        'doc/notebook/00_basic_example.ipynb',
                        'gromacs/template/*mdp',
                        'gromacs/template/charmm36-jul2017.ff/*',
-                       'test/input/*pdb'],
+                       'test/input/*pdb',
+                       'test/input/*xvg'],
     },
     project_urls={
         'Bug Reports': 'https://github.com/samuelmurail/gromacs_py/issues',
