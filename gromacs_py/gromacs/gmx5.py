@@ -1750,13 +1750,18 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
                     vsite="none", ignore_ZN=True, ff="charmm36-jul2017"):
         """Prepare the topologie of a protein:
 
-            1. compute hisdine protonation with ``pdb2pqr``
-            2. Change Histidine resname according to the protonation
-            3. Correct cystein resname
-            4. Correct chain ID's
-            5. Zinc Finger: Add Zinc in the pdb and change residue type of
-            CYS and HIS coordinating the Zinc
-            6. Finally compute the topologie with pdb2gmx add_top()
+        1. compute hisdine protonation with ``pdb2pqr``.
+
+        2. Change Histidine resname according to the protonation.
+
+        3. Correct cystein resname.
+
+        4. Correct chain ID's.
+
+        5. Zinc Finger: Add Zinc in the pdb and change residue type of
+            CYS and HIS coordinating the Zinc.
+
+        6. Finally compute the topologie with pdb2gmx add_top().
 
         :param out_folder: path of the output file folder
         :type out_folder: str
@@ -2711,9 +2716,10 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         Ion number are computed using the water number and the charge of the
         system:
 
-            1. cation_num = int(ion_C x water_num)/55.5
-            2. if cation_num + sys_charge >= 0 then anion_num = cation_num
-            + sys_charge else cation_num = -sys_charge
+        1. With :math:`cation_{num} = {int(C_{ion} * water_{num}) \over 55.5}`
+        2. if :math:`cation_{num} + sys_{charge} >= 0` then\
+            :math:`anion_{num} = cation_{num} + sys_{charge}` else \
+            :math:`cation_{num} = -sys_{charge}`
 
         :param out_folder: path of the output file folder
         :type out_folder: str
@@ -2971,9 +2977,9 @@ sytem charge = 0.0 water num= 62...
         """Create a linear peptide structure and topologie:
 
             1. Create a peptide with pymol with one more residue G at the
-            beginning of the peptide. This residue will then be change to an
-            ACE. NH2 terminaison raise some issue with virtual sites and
-            cannot be used.
+                beginning of the peptide. This residue will then be change to an
+                ACE. NH2 terminaison raise some issue with virtual sites and
+                cannot be used.
             2. Create the topologie using ``add_top()``
             3. Minimise the structure using ``em()``
             4. Do a vacuum equilibration of the peptide using ``run_md_sim()``
@@ -3101,14 +3107,13 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         Insert structure and topologie of ``mol_num`` copy of ``mol_gromacs``
         molecule, in the system with 6 successive steps:
 
-        1. Copy the molecule ``mol_num`` time
+        1. Copy the molecule ``mol_num`` time.
         2. Change the chain ID of mol_gromacs to "Y", this step is necessary
-        for vmd.
-        to recognize the inserted mol.
-        3. Concat the two structure
-        4. Insert the molecule in the solvant with a vmd script
-        5. Update the topologie with the molecule and new water number
-        6. If the charge is not null add ions to neutralize the system
+            for vmd to recognize the inserted mol.
+        3. Concat the two structure.
+        4. Insert the molecule in the solvant with a vmd script.
+        5. Update the topologie with the molecule and new water number.
+        6. If the charge is not null add ions to neutralize the system.
 
 
         :param mol_gromacs: molecule object to be inserted
