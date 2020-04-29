@@ -17,7 +17,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gromacs_py',
-    version="1.0.1",
+    version="1.0.2",
     packages=find_packages(),
     description='Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software.',
     long_description=open('README.rst', encoding='utf-8').read(),
