@@ -5,7 +5,7 @@
 
 import argparse
 import shutil
-import gromacs.gmx5 as gmx
+import gromacs_py.gromacs.gmx5 as gmx
 
 __author__ = "Samuel Murail"
 
