@@ -4,11 +4,9 @@
    contain the root `toctree` directive.
 
 
-.. include:: ../README.rst
-
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Table of Contents:
 
    readme
