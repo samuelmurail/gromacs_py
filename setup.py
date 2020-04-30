@@ -36,7 +36,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
-    python_requires='>=3.0',
+    python_requires='>=3.5',
     install_requires=[
         "pandas",
         "matplotlib",
@@ -48,10 +48,10 @@ setup(
         '': ['docs/*rst',
              'docs/*py',
              'docs/notebook/00_basic_example.ipynb'],
-        'gromacs_py': ['gromacs/template/*mdp',
-                       'gromacs/template/charmm36-jul2017.ff/*',
-                       'test/input/*pdb',
-                       'test/input/*xvg'],
+        'gromacs_py': ['template/*mdp',
+                       'template/charmm36-jul2017.ff/*',
+                       'test_files/*pdb',
+                       'test_files/*xvg'],
     },
     project_urls={
         'Bug Reports': 'https://github.com/samuelmurail/gromacs_py/issues',
