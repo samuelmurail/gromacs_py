@@ -7,7 +7,7 @@ import doctest
 import shutil
 
 # Module to test:
-import gromacs_py.gromacs.gmx5 as gmx
+from gromacs_py import gmx
 
 __author__ = "Samuel Murail"
 

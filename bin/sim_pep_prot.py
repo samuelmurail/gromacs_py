@@ -9,7 +9,7 @@ __author__ = "Samuel Murail"
 # Otherwise package will be gromacs and won't know gromacs_py.tools
 # __package__ = 'gromacs_py.gromacs'
 
-import gromacs_py.gromacs.gmx5 as gmx
+from gromacs_py import gmx
 import argparse
 
 

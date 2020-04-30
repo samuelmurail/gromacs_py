@@ -5,8 +5,8 @@ atoms position restraints, (ii) second equilibration with alpha carbon position 
 restraints and (iii) finaly equilibration with weak alpha carbon position restraints
 """
 
+from gromacs_py import gmx
 import argparse
-import gromacs_py.gromacs.gmx5 as gmx
 
 print(gmx.__file__)
 

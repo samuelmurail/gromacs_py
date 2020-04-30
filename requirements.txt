@@ -1,8 +1,5 @@
-numpy
-scipy
 pandas
 matplotlib
-pytest
 os_command_py
 pdb2pqr_htmd_propka30
 pdb_manip_py

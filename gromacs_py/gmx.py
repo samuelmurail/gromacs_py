@@ -68,7 +68,7 @@ print('FORCEFIELD_PATH_LIST = ', FORCEFIELD_PATH_LIST)
 
 # Test folder path
 GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.join(GMX_LIB_DIR, "../test/input/")
+TEST_PATH = os.path.join(GMX_LIB_DIR, "test/input/")
 
 
 # Global variable
@@ -1190,7 +1190,7 @@ in a separate file: 1y0m_pdb2gmx.itp
     Copy topologie file and dependancies
     Copy topologie file and dependancies
     -Create the tpr file  genion_1y0m_water_ion.tpr
-    gmx grompp -f .../gromacs/template/mini.mdp -c 1y0m_water.pdb -r \
+    gmx grompp -f .../template/mini.mdp -c 1y0m_water.pdb -r \
 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o \
 genion_1y0m_water_ion.tpr -maxwarn 1
     -Add ions to the system with an ionic concentration of 0.15 M , \
@@ -1304,7 +1304,7 @@ SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     coor_file    : .../top_sys/1y0m_water_ion.gro
     top_file     : .../top_sys/1y0m_water_ion.top
     tpr          : .../top_sys/genion_1y0m_water_ion.tpr
-    mdp          : ...gromacs/template/mini.mdp
+    mdp          : ...template/mini.mdp
     nt           : 0
     ntmpi        : 0
     sys_history  : 0
@@ -1316,7 +1316,7 @@ SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     coor_file    : .../top_D_SH3/SH3_D_neutral.gro
     top_file     : .../top_D_SH3/SH3_D_neutral.top
     tpr          : .../top_D_SH3/genion_SH3_D_neutral.tpr
-    mdp          : ...gromacs/template/mini.mdp
+    mdp          : ...template/mini.mdp
     xtc          : .../em_SH3/1y0m.trr
     edr          : .../em_SH3/1y0m.edr
     log          : .../em_SH3/1y0m.log
@@ -2780,7 +2780,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         #doctest: +ELLIPSIS
         Copy topologie file and dependancies
         -Create the tpr file  genion_1y0m_ion.tpr
-        gmx grompp -f .../gromacs/template/mini.mdp -c \
+        gmx grompp -f .../template/mini.mdp -c \
 ../top_SH3_water/1y0m_water.pdb -r ../top_SH3_water/1y0m_water.pdb \
 -p 1y0m_ion.top -po out_mini.mdp -o genion_1y0m_ion.tpr -maxwarn 1
         -Add ions to the system with an ionic concentration of 0.15 M , \
@@ -2928,7 +2928,7 @@ top_SH3_water_ions/')#doctest: +ELLIPSIS
         Copy topologie file and dependancies
         Copy topologie file and dependancies
         -Create the tpr file  genion_1y0m_water_ion.tpr
-        gmx grompp -f .../gromacs/template/mini.mdp -c 1y0m_water.pdb -r \
+        gmx grompp -f .../template/mini.mdp -c 1y0m_water.pdb -r \
 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o \
 genion_1y0m_water_ion.tpr -maxwarn 1
         -Add ions to the system with an ionic concentration of 0.15 M , \

@@ -23,7 +23,7 @@ setup(
     long_description=open('README.rst', encoding='utf-8').read(),
     long_description_content_type='text/x-rst',
     author='Samuel Murail',
-    author_email='samuel.murail@univ-paris-diderot.fr',
+    author_email='samuel.murail@u-paris.fr',
     url='https://github.com/samuelmurail/gromacs_py',
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -38,11 +38,8 @@ setup(
     ],
     python_requires='>=3.0',
     install_requires=[
-        "numpy",
-        "scipy",
         "pandas",
         "matplotlib",
-        "pytest",
         "os_command_py",
         "pdb2pqr_htmd_propka30",
         "pdb_manip_py",

@@ -26,7 +26,7 @@ __status__ = "Production"
 
 # Test folder path
 MONITOR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(os.path.join(MONITOR_LIB_DIR, "../../test/input/"))
+TEST_PATH = os.path.abspath(os.path.join(MONITOR_LIB_DIR, "../test/input/"))
 
 
 def isnotebook():
@@ -247,13 +247,11 @@ def print_log_file(proc, func_input_dict, tail_line_num=20):
 
     >>> TEST_OUT = str(getfixture('tmpdir'))
     >>> import sys
-    >>> #print(os.path.abspath(os.path.join(os.path.dirname(__file__), \
-'../../..')))
-    >>> sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(\
-__file__), '../..')))
-    >>> import gromacs.gmx5 as gmx #doctest: +ELLIPSIS
-    Gromacs version is ...
-    FORCEFIELD_PATH_LIST = ...
+    >>> # print(os.path.abspath(os.path.join(MONITOR_LIB_DIR, \
+'../..')))
+    >>> sys.path.insert(0, os.path.abspath(os.path.join(MONITOR_LIB_DIR, \
+'../..')))
+    >>> from gromacs_py import gmx #doctest: +ELLIPSIS
     >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
     >>> ###################################
     >>> ####   Create the topologie:   ###
