@@ -68,7 +68,7 @@ print('FORCEFIELD_PATH_LIST = ', FORCEFIELD_PATH_LIST)
 
 # Test folder path
 GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.join(GMX_LIB_DIR, "test/input/")
+TEST_PATH = os.path.join(GMX_LIB_DIR, "test_files/")
 
 
 # Global variable
@@ -1160,7 +1160,7 @@ class GmxSys:
     >>> ###################################
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
 vsite='hydrogens') #doctest: +ELLIPSIS
-    Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
+    Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
     Succeed to save file tmp_pdb2pqr.pdb
     pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
 tmp_pdb2pqr.pdb 00_1y0m.pqr
@@ -1391,8 +1391,8 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
         An history of all command used could be saved.
 
     .. note::
-        Files necessary for testing:../test/input/1y0m.pdb,
-        ../test/input/5vav.pdb
+        Files necessary for testing:../test_files/1y0m.pdb,
+        ../test_files/5vav.pdb
         To do the unitary test, execute gmx5.py (-v for verbose mode)
     """
 
@@ -1644,7 +1644,7 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
         >>> prot.add_top(out_folder=TEST_OUT+'/add_top/top_SH3')\
         #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
+        gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
@@ -1665,7 +1665,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         ...     pdb2gmx_option_dict={'ignh': None, 'ter': None},
         ...     input_pdb2gmx="1 \\n 0") #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
+        gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 \
 -ignh -ter
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
@@ -1792,7 +1792,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_SH3/', \
 vsite='hydrogens') #doctest: +ELLIPSIS
-        Succeed to read file .../input/1y0m.pdb ,  648 atoms found
+        Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
         pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
 tmp_pdb2pqr.pdb 00_1y0m.pqr
@@ -1910,7 +1910,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> cyclic_pep.cyclic_peptide_top(out_folder=os.path.join(str(\
 TEST_OUT),'cyclic/top')) #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ...input/5vav.pdb -o no_cyclic_5vav_pdb2gmx.pdb \
+        gmx pdb2gmx -f ...test_files/5vav.pdb -o no_cyclic_5vav_pdb2gmx.pdb \
 -p no_cyclic_5vav_pdb2gmx.top -i no_cyclic_5vav_posre.itp -water tip3p -ff \
 charmm36-jul2017 -ignh -ter -vsite none
         Molecule topologie present in no_cyclic_5vav_pdb2gmx.top , \
@@ -1978,7 +1978,7 @@ coor_file=TEST_PATH+'/5vav.pdb')
 os.path.join(str(TEST_OUT),'cyclic/top'),ff='amber99sb-ildn')\
         #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f ...test/input/5vav.pdb -o \
+        gmx pdb2gmx -f .../test_files/5vav.pdb -o \
 no_cyclic_5vav_amber_pdb2gmx.pdb -p no_cyclic_5vav_amber_pdb2gmx.top \
 -i no_cyclic_5vav_amber_posre.itp -water tip3p -ff amber99sb-ildn -ignh \
 -ter -vsite none
@@ -2328,7 +2328,7 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         >>> prot.add_top(out_folder=TEST_OUT+'/create_box/top_SH3/')\
         #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
+        gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
@@ -2426,7 +2426,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot.add_top(out_folder=TEST_OUT+'/convert_trj/top_SH3/')\
         #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
+        gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
@@ -2554,7 +2554,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         >>> prot.add_top(out_folder=TEST_OUT+'/copy_box/top_SH3/')\
         #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
+        gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
@@ -2645,7 +2645,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot.add_top(out_folder=TEST_OUT+'/solv_box/top_SH3/')\
         #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
+        gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
@@ -2760,7 +2760,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot.add_top(out_folder=TEST_OUT+'/add_ions/top_SH3/')\
         #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
+        gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
@@ -2909,7 +2909,7 @@ nsteps=100, constraints="none")
         >>> prot.add_top(out_folder=TEST_OUT+'/solvate_add_ions/top_SH3/')\
         #doctest: +ELLIPSIS
         -Create topologie
-        gmx pdb2gmx -f .../input/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
+        gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie\
  in a separate file: 1y0m_pdb2gmx.itp

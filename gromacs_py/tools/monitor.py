@@ -26,7 +26,7 @@ __status__ = "Production"
 
 # Test folder path
 MONITOR_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.abspath(os.path.join(MONITOR_LIB_DIR, "../test/input/"))
+TEST_PATH = os.path.abspath(os.path.join(MONITOR_LIB_DIR, "../test_files/"))
 
 
 def isnotebook():
@@ -258,7 +258,7 @@ def print_log_file(proc, func_input_dict, tail_line_num=20):
     >>> ###################################
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
 vsite='hydrogens') #doctest: +ELLIPSIS
-    Succeed to read file .../test/input/1y0m.pdb ,  648 atoms found
+    Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
     Succeed to save file tmp_pdb2pqr.pdb
     pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
 tmp_pdb2pqr.pdb 00_1y0m.pqr
