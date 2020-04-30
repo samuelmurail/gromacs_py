@@ -4,6 +4,6 @@ Tools
 Monitor
 ---------------------------------------
 
-.. automodule:: gromacs_py.gromacs.tools.monitor
+.. automodule:: gromacs_py.tools.monitor
     :members: 
 
