@@ -1,7 +1,7 @@
 Gromacs simulation class
 =======================================
 
-.. autoclass:: gromacs_py.gromacs.gmx5.GmxSys
+.. autoclass:: gromacs_py.gmx.GmxSys
     :members:
 
 
