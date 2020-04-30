@@ -52,8 +52,7 @@ script:
   # Need to add --ignore to avoid weird error, see: https://github.com/pytest-dev/pytest/issues/4782
   - pytest --ignore ci-helpers --cov-report=xml --cov=gromacs_py 
   # Build Doc:
-  - cd docs
-  - sphinx-build -b html . _build
+  - make docs
 
 after_success:
   # Launch pytest for codecov
