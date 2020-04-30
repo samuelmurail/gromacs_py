@@ -2716,7 +2716,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         Ion number are computed using the water number and the charge of the
         system:
 
-        1. With :math:`cation_{num} = {int(C_{ion} * water_{num}) \over 55.5}`
+        1. With :math:`cation_{num} = {int(C_{ion} * water_{num}) \\over 55.5}`
         2. if :math:`cation_{num} + sys_{charge} >= 0` then\
             :math:`anion_{num} = cation_{num} + sys_{charge}` else \
             :math:`cation_{num} = -sys_{charge}`

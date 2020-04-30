@@ -34,6 +34,11 @@ def isnotebook():
     Taken from:
     https://stackoverflow.com/questions/15411967/\
     how-can-i-check-if-code-is-executed-in-the-ipython-notebook
+
+    :Example:
+
+    >>> isnotebook()
+    False
     """
 
     try:
@@ -100,6 +105,61 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
         Need to add the following lines to be run in jupyter notebook:
 
         * ``%matplotlib notebook``
+
+    Example:
+
+    >>> TEST_OUT = str(getfixture('tmpdir'))
+    >>> import sys
+    >>> # print(os.path.abspath(os.path.join(MONITOR_LIB_DIR, \
+'../..')))
+    >>> sys.path.insert(0, os.path.abspath(os.path.join(MONITOR_LIB_DIR, \
+'../..')))
+    >>> from gromacs_py import gmx #doctest: +ELLIPSIS
+    >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+    >>> ###################################
+    >>> ####   Create the topologie:   ###
+    >>> ###################################
+    >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
+vsite='hydrogens') #doctest: +ELLIPSIS
+    Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
+    Succeed to save file tmp_pdb2pqr.pdb
+    pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
+tmp_pdb2pqr.pdb 00_1y0m.pqr
+    Succeed to read file 00_1y0m.pqr ,  996 atoms found
+    Chain: A  Residue: 0 to 60
+    Succeed to save file 01_1y0m_good_his.pdb
+    -Create topologie
+    gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
+1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh \
+-vsite hydrogens
+    Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie \
+in a separate file: 1y0m_pdb2gmx.itp
+    Protein_chain_A
+    -ITP file: 1y0m_pdb2gmx.itp
+    -molecules defined in the itp file:
+    * Protein_chain_A
+    Rewrite topologie: 1y0m_pdb2gmx.top
+    >>> ######################################
+    >>> ### Monitor an energy minimisation ###
+    >>> ######################################
+    >>> monitor = {'function': simulation_plot,\
+           'extract_func': [{'func': extract_log_dict,\
+                             'term': 'Potential'},\
+                           {'func': extract_log_dict,\
+                             'term': 'Temperature'}],\
+           'file_check_ext':'log'}
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100,\
+    constraints='none', create_box_flag=True, monitor=monitor, nstlog=10)\
+    #doctest: +ELLIPSIS
+    -Create pbc box
+    gmx editconf -f ...top_SH3/1y0m_pdb2gmx.pdb -o \
+...top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+    -Create the tpr file  1y0m.tpr
+    gmx grompp -f 1y0m.mdp -c .../top_SH3/1y0m_pdb2gmx_box.pdb \
+-r .../top_SH3/1y0m_pdb2gmx_box.pdb -p .../top_SH3/1y0m_pdb2gmx.top \
+-po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
+    -Launch the simulation 1y0m.tpr
+    gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
     """
 
