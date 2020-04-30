@@ -70,6 +70,13 @@ docs: ## generate Sphinx HTML documentation, including API docs
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
 
+docs_no_browse: ## generate Sphinx HTML documentation, including API docs
+	rm -f docs/gromacs_py.rst
+	rm -f docs/modules.rst
+	sphinx-apidoc -o docs/ gromacs_py
+	$(MAKE) -C docs clean
+	$(MAKE) -C docs html
+
 servedocs: docs ## compile the docs watching for changes
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
 
