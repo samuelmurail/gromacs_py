@@ -6,16 +6,14 @@
 
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Table of Contents:
 
    readme
    installation
    notebook/00_basic_example.ipynb
-   gmx_sys
-   gmx_top
-   tools
    script
+   modules
    contributing
    authors
    history
