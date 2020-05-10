@@ -17,7 +17,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gromacs_py',
-    version="version='1.1.0'",
+    version='1.1.0',
     author='Samuel Murail',
     author_email='samuel.murail@u-paris.fr',
     packages=find_packages(),
