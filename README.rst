@@ -6,13 +6,14 @@
    :alt: Documentation Status
 
 .. image:: https://travis-ci.org/samuelmurail/gromacs_py.svg?branch=master
-    :target: https://travis-ci.org/samuelmurail/gromacs_py
+   :target: https://travis-ci.org/samuelmurail/gromacs_py
 
 .. image:: https://codecov.io/gh/samuelmurail/gromacs_py/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/samuelmurail/gromacs_py
+   :target: https://codecov.io/gh/samuelmurail/gromacs_py
 
-.. image:: https://anaconda.org/samuel.murail/gromacs_py/badges/version.svg
-  :target: https://anaconda.org/samuel.murail/gromacs_py
+.. image:: https://anaconda.org/bioconda/gromacs_py/badges/version.svg
+   :target: https://anaconda.org/bioconda/gromacs_py
+
 
 .. image:: https://badge.fury.io/py/gromacs-py.svg
    :target: https://badge.fury.io/py/gromacs-py
