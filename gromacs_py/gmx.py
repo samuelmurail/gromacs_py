@@ -1153,6 +1153,7 @@ class GmxSys:
 
     :Example:
 
+    >>> pdb_manip.show_log()
     >>> TEST_OUT = str(getfixture('tmpdir'))
     >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
     >>> ###################################
@@ -1257,9 +1258,29 @@ out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
     Insert mol in system
     Insert 4 mol of 2 residues each
     insert mol   1, water mol   ..., time=0...
+    Warning atom 1MCH mass could not be founded
+    Warning atom 2MCH mass could not be founded
+    Warning atom 1HH3 mass could not be founded
+    Warning atom 2HH3 mass could not be founded
+    Warning atom 3HH3 mass could not be founded
     insert mol   2, water mol   ..., time=0...
+    Warning atom 1MCH mass could not be founded
+    Warning atom 2MCH mass could not be founded
+    Warning atom 1HH3 mass could not be founded
+    Warning atom 2HH3 mass could not be founded
+    Warning atom 3HH3 mass could not be founded
     insert mol   3, water mol   ..., time=0...
+    Warning atom 1MCH mass could not be founded
+    Warning atom 2MCH mass could not be founded
+    Warning atom 1HH3 mass could not be founded
+    Warning atom 2HH3 mass could not be founded
+    Warning atom 3HH3 mass could not be founded
     insert mol   4, water mol   ..., time=0...
+    Warning atom 1MCH mass could not be founded
+    Warning atom 2MCH mass could not be founded
+    Warning atom 1HH3 mass could not be founded
+    Warning atom 2HH3 mass could not be founded
+    Warning atom 3HH3 mass could not be founded
     Delete ... overlapping water atoms
     Succeed to save file SH3_D.pdb
     Peptide

@@ -121,13 +121,8 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
     >>> ###################################
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
 vsite='hydrogens') #doctest: +ELLIPSIS
-    Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
-    Succeed to save file tmp_pdb2pqr.pdb
     pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
 tmp_pdb2pqr.pdb 00_1y0m.pqr
-    Succeed to read file 00_1y0m.pqr ,  996 atoms found
-    Chain: A  Residue: 0 to 60
-    Succeed to save file 01_1y0m_good_his.pdb
     -Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh \
@@ -307,24 +302,19 @@ def print_log_file(proc, func_input_dict, tail_line_num=20):
 
     >>> TEST_OUT = str(getfixture('tmpdir'))
     >>> import sys
-    >>> # print(os.path.abspath(os.path.join(MONITOR_LIB_DIR, \
-'../..')))
     >>> sys.path.insert(0, os.path.abspath(os.path.join(MONITOR_LIB_DIR, \
 '../..')))
-    >>> from gromacs_py import gmx #doctest: +ELLIPSIS
+    >>> from gromacs_py import gmx #doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+    <BLANKLINE>
+    ...
     >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
     >>> ###################################
     >>> ####   Create the topologie:   ###
     >>> ###################################
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
 vsite='hydrogens') #doctest: +ELLIPSIS
-    Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
-    Succeed to save file tmp_pdb2pqr.pdb
     pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
 tmp_pdb2pqr.pdb 00_1y0m.pqr
-    Succeed to read file 00_1y0m.pqr ,  996 atoms found
-    Chain: A  Residue: 0 to 60
-    Succeed to save file 01_1y0m_good_his.pdb
     -Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh \
