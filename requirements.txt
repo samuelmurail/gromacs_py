@@ -2,4 +2,4 @@ pandas
 matplotlib
 os_command_py
 pdb2pqr_htmd_propka30
-pdb_manip_py
+pdb_manip_py>=1.2.1
