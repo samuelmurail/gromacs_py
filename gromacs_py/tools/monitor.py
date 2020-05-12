@@ -123,17 +123,9 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
 vsite='hydrogens') #doctest: +ELLIPSIS
     pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
 tmp_pdb2pqr.pdb 00_1y0m.pqr
-    -Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh \
 -vsite hydrogens
-    Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie \
-in a separate file: 1y0m_pdb2gmx.itp
-    Protein_chain_A
-    -ITP file: 1y0m_pdb2gmx.itp
-    -molecules defined in the itp file:
-    * Protein_chain_A
-    Rewrite topologie: 1y0m_pdb2gmx.top
     >>> ######################################
     >>> ### Monitor an energy minimisation ###
     >>> ######################################
@@ -146,14 +138,11 @@ in a separate file: 1y0m_pdb2gmx.itp
     >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100,\
     constraints='none', create_box_flag=True, monitor=monitor, nstlog=10)\
     #doctest: +ELLIPSIS
-    -Create pbc box
     gmx editconf -f ...top_SH3/1y0m_pdb2gmx.pdb -o \
 ...top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-    -Create the tpr file  1y0m.tpr
     gmx grompp -f 1y0m.mdp -c .../top_SH3/1y0m_pdb2gmx_box.pdb \
 -r .../top_SH3/1y0m_pdb2gmx_box.pdb -p .../top_SH3/1y0m_pdb2gmx.top \
 -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
-    -Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
     """
@@ -315,17 +304,9 @@ def print_log_file(proc, func_input_dict, tail_line_num=20):
 vsite='hydrogens') #doctest: +ELLIPSIS
     pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
 tmp_pdb2pqr.pdb 00_1y0m.pqr
-    -Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh \
 -vsite hydrogens
-    Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie \
-in a separate file: 1y0m_pdb2gmx.itp
-    Protein_chain_A
-    -ITP file: 1y0m_pdb2gmx.itp
-    -molecules defined in the itp file:
-    * Protein_chain_A
-    Rewrite topologie: 1y0m_pdb2gmx.top
     >>> ######################################
     >>> ### Monitor an energy minimisation ###
     >>> ######################################
@@ -335,14 +316,11 @@ in a separate file: 1y0m_pdb2gmx.itp
     >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100,\
     constraints='none', create_box_flag=True, monitor=monitor, nstlog=10)\
     #doctest: +ELLIPSIS
-    -Create pbc box
     gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o \
 .../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-    -Create the tpr file  1y0m.tpr
     gmx grompp -f 1y0m.mdp -c ../top_SH3/1y0m_pdb2gmx_box.pdb -r \
 ../top_SH3/1y0m_pdb2gmx_box.pdb -p ../top_SH3/1y0m_pdb2gmx.top -po \
 out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
-    -Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright...
 

@@ -7,6 +7,8 @@
 
 import os
 import copy
+import logging
+import sys
 
 from shutil import copy as shutil_copy
 
@@ -18,7 +20,7 @@ from pdb_manip_py import pdb2pqr
 try:
     from .tools import monitor
 except ImportError:
-    print("Relative import from .tools fails, use absolute import instead")
+    logger.info("Relative import from .tools fails, use absolute import instead")
     import tools.monitor as monitor
 
 
@@ -31,17 +33,34 @@ __maintainer__ = "Samuel Murail"
 __email__ = "samuel.murail@u-paris.fr"
 __status__ = "Production"
 
+# Logging
+logger = logging.getLogger(__name__)
+
+
+def show_log():
+    """ To use only with Doctest !!!
+    Redirect logger output to sys.stdout
+    """
+    # Delete all handlers
+    logger.handlers = []
+    # Set the logger level to INFO
+    logger.setLevel(logging.INFO)
+    # Add sys.sdout as handler
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+    # Show pdb_manip Logs:
+    pdb_manip.show_log()
+
 
 # Check if Readthedoc is launched skip the program path searching
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 if on_rtd:
-    print("Gromacs cannot be found")
+    logger.info("Gromacs cannot be found")
     GMX_BIN = ""
     gmx_version = ""
 else:
     GMX_BIN = os_command.which('gmx')
     gmx_version = os_command.get_gmx_version()
-    print("Gromacs version is {}".format(gmx_version))
+    logger.info("Gromacs version is {}".format(gmx_version))
 
 # Get local gmx path
 GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
@@ -64,7 +83,7 @@ if 'GMXLIB' in os.environ:
 
 FORCEFIELD_PATH_LIST.append(os.path.join(GMX_PATH, "share/gromacs/top"))
 
-print('FORCEFIELD_PATH_LIST = ', FORCEFIELD_PATH_LIST)
+logger.info('FORCEFIELD_PATH_LIST = {}'.format(FORCEFIELD_PATH_LIST))
 
 # Test folder path
 GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -122,7 +141,7 @@ class TopSys:
 
         self.read_file(top_in)
         if self.include_itp:
-            print("Rewrite topologie:", top_in)
+            logger.info("Rewrite topologie: {}".format(top_in))
             self.write_file(top_in)
 
     def read_file(self, top_in):
@@ -193,9 +212,9 @@ class TopSys:
                         # param this name
                         name_itp = os.path.basename(top_in)[:-3] + "itp"
 
-                        print("Molecule topologie present in", top_in,
-                              ", extract the topologie in a separate file:",
-                              name_itp)
+                        logger.info("Molecule topologie present in {} "
+                                    ", extract the topologie in a separate"
+                                    " file: {}".format(top_in,name_itp))
                         # Store and write the itp file:
                         top_itp = Itp(name=name_itp, fullname=name_itp,
                                       path=os.path.abspath(top_in))
@@ -252,7 +271,7 @@ class TopSys:
 
         self.copy_dependancies(os_command.get_directory(top_out))
 
-    def charge(self, verbose=False):
+    def charge(self):
         """Get the charge of the system
         """
 
@@ -266,10 +285,8 @@ class TopSys:
             for local_itp in self.itp_list:
                 itp_charge = local_itp.charge(name)
                 if itp_charge is not None:
-                    if verbose:
-                        print("Get charge of ", name,
-                              ":", itp_charge, "total charge:",
-                              itp_charge * num)
+                    logger.debug("Get charge of {} : {} total charge: {}".format(
+                        name, itp_charge, itp_charge * num))
                     self._charge += num * itp_charge
                     break
         return self._charge
@@ -283,15 +300,16 @@ class TopSys:
         for mol in self.mol_comp:
             name = mol['name']
             num = int(mol['num'])
-            print(name, num)
+            logger.info("{} : {}".format(name, num))
             if name.find(selection) != -1:
                 # Search mol name in itp:
                 for itp in self.itp_list:
                     # print(itp.name)
                     itp_res_num = itp.res_num(name)
                     if itp_res_num is not None:
-                        print("Get Res num of ", name, ":", itp_res_num,
-                              "total number of residue:", num * itp_res_num)
+                        logger.info("Get Res num of {} : {}\n"
+                                    "Total number of residue: {}".format(
+                                        name, itp_res_num, num * itp_res_num))
                         self.res_num += num * itp_res_num
                         break
         return self.res_num
@@ -320,7 +338,7 @@ class TopSys:
         """Add a molecule in the topologie (composition and itp_list)
         """
 
-        print("Add", mol_num, "mol", mol_itp_file)
+        logger.info("Add {} mol {}".format(mol_num, mol_itp_file))
         mol_itp = Itp(name=mol_name,
                       fullname=mol_itp_file,
                       path=os.path.abspath(mol_itp_file))
@@ -347,7 +365,7 @@ class TopSys:
                     for index in sorted(to_remove_index_list, reverse=True):
                         del self.mol_comp[index]
                 break
-        print(self.mol_comp)
+        logger.info(self.mol_comp)
 
     def get_include_file_list(self):
         file_list = []
@@ -372,7 +390,7 @@ class TopSys:
     def copy_top_and_dependancies(self, dest_file):
 
         dest_folder = os_command.get_directory(dest_file)
-        print("Copy topologie file and dependancies")
+        logger.info("Copy topologie file and dependancies")
 
         if self.path != os.path.abspath(dest_file):
             shutil_copy(self.path, os.path.abspath(dest_file))
@@ -563,7 +581,7 @@ class Itp:
         filout.write("; Using library " + __name__ + " \n\n")
 
         for top_mol in self.top_mol_list:
-            print(top_mol.name)
+            logger.info(top_mol.name)
             top_mol.write_file(filout)
         for posre in self.posres_file:
             filout.write("\n#ifdef " + posre['def'] + "\n")
@@ -573,10 +591,10 @@ class Itp:
         filout.close()
 
     def display(self):
-        print('-ITP file:', self.name)
-        print("-molecules defined in the itp file:")
+        logger.info('-ITP file: {}'.format(self.name))
+        logger.info("-molecules defined in the itp file:")
         for top_mol in self.top_mol_list:
-            print("*", top_mol.name)
+            logger.info("* {}".format(top_mol.name))
 
     def charge(self, mol_name):
         for top_mol in self.top_mol_list:
@@ -939,7 +957,7 @@ class TopMol:
             rtp_path = os.path.abspath(os.path.join(
                 os_command.get_directory(forcefield_path), 'merged.rtp'))
 
-        print('Read rtp file :', rtp_path)
+        logger.info('Read rtp file : {}'.format(rtp_path))
         ff_rtp = Rtp(rtp_path)
 
         # Correct charges and type:
@@ -990,9 +1008,9 @@ class TopMol:
             atom_charge = \
                 ff_rtp.res_dict[res_name]['atom'][atom_name]['charge']
             if atom_type != atom['atom_type']:
-                print('Correct residue {:4} atom {:4} atom type {:4} '
-                      'to {:4}'.format(res_name, atom['atom_name'],
-                                       atom['atom_type'], atom_type))
+                logger.warning('Correct residue {:4} atom {:4} atom type {:4} '
+                                'to {:4}'.format(res_name, atom['atom_name'],
+                                                 atom['atom_type'], atom_type))
             self.atom_dict[atom_num]['atom_type'] = atom_type
             self.atom_dict[atom_num]['charge'] = atom_charge
 
@@ -1153,7 +1171,7 @@ class GmxSys:
 
     :Example:
 
-    >>> pdb_manip.show_log()
+    >>> show_log()
     >>> TEST_OUT = str(getfixture('tmpdir'))
     >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
     >>> ###################################
@@ -1190,7 +1208,7 @@ in a separate file: 1y0m_pdb2gmx.itp
     -Solvate the pbc box
     Copy topologie file and dependancies
     Copy topologie file and dependancies
-    -Create the tpr file  genion_1y0m_water_ion.tpr
+    -Create the tpr file genion_1y0m_water_ion.tpr
     gmx grompp -f .../template/mini.mdp -c 1y0m_water.pdb -r \
 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o \
 genion_1y0m_water_ion.tpr -maxwarn 1
@@ -1204,7 +1222,7 @@ sytem charge = 0.0 water num= 4775
     >>> ###################################
     >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100, \
 constraints='none')
-    -Create the tpr file  1y0m.tpr
+    -Create the tpr file 1y0m.tpr
     gmx grompp -f 1y0m.mdp -c ../top_sys/1y0m_water_ion.gro -r \
 ../top_sys/1y0m_water_ion.gro -p ../top_sys/1y0m_water_ion.top -po \
 out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
@@ -1233,7 +1251,7 @@ in a separate file: D_pdb2gmx.itp
     -Create pbc box
     gmx editconf -f .../top_D/00_top/D_pdb2gmx.pdb -o \
 .../top_D/00_top/D_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-    -Create the tpr file  D.tpr
+    -Create the tpr file D.tpr
     gmx grompp -f D.mdp -c ../00_top/D_pdb2gmx_box.pdb -r \
 ../00_top/D_pdb2gmx_box.pdb -p ../00_top/D_pdb2gmx.top -po out_D.mdp -o \
 D.tpr -maxwarn 1
@@ -1290,7 +1308,7 @@ out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
     CHARGE: -4.0
     Should neutralize the system
     Copy topologie file and dependancies
-    -Create the tpr file  genion_SH3_D_neutral.tpr
+    -Create the tpr file genion_SH3_D_neutral.tpr
     gmx grompp -f .../template/mini.mdp -c SH3_D.pdb -r SH3_D.pdb -p \
 SH3_D_neutral.top -po out_mini.mdp -o genion_SH3_D_neutral.tpr -maxwarn 1
     -Add ions to the system with an ionic concentration of 0 M , \
@@ -1303,13 +1321,13 @@ SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
     >>> ################################
     >>> prot.em_2_steps(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), \
 no_constr_nsteps=100, constr_nsteps=100)
-    -Create the tpr file  Init_em_1y0m.tpr
+    -Create the tpr file Init_em_1y0m.tpr
     gmx grompp -f Init_em_1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro \
 -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp -o Init_em_1y0m.tpr -maxwarn 1
     -Launch the simulation Init_em_1y0m.tpr
     gmx mdrun -s Init_em_1y0m.tpr -deffnm Init_em_1y0m -nt 0 -ntmpi 0 \
 -nsteps -2 -nocopyright
-    -Create the tpr file  1y0m.tpr
+    -Create the tpr file 1y0m.tpr
     gmx grompp -f 1y0m.mdp -c Init_em_1y0m.gro -r Init_em_1y0m.gro -p \
 SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     -Launch the simulation 1y0m.tpr
@@ -1370,7 +1388,7 @@ SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
 name="equi_HA_D_SH3",\
                         mdp_template=equi_template_mdp,\
                         mdp_options=mdp_options)
-    -Create the tpr file  equi_HA_D_SH3.tpr
+    -Create the tpr file equi_HA_D_SH3.tpr
     gmx grompp -f equi_HA_D_SH3.mdp -c ../top_D_SH3/1y0m.gro -r \
 ../top_D_SH3/1y0m.gro -p ../top_D_SH3/SH3_D_neutral.top -po \
 out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
@@ -1705,7 +1723,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             ``GROMACS_MOD_DIRNAME+"/template/"``, or change the current code.
         """
 
-        print("-Create topologie")
+        logger.info("-Create topologie")
 
         # Get absolute path:
         if self.coor_file is None:
@@ -1727,7 +1745,8 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(new_coor):
-            print("create_top not launched", new_coor, "already exist")
+            logger.info("create_top not launched {} already exist".format(
+                new_coor))
             self.coor_file = new_coor
             self.top_file = top_file
             return
@@ -1954,8 +1973,9 @@ extract the topologie in a separate file: no_cyclic_5vav_pdb2gmx.itp
         >>> print(cyclic_top.charge())
         0.0
         >>> cyclic_top.prot_res_num()
-        Protein_chain_A 1
-        Get Res num of  Protein_chain_A : 14 total number of residue: 14
+        Protein_chain_A : 1
+        Get Res num of Protein_chain_A : 14
+        Total number of residue: 14
         14
         >>> cyclic_top.display() #doctest: +ELLIPSIS
         Forcefield include :
@@ -1986,7 +2006,7 @@ create_box_flag=True) #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f .../cyclic/top/5vav_pdb2gmx.pdb -o \
 .../cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        -Create the tpr file  5vav.tpr
+        -Create the tpr file 5vav.tpr
         gmx grompp -f 5vav.mdp -c ../top/5vav_pdb2gmx_box.pdb -r \
 ../top/5vav_pdb2gmx_box.pdb -p ../top/5vav_pdb2gmx.top -po out_5vav.mdp \
 -o 5vav.tpr -maxwarn 1
@@ -2027,7 +2047,7 @@ nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f ...cyclic/top/5vav_amber_pdb2gmx.pdb -o \
 ...cyclic/top/5vav_amber_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        -Create the tpr file  5vav_amber.tpr
+        -Create the tpr file 5vav_amber.tpr
         gmx grompp -f 5vav_amber.mdp -c ../top/5vav_amber_pdb2gmx_box.pdb \
 -r ../top/5vav_amber_pdb2gmx_box.pdb -p ../top/5vav_amber_pdb2gmx.top -po \
 out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
@@ -2053,8 +2073,8 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
 
         if check_file_out and os_command.check_file_and_create_path(
                 os.path.join(out_folder, name + "_pdb2gmx.top")):
-            print("create_top not launched",
-                  out_folder + "/" + name + "_pdb2gmx.top", "already exist")
+            logger.info("create_top not launched {} already exist".format(
+                out_folder + "/" + name + "_pdb2gmx.top"))
             self.coor_file = os.path.join(out_folder, name + "_pdb2gmx.pdb")
             self.top_file = os.path.join(out_folder, name + "_pdb2gmx.top")
             return
@@ -2370,7 +2390,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             directory as input file, the "_box.pdb" will be added to ``name``.
         """
 
-        print("-Create pbc box")
+        logger.info("-Create pbc box")
 
         # If name is not define use the object coor name and add _box.pdb
         if name is None:
@@ -2382,7 +2402,8 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(box_coor):
-            print("create_box not launched", box_coor, "already exist")
+            logger.info("create_box not launched {} already exist".format(
+                box_coor))
             self.coor_file = box_coor
             return
 
@@ -2465,7 +2486,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         Copy topologie file and dependancies
         >>> prot.em(out_folder=TEST_OUT+'/convert_trj/em_SH3_water/', \
 nsteps=100, constraints="none")
-        -Create the tpr file  1y0m.tpr
+        -Create the tpr file 1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water/1y0m_water.pdb -r \
 ../top_SH3_water/1y0m_water.pdb -p ../top_SH3_water/1y0m_water.top -po \
 out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
@@ -2486,7 +2507,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
             or "_compact.xtc" will be added to ``name``.
         """
 
-        print("-Convert trj/coor")
+        logger.info("-Convert trj/coor")
         if traj:
             coor_in = self.xtc
             if name is None:
@@ -2507,7 +2528,8 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(coor_out):
-            print("convert trj not launched", coor_out, "already exist")
+            logger.info("convert trj not launched {} already exist".format(
+                coor_out))
             if traj:
                 self.xtc = coor_out
             else:
@@ -2515,8 +2537,8 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
             return
 
         if self.tpr is None:
-            print("tpr file missing, function \"convert_trj\" could "
-                  "not be executed")
+            logger.info("tpr file missing, function \"convert_trj\" could "
+                        "not be executed")
             raise ValueError("tpr file is missing")
 
         if self.ndx is not None:
@@ -2599,7 +2621,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             ``name``.
         """
 
-        print("-Copy pbc box using genconf")
+        logger.info("-Copy pbc box using genconf")
         # If name is not define use the object coor name and add _box.pdb
         if name is None:
             copy_coor = self.coor_file[:-4] + "_copy_box.pdb"
@@ -2610,7 +2632,8 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
                 name + "_copy_box.pdb")
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(copy_coor):
-            print("create_box not launched", copy_coor, "already exist")
+            logger.info("create_box not launched {} already exist".format(
+                copy_coor))
             self.coor_file = copy_coor
             return
 
@@ -2688,7 +2711,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             and .top file name after the object name and adding "_water".
         """
 
-        print("-Solvate the pbc box")
+        logger.info("-Solvate the pbc box")
 
         # Create the out dir:
         start_dir = os.path.abspath(".")
@@ -2703,7 +2726,8 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(pdb_out):
-            print("solvate_box not launched", pdb_out, "already exist")
+            logger.info("solvate_box not launched {} already exist".format(
+                pdb_out))
             self.coor_file = pdb_out
             self.top_file = top_out
             os.chdir(start_dir)
@@ -2800,7 +2824,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot.add_ions(out_folder=TEST_OUT+'/add_ions/top_SH3_water_ions/')\
         #doctest: +ELLIPSIS
         Copy topologie file and dependancies
-        -Create the tpr file  genion_1y0m_ion.tpr
+        -Create the tpr file genion_1y0m_ion.tpr
         gmx grompp -f .../template/mini.mdp -c \
 ../top_SH3_water/1y0m_water.pdb -r ../top_SH3_water/1y0m_water.pdb \
 -p 1y0m_ion.top -po out_mini.mdp -o genion_1y0m_ion.tpr -maxwarn 1
@@ -2813,7 +2837,7 @@ num= 56...
 -nname CL
         >>> prot.em(out_folder=TEST_OUT+'/add_ions/em_SH3_water_ions/', \
 nsteps=100, constraints="none")
-        -Create the tpr file  1y0m.tpr
+        -Create the tpr file 1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water_ions/1y0m_ion.gro -r \
 ../top_SH3_water_ions/1y0m_ion.gro -p ../top_SH3_water_ions/1y0m_ion.top \
 -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
@@ -2848,7 +2872,8 @@ nsteps=100, constraints="none")
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(
                 name + ".gro"):
-            print("add ions not launched", name + ".gro", "already exist")
+            logger.info("add ions not launched {} already exist".format(
+                name + ".gro"))
             self.coor_file = name + ".gro"
             self.top_file = name + ".top"
             os.chdir(start_dir)
@@ -2868,8 +2893,9 @@ nsteps=100, constraints="none")
         top = TopSys(self.top_file)
         sys_charge = top.charge()
         water_num = top.mol_num("SOL")
-        print("-Add ions to the system with an ionic concentration of",
-              ion_C, "M , sytem charge =", sys_charge, "water num=", water_num)
+        logger.info("-Add ions to the system with an ionic concentration of {}"
+                    " M , sytem charge = {} water num= {}".format(
+                        ion_C, sys_charge, water_num))
 
         cation_num = round(ion_C / 55.5 * water_num)
         # Check if anion_num (cation_num  + sys_charge) is negative,
@@ -2878,7 +2904,8 @@ nsteps=100, constraints="none")
             cation_num = round(-1 * sys_charge)
         anion_num = round(cation_num + sys_charge)
 
-        print("Add ions :", pname, ":", cation_num, " ", nname, ":", anion_num)
+        logger.info("Add ions : {} : {}   {} : {}".format(
+            pname, cation_num, nname, anion_num))
 
         cmd_ions = os_command.Command([GMX_BIN, "genion",
                                        "-s", self.tpr,
@@ -2948,7 +2975,7 @@ top_SH3_water_ions/')#doctest: +ELLIPSIS
         -Solvate the pbc box
         Copy topologie file and dependancies
         Copy topologie file and dependancies
-        -Create the tpr file  genion_1y0m_water_ion.tpr
+        -Create the tpr file genion_1y0m_water_ion.tpr
         gmx grompp -f .../template/mini.mdp -c 1y0m_water.pdb -r \
 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o \
 genion_1y0m_water_ion.tpr -maxwarn 1
@@ -2959,7 +2986,7 @@ sytem charge = 0.0 water num= 62...
 1y0m_water_ion.gro -np 17 -pname NA -nn 17 -nname CL
         >>> prot.em(out_folder=TEST_OUT+'/solvate_add_ions/em_SH3_water_ions/'\
 , nsteps=100, constraints = "none")
-        -Create the tpr file  1y0m.tpr
+        -Create the tpr file 1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water_ions/1y0m_water_ion.gro \
 -r ../top_SH3_water_ions/1y0m_water_ion.gro -p \
 ../top_SH3_water_ions/1y0m_water_ion.top -po out_1y0m.mdp -o 1y0m.tpr \
@@ -3049,14 +3076,14 @@ topologie in a separate file: SAM_pdb2gmx.itp
         -Create pbc box
         gmx editconf -f .../peptide/00_top/SAM_pdb2gmx.pdb -o \
 .../peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        -Create the tpr file  SAM_pep.tpr
+        -Create the tpr file SAM_pep.tpr
         gmx grompp -f SAM_pep.mdp -c ../00_top/SAM_pdb2gmx_box.pdb -r \
 ../00_top/SAM_pdb2gmx_box.pdb -p ../00_top/SAM_pdb2gmx.top -po \
 out_SAM_pep.mdp -o SAM_pep.tpr -maxwarn 1
         -Launch the simulation SAM_pep.tpr
         gmx mdrun -s SAM_pep.tpr -deffnm SAM_pep -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
-        -Create the tpr file  equi_vacuum_SAM.tpr
+        -Create the tpr file equi_vacuum_SAM.tpr
         gmx grompp -f equi_vacuum_SAM.mdp -c ../01_mini/SAM_pep.gro -r \
 ../01_mini/SAM_pep.gro -p ../00_top/SAM_pdb2gmx.top -po \
 out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
@@ -3170,8 +3197,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         # Check if output files exist:
         if check_file_out and os_command.check_file_and_create_path(
                 os.path.join(out_folder, new_name + ".top")):
-            print("insert_mol_sys not launched",
-                  out_folder + "/" + new_name + ".top", "already exist")
+            logger.info("insert_mol_sys not launched {} already exist".format(
+                out_folder + "/" + new_name + ".top"))
             if os_command.check_file_and_create_path(
                     os.path.join(out_folder, new_name + "_neutral.pdb")):
                 self.coor_file = os.path.join(
@@ -3183,7 +3210,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                 self.coor_file = os.path.join(out_folder, new_name + ".pdb")
                 self.top_file = os.path.join(out_folder, new_name + ".top")
                 return
-            print('Error top file exist but not coor file')
+            logger.error('Error top file exist but not coor file')
             raise IOError('coor file not found')
 
         # Create and got to the out dir:
@@ -3202,7 +3229,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         mol_coor.change_pdb_field({"chain": "Y"})
         mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
         mol_length = int(mol_coor.get_aa_num() / mol_num)
-        print("AA num:", mol_length)
+        logger.info("AA num: {}".format(mol_length))
 
         # Concat the two pdb sys_pdb and mol_pdb
         concat_sys = new_name + "_pre_mix.pdb"
@@ -3251,7 +3278,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         sys_dict = pdb_manip.Coor(pdb_in=self.coor_file)
         water_res = sys_dict.get_attribute_selection(
             selec_dict={"res_name": ["SOL"]}, attribute='uniq_resid')
-        print("Water num:", len(water_res))
+        logger.info("Water num: {}".format(len(water_res)))
         sys_topologie.change_mol_num(mol_name="SOL", mol_num=len(water_res))
         # save the top:
         sys_topologie.write_file(new_name + ".top")
@@ -3259,10 +3286,10 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         self.top_file = new_name + ".top"
 
         charge = sys_topologie.charge()
-        print("CHARGE:", charge)
+        logger.info("CHARGE: {}".format(charge))
         if charge != 0:
             if not os.path.isfile(new_name + "_neutral.pdb"):
-                print("Should neutralize the system")
+                logger.info("Should neutralize the system")
                 self.add_ions(out_folder=".", name=new_name + "_neutral",
                               ion_C=0)
 
@@ -3299,7 +3326,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             else:
                 raise RuntimeError('Cannot concat the file, should be'
                                    ' gro or pdb format')
-        print("Concat files:", pdb_in_files)
+        logger.info("Concat files: {}".format(pdb_in_files))
         return pdb_manip.Coor.concat_pdb(pdb_out=pdb_out, *pdb_in_files)
 
     def concat_traj(self, *xtc_files_list, concat_traj_out,
@@ -3320,7 +3347,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(concat_traj_out):
-            print("XTC files not created, ", concat_traj_out, "already exist")
+            logger.info("XTC files not created, {} already exist".format(
+                concat_traj_out))
             self.xtc = concat_traj_out
             return
 
@@ -3352,7 +3380,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         """
         # Check if output files exist:
         if check_file_out and os.path.isfile(concat_edr_out):
-            print("Edr files not created, ", concat_edr_out, "already exist")
+            logger.info("Edr files not created, {} already exist".format(
+                concat_edr_out))
             self.edr = concat_edr_out
             return
 
@@ -3410,7 +3439,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(mdp_out):
-            print("Mdp files not created, ", mdp_out, "already exist")
+            logger.info("Mdp files not created, {} already exist".format(
+                mdp_out))
             self.mdp = mdp_out
             return
 
@@ -3435,8 +3465,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             # Print remaining options not founded is the mdp_template
             for key, value in local_mdp_opt.items():
                 line = "    " + key + "\t           = " + str(value) + "\n"
-                print("WARNING !!! ADDING unusual parameter : \"", key,
-                      "\"in the mdp file", self.mdp)
+                logger.warning("WARNING !!! ADDING unusual parameter : \"{}"
+                               "\"in the mdp file {}".format(key, self.mdp))
                 filout.write(line)
 
         filout.close()
@@ -3473,7 +3503,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(mdp_out):
-            print("Mdp files not created, ", mdp_out, "already exist")
+            logger.info("Mdp files not created, {} already exist".format(
+                mdp_out))
             self.mdp = mdp_out
             return
 
@@ -3524,11 +3555,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         if folder_out != "":
             ndx_out = os.path.join(folder_out, ndx_out)
 
-        print("-Create the ndx file ", ndx_out)
+        logger.info("-Create the ndx file {}".format(ndx_out))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(ndx_out):
-            print("add_ndx not launched", ndx_out, "already exist")
+            logger.info("add_ndx not launched {} already exist".format(
+                ndx_out))
             self.ndx = ndx_out
             return
 
@@ -3591,11 +3623,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         if folder_out != "":
             tpr_out = os.path.join(folder_out, tpr_out)
 
-        print("-Create the tpr file ", tpr_out)
+        logger.info("-Create the tpr file {}".format(tpr_out))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(tpr_out):
-            print("create_tpr not launched", tpr_out, "already exist")
+            logger.info("create_tpr not launched {} already exist".format(
+                tpr_out))
             self.tpr = tpr_out
             return
 
@@ -3686,12 +3719,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         # nsteps = -2 , will use the mdp file option
 
-        print("-Launch the simulation", self.tpr)
+        logger.info("-Launch the simulation {}".format(self.tpr))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(self.sim_name + ".gro"):
-            print("Simulation not launched", self.sim_name + ".gro",
-                  "already exist")
+            logger.info("Simulation not launched {} "
+                        "already exist".format(self.sim_name + ".gro"))
             self.coor_file = self.sim_name + ".gro"
             if os_command.check_file_exist(self.sim_name + ".xtc"):
                 self.xtc = self.sim_name + ".xtc"
@@ -3703,8 +3736,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         if rerun and check_file_out and os.path.isfile(
                 self.sim_name + ".edr"):
-            print("Simulation not launched", self.sim_name + ".edr",
-                  "already exist")
+            logger.info("Simulation not launched {} "
+                        "already exist".format(self.sim_name + ".edr"))
             self.edr = self.sim_name + ".edr"
             return
 
@@ -4145,9 +4178,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                 break
 
             except RuntimeError as e:
-                print('Run {}/{} failed because of: {}'.format(iter + 1,
-                                                               iter_num,
-                                                               e.args))
+                logger.error('Run {}/{} failed because of: {}'.format(
+                    iter + 1, iter_num, e.args))
                 os.chdir(start_dir)
                 # Remove directories
                 for dir_to_del in [out_folder + "/sys_em/",
@@ -4245,19 +4277,19 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             self.tpr = tpr_file
         else:
             if self.tpr is None:
-                print("self.tpr or tpr_file is not defined \n" +
-                      " Could not restart the simulation"
-                      " using extend_equi_prod() ")
+                logger.info("self.tpr or tpr_file is not defined \n"
+                            "Could not restart the simulation")
                 raise ValueError()
 
         # Get simulation time :
         sim_time = self.get_simulation_time()
         nsteps_to_run = int(nsteps - sim_time / dt)
         if nsteps_to_run <= 0:
-            print("Simulation", self.tpr[:-4], "has already run",
-                  sim_time, "ps, extending simulation is useless.")
+            logger.info("Simulation {} has already run"
+                        " {} ps, extending simulation is useless.".format(
+                            self.tpr[:-4], sim_time))
             return
-        print("-Extend simulation for", nsteps_to_run, "steps")
+        logger.info("-Extend simulation for {} steps".format(nsteps_to_run))
 
         self.sim_name = self.tpr.split("/")[-1][:-4]
         out_folder = os_command.get_directory(self.tpr)
@@ -4534,11 +4566,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         """
 
         cpt_file = self.tpr[:-4] + ".cpt"
-        print("-Get simulation time from :", cpt_file)
+        logger.info("-Get simulation time from : {}".format(cpt_file))
 
         # Check if output files exist:
         if not os.path.isfile(cpt_file):
-            print("Checkpoint file {} coulnd not be found".format(cpt_file))
+            logger.info("Checkpoint file {} coulnd not be found".format(
+                cpt_file))
             raise FileNotFoundError()
 
         cmd_list = [GMX_BIN, "check",
@@ -4555,7 +4588,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                 time = float(line.split()[4])
                 return time
 
-        print("Last Frame not found in gmx check output")
+        logger.error("Last Frame not found in gmx check output")
         raise ValueError()
 
     def get_ener(self, selection_list, output_xvg='tmp.xvg',
@@ -4563,12 +4596,13 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         """Get energy of a system using ``gmx energy``.
         """
 
-        print("-Extract energy")
+        logger.info("-Extract energy")
         # print('\n'.join(selection_list))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(output_xvg):
-            print("get_ener not launched", output_xvg, "already exist")
+            logger.info("get_ener not launched {} already exist".format(
+                output_xvg))
         else:
             cmd_convert = os_command.Command([GMX_BIN, "energy",
                                               "-f", self.edr,
