@@ -37,7 +37,7 @@ __status__ = "Production"
 logger = logging.getLogger(__name__)
 
 
-def show_log():
+def show_log(pdb_manip_log=True):
     """ To use only with Doctest !!!
     Redirect logger output to sys.stdout
     """
@@ -47,8 +47,9 @@ def show_log():
     logger.setLevel(logging.INFO)
     # Add sys.sdout as handler
     logger.addHandler(logging.StreamHandler(sys.stdout))
-    # Show pdb_manip Logs:
-    pdb_manip.show_log()
+    if pdb_manip_log:
+        # Show pdb_manip Logs:
+        pdb_manip.show_log()
 
 
 # Check if Readthedoc is launched skip the program path searching
@@ -1627,31 +1628,45 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
             history.display()
             print()
 
-    @property
-    def coor_traj(self):
-        """ Return a simple traj object to be view in
-        a jupyter notebook with the module ``nglview``.
+    def view_coor(self):
+        """ Return a `nglview` object to view the object coordinates
+        in a jupyter notebook with the module ``nglview``.
 
         Example:
 
         >>> import nglview as nv #doctest: +SKIP
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
-        >>> view = nv.NGLWidget(prot.coor_traj) #doctest: +SKIP
+        >>> view = prot.view_coor() #doctest: +SKIP
         >>> view #doctest: +SKIP
-
-        .. note::
-            Dependencies with ``simpletraj`` a lightweight coordinate-only trajectory reader.
-
         """
 
         import nglview as nv
 
-        if self.xtc is None:
-            coor = nv.FileStructure(self.coor_file)
-        else:
-            coor = nv.SimpletrajTrajectory(self.xtc, self.coor_file)
+        coor = pdb_manip.Coor(self.coor_file)
+        struct_str = nv.TextStructure(coor.get_structure_string())
+        return nv.NGLWidget(struct_str)
 
-        return coor
+    def view_traj(self):
+        """ Return a `nglview` object to view the object trajectorie
+        in a jupyter notebook with the module ``nglview``.
+
+        Example:
+
+        >>> import nglview as nv #doctest: +SKIP
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> view = prot.view_traj() #doctest: +SKIP
+        >>> view #doctest: +SKIP
+
+        .. note::
+            This function has a dependencies with the ``simpletraj`` a
+            lightweight coordinate-only trajectory reader. Install it
+            using ``pip install simpletraj`` or ``conda install simpletraj``.
+        """
+
+        import nglview as nv
+
+        simple_traj = coor = nv.SimpletrajTrajectory(self.xtc, self.coor_file)
+        return nv.NGLWidget(simple_traj)
 
     #########################################################
     # ###########  TOPOLOGIE RELATED FUNCTIONS  #############
