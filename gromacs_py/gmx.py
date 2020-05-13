@@ -1627,6 +1627,32 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
             history.display()
             print()
 
+    @property
+    def coor_traj(self):
+        """ Return a simple traj object to be view in
+        a jupyter notebook with the module ``nglview``.
+
+        Example:
+
+        >>> import nglview as nv #doctest: +SKIP
+        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        >>> view = nv.NGLWidget(prot.coor_traj) #doctest: +SKIP
+        >>> view #doctest: +SKIP
+
+        .. note::
+            Dependencies with ``simpletraj`` a lightweight coordinate-only trajectory reader.
+
+        """
+
+        import nglview as nv
+
+        if self.xtc is None:
+            coor = nv.FileStructure(self.coor_file)
+        else:
+            coor = nv.SimpletrajTrajectory(self.xtc, self.coor_file)
+
+        return coor
+
     #########################################################
     # ###########  TOPOLOGIE RELATED FUNCTIONS  #############
     #########################################################
