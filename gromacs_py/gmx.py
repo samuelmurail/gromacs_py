@@ -4095,6 +4095,10 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         else:
             equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME,
                                              "template/equi.mdp")
+            if dt > 0.002 or dt_HA > 0.002:
+                logger.warning('Be carfull, dt = {}/{} witout using vsite'
+                               ', that may induce sever issues with your '
+                               'simualtion !'.format(dt, dt_HA))
 
         mdp_options.update({'nsteps': int(nsteps_HA),
                             'define': '-DPOSRES', 'dt': dt_HA})
@@ -4198,6 +4202,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         start_sys = copy.deepcopy(self)
         start_dir = os.path.abspath(".")
 
+        if vsite == 'none' and dt > 0.002 or dt_HA > 0.002:
+            logger.warning('Be carfull, dt = {}/{} witout using vsite'
+                           ', that may induce sever issues with your '
+                           'simualtion !'.format(dt, dt_HA))
+
+
         for iter in range(iter_num):
             try:
                 local_out_folder = out_folder + "/sys_em/"
@@ -4220,7 +4230,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
             except RuntimeError as e:
                 logger.error('Run {}/{} failed because of: {}'.format(
-                    iter + 1, iter_num, e.args))
+                    iter + 1, iter_num, e.args[0]))
                 os.chdir(start_dir)
                 # Remove directories
                 for dir_to_del in [out_folder + "/sys_em/",
