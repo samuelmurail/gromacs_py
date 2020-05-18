@@ -52,6 +52,21 @@ def show_log(pdb_manip_log=True):
         # Show pdb_manip Logs:
         pdb_manip.show_log()
 
+def show_debug(pdb_manip_log=True):
+    """ To use only with Doctest !!!
+    Redirect logger output to sys.stdout
+    """
+    # Delete all handlers
+    logger.handlers = []
+    # Set the logger level to INFO
+    logger.setLevel(logging.DEBUG)
+    # Add sys.sdout as handler
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+    if pdb_manip_log:
+        # Show pdb_manip Logs:
+        pdb_manip.show_log()
+
+
 
 # Check if Readthedoc is launched skip the program path searching
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
@@ -613,7 +628,7 @@ class Itp:
                 return top_mol.get_res_num()
         return None
 
-    def add_posre(self, mol_name, posre_name, selec_dict, fc):
+    def add_posre(self, mol_name, posre_name, selec_dict, fc, replace=True):
         for top_mol in self.top_mol_list:
             # print(mol_name, top_mol.name)
             if top_mol.name == mol_name:
@@ -621,7 +636,7 @@ class Itp:
                     selec_dict=selec_dict)
                 if index_posre:
                     # Create the posre itp file :
-                    # print("Posre for : ",top_mol.name)
+                    logger.debug("Posre for : {}".format(top_mol.name))
                     posre_file_name = os.path.abspath(
                         os.path.join(
                             os_command.get_directory(self.path),
@@ -631,18 +646,46 @@ class Itp:
                                            posre_file=posre_file_name,
                                            type_val=1, fc=fc)
                     # Add the posre include in the mol itp file:
-                    posre = "POSRES_" + posre_name
-
                     # Need to solve the problem of #ifdef location with .top
                     # files containing self top
-                    with open(self.path, 'a') as file:
-                        file.write('#ifdef ' + posre + '\n')
-                        # file.write('#include \"'+self.name+"_posre_"+\
-                        # posre_name+".itp\" \n")
-                        file.write(
-                            '#include \"' +
-                            os.path.basename(posre_file_name) + "\" \n")
-                        file.write('#endif \n\n')
+                    if replace:
+                        # Remove previous def:
+                        new_content = ""
+                        with open(self.path) as file:
+                            posre_def = None
+                            for line in file:
+                                # print("Itp line: \"{}\" ".format(line))
+                                # Check posres include:
+                                if line[:6] == '#ifdef':
+                                    ifdef = True
+                                    line_list = line.split()
+                                    posre_def = line_list[1]
+
+                                if posre_def != posre_name:
+                                    new_content += line
+
+                                if line[:6] == '#endif':
+                                    ifdef = False
+                                    posre_def = None
+                        # Add the new one:
+                        new_content += '#ifdef ' + posre_name + '\n'
+                        new_content += '#include \"' +\
+                                os.path.basename(posre_file_name) + "\" \n"
+                        new_content += '#endif \n\n'
+                        # Save the file:
+                        file = open(self.path, "w")
+                        file.write(new_content)
+                        file.close()
+
+                    else:
+                        with open(self.path, 'a') as file:
+                            file.write('#ifdef ' + posre_name + '\n')
+                            # file.write('#include \"'+self.name+"_posre_"+\
+                            # posre_name+".itp\" \n")
+                            file.write(
+                                '#include \"' +
+                                os.path.basename(posre_file_name) + "\" \n")
+                            file.write('#endif \n\n')
 
     def set_top_mol_name(self, new_name):
         if len(self.top_mol_list) == 1:
@@ -1814,13 +1857,13 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
         # Now it can add posre files properly:
         top = TopSys(top_file)
-        top.add_posre(posre_name="HA_LOW" + posre_post, selec_dict={
+        top.add_posre(posre_name="POSRES_HA_LOW" + posre_post, selec_dict={
             'atom_name': HA_NAME},
             fc=[100, 100, 100])
-        top.add_posre(posre_name="CA_LOW" + posre_post, selec_dict={
+        top.add_posre(posre_name="POSRES_CA_LOW" + posre_post, selec_dict={
             'atom_name': ['CA']},
             fc=[100, 100, 100])
-        top.add_posre(posre_name="CA" + posre_post, selec_dict={
+        top.add_posre(posre_name="POSRES_CA" + posre_post, selec_dict={
             'atom_name': ['CA']},
             fc=[1000, 1000, 1000])
 
@@ -2375,17 +2418,24 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
                                                 name + "_pdb2gmx.pdb"))
         self.coor_file = os.path.join(out_folder, name + "_pdb2gmx.pdb")
 
+        # First read and save to fix the molecule top include in .top:
+        # top = TopSys(self.top_file)
+        # top.write_file(self.top_file)
+
         # Fix the molecule posre files with the wrong atom number in the .top:
 
-        top_pep.add_posre(posre_name="HA_LOW", selec_dict={
+        top_pep.add_posre(posre_name="POSRES", selec_dict={
+            'atom_name': HA_NAME},
+            fc=[1000, 1000, 1000])
+        top_pep.add_posre(posre_name="POSRES_HA_LOW", selec_dict={
             'atom_name': HA_NAME},
             fc=[100, 100, 100])
-        top_pep.add_posre(posre_name="CA_LOW", selec_dict={
-            'atom_name': ['CA']},
-            fc=[100, 100, 100])
-        top_pep.add_posre(posre_name="CA", selec_dict={
+        top_pep.add_posre(posre_name="POSRES_CA", selec_dict={
             'atom_name': ['CA']},
             fc=[1000, 1000, 1000])
+        top_pep.add_posre(posre_name="POSRES_CA_LOW", selec_dict={
+            'atom_name': ['CA']},
+            fc=[100, 100, 100])
 
     #######################################################
     # ###########  SYSTEM CREATION FUNCTIONS  #############
