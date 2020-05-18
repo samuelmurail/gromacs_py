@@ -16,11 +16,15 @@ from os_command_py import os_command
 from pdb_manip_py import pdb_manip
 from pdb_manip_py import pdb2pqr
 
+# Logging
+logger = logging.getLogger(__name__)
+
 # In case gmx5 is launched as main, relative import will failed
 try:
     from .tools import monitor
 except ImportError:
-    logger.info("Relative import from .tools fails, use absolute import instead")
+    logger.info("Relative import from .tools fails,"
+                " use absolute import instead")
     import tools.monitor as monitor
 
 
@@ -32,9 +36,6 @@ __license__ = "GNU General Public License v2.0"
 __maintainer__ = "Samuel Murail"
 __email__ = "samuel.murail@u-paris.fr"
 __status__ = "Production"
-
-# Logging
-logger = logging.getLogger(__name__)
 
 
 def show_log(pdb_manip_log=True):
@@ -215,7 +216,7 @@ class TopSys:
 
                         logger.info("Molecule topologie present in {} "
                                     ", extract the topologie in a separate"
-                                    " file: {}".format(top_in,name_itp))
+                                    " file: {}".format(top_in, name_itp))
                         # Store and write the itp file:
                         top_itp = Itp(name=name_itp, fullname=name_itp,
                                       path=os.path.abspath(top_in))
@@ -286,8 +287,9 @@ class TopSys:
             for local_itp in self.itp_list:
                 itp_charge = local_itp.charge(name)
                 if itp_charge is not None:
-                    logger.debug("Get charge of {} : {} total charge: {}".format(
-                        name, itp_charge, itp_charge * num))
+                    logger.debug("Get charge of {} : {} total charge:"
+                                 " {}".format(name, itp_charge,
+                                              itp_charge * num))
                     self._charge += num * itp_charge
                     break
         return self._charge
@@ -1010,8 +1012,8 @@ class TopMol:
                 ff_rtp.res_dict[res_name]['atom'][atom_name]['charge']
             if atom_type != atom['atom_type']:
                 logger.warning('Correct residue {:4} atom {:4} atom type {:4} '
-                                'to {:4}'.format(res_name, atom['atom_name'],
-                                                 atom['atom_type'], atom_type))
+                               'to {:4}'.format(res_name, atom['atom_name'],
+                                                atom['atom_type'], atom_type))
             self.atom_dict[atom_num]['atom_type'] = atom_type
             self.atom_dict[atom_num]['charge'] = atom_charge
 
@@ -1665,7 +1667,7 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
 
         import nglview as nv
 
-        simple_traj = coor = nv.SimpletrajTrajectory(self.xtc, self.coor_file)
+        simple_traj = nv.SimpletrajTrajectory(self.xtc, self.coor_file)
         return nv.NGLWidget(simple_traj)
 
     #########################################################
@@ -2372,6 +2374,18 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         coor_pep.write_pdb(pdb_out=os.path.join(out_folder,
                                                 name + "_pdb2gmx.pdb"))
         self.coor_file = os.path.join(out_folder, name + "_pdb2gmx.pdb")
+
+        # Fix the molecule posre files with the wrong atom number in the .top:
+
+        top_pep.add_posre(posre_name="HA_LOW", selec_dict={
+            'atom_name': HA_NAME},
+            fc=[100, 100, 100])
+        top_pep.add_posre(posre_name="CA_LOW", selec_dict={
+            'atom_name': ['CA']},
+            fc=[100, 100, 100])
+        top_pep.add_posre(posre_name="CA", selec_dict={
+            'atom_name': ['CA']},
+            fc=[1000, 1000, 1000])
 
     #######################################################
     # ###########  SYSTEM CREATION FUNCTIONS  #############
@@ -4028,8 +4042,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
     def equi_three_step(self, out_folder, name=None, pdb_restr=None,
                         nsteps_HA=100000,
-                        nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.005,
-                        dt_HA=0.002,
+                        nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.002,
+                        dt_HA=0.001,
                         maxwarn=0, monitor=None, vsite='none', **mdp_options):
         """Equilibrate a system in 3 steps:
 
@@ -4129,7 +4143,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                       constr_nsteps=1000,
                                       pdb_restr=None, nsteps_HA=100000,
                                       nsteps_CA=200000, nsteps_CA_LOW=400000,
-                                      dt=0.005, dt_HA=0.002, maxwarn=0,
+                                      dt=0.002, dt_HA=0.001, maxwarn=0,
                                       iter_num=3, monitor=None, vsite='none',
                                       **mdp_options):
         """ Minimize a system in 2 steps:
@@ -4207,7 +4221,6 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                            ', that may induce sever issues with your '
                            'simualtion !'.format(dt, dt_HA))
 
-
         for iter in range(iter_num):
             try:
                 local_out_folder = out_folder + "/sys_em/"
@@ -4241,7 +4254,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         os.chdir(start_dir)
 
-    def production(self, out_folder, name=None, nsteps=400000, dt=0.005,
+    def production(self, out_folder, name=None, nsteps=400000, dt=0.002,
                    maxwarn=0, monitor=None, vsite='none', **mdp_options):
         """Run a production run.
 
