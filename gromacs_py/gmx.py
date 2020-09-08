@@ -876,7 +876,7 @@ class TopMol:
         for i in index_list:
             del self.atom_dict[i]
 
-        # Create the dict to have all atom num consecutive staring from 0
+        # Create the dict to have all atom num consecutive staring from 1
         dict_atom_index = {}
         for i, atom in sorted(enumerate(self.atom_dict.items())):
             # print(i, atom)
@@ -988,11 +988,13 @@ class TopMol:
                                      'funct': param['funct']})
         self.vs4_list = new_vs4_list
 
-    def correct_charge_type(self, forcefield):
+    def correct_charge_type(self, forcefield, index_list=None):
         """ Correct the charge and atom type of an itp object,
         base on a ff `.rtp` file.
         This is specially usefull, to correct charge of termini resiudes
         of a cyclicized peptide.
+
+        if index_list is None, will correct all charge, if not selected atoms only.
         """
 
         # First extract charge and type from the ff .rtp file
@@ -1007,7 +1009,15 @@ class TopMol:
         ff_rtp = Rtp(rtp_path)
 
         # Correct charges and type:
-        for atom_num, atom in self.atom_dict.items():
+        # for atom_num, atom in self.atom_dict.items():
+        if index_list is None:
+            index_list = self.atom_dict.keys()
+
+
+        for atom_num in index_list:
+
+            atom = self.atom_dict[atom_num]
+
             res_name = atom['res_name']
             resid = atom['res_num']
             atom_name = atom['atom_name']
@@ -1025,7 +1035,7 @@ class TopMol:
                         res_name = 'CYX'
                     elif forcefield['name'].startswith('charmm'):
                         res_name = 'CYS2'
-
+            # print(res_name)
             # With gromacs all histidine are called HIS !
             if res_name == 'HIS':
                 if len(self.get_selection_index(
@@ -1050,13 +1060,25 @@ class TopMol:
 
             # print(atom)
             # print(ff_rtp.res_dict[res_name]['atom'][atom_name])
-            atom_type = ff_rtp.res_dict[res_name]['atom'][atom_name]['type']
-            atom_charge = \
-                ff_rtp.res_dict[res_name]['atom'][atom_name]['charge']
-            if atom_type != atom['atom_type']:
-                logger.warning('Correct residue {:4} atom {:4} atom type {:4} '
-                               'to {:4}'.format(res_name, atom['atom_name'],
-                                                atom['atom_type'], atom_type))
+
+            if atom_name in ff_rtp.res_dict[res_name]['atom']:
+                atom_type = ff_rtp.res_dict[res_name]['atom'][atom_name]['type']
+                atom_charge = \
+                    ff_rtp.res_dict[res_name]['atom'][atom_name]['charge']
+                # print('Correct residue {:4} atom {:4} atom type {:4} '
+                #       'to {:4}'.format(res_name, atom['atom_name'],
+                #                        atom['atom_type'], atom_type))
+                # print('Correct charge {:4} '
+                #       'to {:4}'.format(self.atom_dict[atom_num]['charge'],
+                #                        atom_charge))
+                if atom_type != atom['atom_type']:
+                    logger.warning('Correct residue {:4} atom {:4} atom type {:4} '
+                                   'to {:4}'.format(res_name, atom['atom_name'],
+                                                    atom['atom_type'], atom_type))
+            else:
+                logger.warning('Can\'t find residue {:4} atom {:4} atom type {:4} '
+                                'parameters in forcefield'.format(
+                                    res_name, atom['atom_name'], atom['atom_type']))                
             self.atom_dict[atom_num]['atom_type'] = atom_type
             self.atom_dict[atom_num]['charge'] = atom_charge
 
@@ -3977,7 +3999,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         os.chdir(start_dir)
 
     def em(self, out_folder, name=None, nsteps=1000, posres="",
-           create_box_flag=False, monitor=None, **mdp_options):
+           create_box_flag=False, monitor=None, maxwarn=1,
+           **mdp_options):
         """Minimize a system.
 
         :param out_folder: path of the output file folder
@@ -4027,11 +4050,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         self.run_md_sim(out_folder=out_folder, name=name,
                         mdp_template=mini_template_mdp,
-                        monitor=monitor, mdp_options=mdp_options, maxwarn=1)
+                        monitor=monitor, mdp_options=mdp_options, maxwarn=maxwarn)
 
     def em_2_steps(self, out_folder, name=None, no_constr_nsteps=1000,
                    constr_nsteps=1000,
                    posres="", create_box_flag=False, monitor=None,
+                   maxwarn=1,
                    **mdp_options):
         """Minimize a system in two steps:
 
@@ -4084,10 +4108,13 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                 nsteps=int(no_constr_nsteps),
                 posres=posres, create_box_flag=create_box_flag,
                 constraints="none",
-                monitor=monitor, **mdp_options)
+                monitor=monitor,
+                maxwarn=maxwarn,
+                **mdp_options)
 
         self.em(out_folder=out_folder, name=name, nsteps=int(constr_nsteps),
                 posres=posres, create_box_flag=False, constraints="all-bonds",
+                maxwarn=maxwarn,
                 monitor=monitor, **mdp_options)
 
     def equi_three_step(self, out_folder, name=None, pdb_restr=None,
