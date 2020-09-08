@@ -52,6 +52,7 @@ def show_log(pdb_manip_log=True):
         # Show pdb_manip Logs:
         pdb_manip.show_log()
 
+
 def show_debug(pdb_manip_log=True):
     """ To use only with Doctest !!!
     Redirect logger output to sys.stdout
@@ -65,7 +66,6 @@ def show_debug(pdb_manip_log=True):
     if pdb_manip_log:
         # Show pdb_manip Logs:
         pdb_manip.show_log()
-
 
 
 # Check if Readthedoc is launched skip the program path searching
@@ -657,7 +657,6 @@ class Itp:
                                 # print("Itp line: \"{}\" ".format(line))
                                 # Check posres include:
                                 if line[:6] == '#ifdef':
-                                    ifdef = True
                                     line_list = line.split()
                                     posre_def = line_list[1]
 
@@ -665,12 +664,11 @@ class Itp:
                                     new_content += line
 
                                 if line[:6] == '#endif':
-                                    ifdef = False
                                     posre_def = None
                         # Add the new one:
                         new_content += '#ifdef ' + posre_name + '\n'
                         new_content += '#include \"' +\
-                                os.path.basename(posre_file_name) + "\" \n"
+                            os.path.basename(posre_file_name) + "\" \n"
                         new_content += '#endif \n\n'
                         # Save the file:
                         file = open(self.path, "w")
@@ -994,7 +992,8 @@ class TopMol:
         This is specially usefull, to correct charge of termini resiudes
         of a cyclicized peptide.
 
-        if index_list is None, will correct all charge, if not selected atoms only.
+        if index_list is None, will correct all atom charges, if not, only
+        atoms listed in index_list.
         """
 
         # First extract charge and type from the ff .rtp file
@@ -1012,7 +1011,6 @@ class TopMol:
         # for atom_num, atom in self.atom_dict.items():
         if index_list is None:
             index_list = self.atom_dict.keys()
-
 
         for atom_num in index_list:
 
@@ -1062,7 +1060,8 @@ class TopMol:
             # print(ff_rtp.res_dict[res_name]['atom'][atom_name])
 
             if atom_name in ff_rtp.res_dict[res_name]['atom']:
-                atom_type = ff_rtp.res_dict[res_name]['atom'][atom_name]['type']
+                atom_type = \
+                    ff_rtp.res_dict[res_name]['atom'][atom_name]['type']
                 atom_charge = \
                     ff_rtp.res_dict[res_name]['atom'][atom_name]['charge']
                 # print('Correct residue {:4} atom {:4} atom type {:4} '
@@ -1072,13 +1071,15 @@ class TopMol:
                 #       'to {:4}'.format(self.atom_dict[atom_num]['charge'],
                 #                        atom_charge))
                 if atom_type != atom['atom_type']:
-                    logger.warning('Correct residue {:4} atom {:4} atom type {:4} '
-                                   'to {:4}'.format(res_name, atom['atom_name'],
-                                                    atom['atom_type'], atom_type))
+                    logger.warning('Correct residue {:4} atom {:4} atom '
+                                   'type {:4} to {:4}'.format(
+                                        res_name, atom['atom_name'],
+                                        atom['atom_type'], atom_type))
             else:
-                logger.warning('Can\'t find residue {:4} atom {:4} atom type {:4} '
-                                'parameters in forcefield'.format(
-                                    res_name, atom['atom_name'], atom['atom_type']))                
+                logger.warning('Can\'t find residue {:4} atom {:4} atom '
+                               'type {:4} parameters in forcefield'.format(
+                                    res_name, atom['atom_name'],
+                                    atom['atom_type']))
             self.atom_dict[atom_num]['atom_type'] = atom_type
             self.atom_dict[atom_num]['charge'] = atom_charge
 
@@ -2458,6 +2459,247 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         top_pep.add_posre(posre_name="POSRES_CA_LOW", selec_dict={
             'atom_name': ['CA']},
             fc=[100, 100, 100])
+
+    def add_disulfide_bonds(self, res_list, out_folder, name=None,
+                            check_file_out=True, ff="charmm36-jul2017"):
+        """Add disulfide bonds to a single protein topologie.
+        Topologie has to be computed before using this function.
+        Set specifically which cystein residues need to be bonded:
+        Example of res_list = [[4, 7], [10, 20]], will connect
+        cystein residues 4 to 7 and 10 to 20.
+
+        :param res_list: list of list of cystein residues to be bonded
+        :type res_listr: list
+
+        :param out_folder: path of the output file folder
+        :type out_folder: str
+
+        :param name: generic name of the system
+        :type name: str, optional, default=None
+
+        :param check_file_out: flag to check or not if file has already been
+            created. If the file is present then the command break.
+        :type check_file_out: bool, optional, default=True
+
+        :param ff: forcefield.
+        :type ff: str, optional, default="charmm36-jul2017"
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+
+        **Object field(s) changed:**
+
+            * self.coor_file
+            * self.top_file
+
+        Add the following terms:
+
+        - 1 Bond
+            - SG-SG
+
+        - 2 Angle
+            - SG-SG-CB
+            - CB-SG-SG
+
+        - 7 Dihed
+            - CA-CB-SG-SG
+            - HB1-CB-SG-SG
+            - HB2-CB-SG-SG
+            - CB-SG-SG-CB
+            - SG-SG-CB-HB1
+            - SG-SG-CB-HB2
+            - SG-SG-CB-CA
+
+
+        :Example:
+
+        >>> TEST_OUT = getfixture('tmpdir')
+
+        .. note::
+            No options are allowed (water model, termini capping) except
+            for vsites.
+
+        """
+
+        # If name is not define use the object name
+        if name is None:
+            name = self.name
+
+        if check_file_out and os_command.check_file_and_create_path(
+                os.path.join(out_folder, name + "_ss_bond.top")):
+            logger.info("create_top not launched {} already exist".format(
+                out_folder + "/" + name + "_pdb2gmx.top"))
+            self.top_file = os.path.join(out_folder, name + "_ss_bond.top")
+            return
+
+        top_prot = TopSys(self.top_file)
+        mol_top = top_prot.itp_list[0].top_mol_list[0]
+
+        # Get cystein index:
+        coor_prot = pdb_manip.Coor(self.coor_file)
+
+        cys_S_index_list = []
+        cys_H_index_list = []
+
+        for res_pair in res_list:
+            cys_pair_index = mol_top.get_selection_index({'atom_name': ['SG'],
+                                                          'res_name': ['CYS'],
+                                                          'res_num': res_pair})
+            if len(cys_pair_index) != 2:
+                logger.warning("Wrong residue number {}, at least"
+                               " one residue is not a cystein".format(
+                                res_pair))
+
+            cys_S_index_list.append(cys_pair_index)
+            cys_H_index_list += mol_top.get_selection_index({
+                'atom_name': ['HG1'], 'res_name': ['CYS'],
+                'res_num': res_pair})
+        # print('S atoms', cys_S_index_list)
+        # print('SH atoms', cys_H_index_list)
+
+        if ff.startswith('amber'):
+            bond_func = 1
+            angle_func = 1
+            dihe_func = 9
+        elif ff.startswith('charmm'):
+            bond_func = 1
+            angle_func = 5
+            dihe_func = 9
+
+        # Delete SH atoms
+        mol_top.delete_atom(index_list=cys_H_index_list)
+        flat_res_list = [item for sublist in res_list for item in sublist]
+        # print(flat_res_list)
+        coor_cys_H_index_list = coor_prot.get_index_selection({
+            'name': ['HG1'], 'res_name': ['CYS'], 'res_num': flat_res_list})
+        coor_prot.del_atom_index(index_list=coor_cys_H_index_list)
+
+        # Save coor
+        coor_prot.write_pdb(os.path.join(out_folder, name + "_ss_bond.pdb"))
+        self.coor_file = os.path.join(out_folder, name + "_ss_bond.pdb")
+
+        for res_pair in res_list:
+
+            SG_1_index = mol_top.get_selection_index({
+                'atom_name': ['SG'], 'res_name': ['CYS'],
+                'res_num': [res_pair[0]]})[0]
+            SG_2_index = mol_top.get_selection_index({
+                'atom_name': ['SG'], 'res_name': ['CYS'],
+                'res_num': [res_pair[1]]})[0]
+            # print('SG1', mol_top.atom_dict[SG_1_index])
+            # print('SG2', mol_top.atom_dict[SG_2_index])
+
+            CA_1_index = mol_top.get_selection_index({
+                'atom_name': ['CA'], 'res_name': ['CYS'],
+                'res_num': [res_pair[0]]})[0]
+            CA_2_index = mol_top.get_selection_index({
+                'atom_name': ['CA'], 'res_name': ['CYS'],
+                'res_num': [res_pair[1]]})[0]
+            CB_1_index = mol_top.get_selection_index({
+                'atom_name': ['CB'], 'res_name': ['CYS'],
+                'res_num': [res_pair[0]]})[0]
+            CB_2_index = mol_top.get_selection_index({
+                'atom_name': ['CB'], 'res_name': ['CYS'],
+                'res_num': [res_pair[1]]})[0]
+            HB1_1_index = mol_top.get_selection_index({
+                'atom_name': ['HB1'], 'res_name': ['CYS'],
+                'res_num': [res_pair[0]]})[0]
+            HB1_2_index = mol_top.get_selection_index({
+                'atom_name': ['HB1'], 'res_name': ['CYS'],
+                'res_num': [res_pair[1]]})[0]
+            HB2_1_index = mol_top.get_selection_index({
+                'atom_name': ['HB2'], 'res_name': ['CYS'],
+                'res_num': [res_pair[0]]})[0]
+            HB2_2_index = mol_top.get_selection_index({
+                'atom_name': ['HB2'], 'res_name': ['CYS'],
+                'res_num': [res_pair[1]]})[0]
+
+            # Add S-S bond
+            mol_top.bond_list.append({'ai': SG_1_index,
+                                      'aj': SG_2_index,
+                                      'funct': bond_func})
+
+            # Add X-S-S, S-S-X angles
+            mol_top.angl_list.append({'ai': SG_1_index,
+                                      'aj': SG_2_index,
+                                      'ak': CB_2_index,
+                                      'funct': angle_func})
+            mol_top.angl_list.append({'ai': SG_1_index,
+                                      'aj': SG_2_index,
+                                      'ak': CB_2_index,
+                                      'funct': angle_func})
+
+            # Add X-S-S-X, S-S-X-X, X-X-S-S angles
+            mol_top.dihe_list.append({'ai': CA_1_index,
+                                      'aj': CB_1_index,
+                                      'ak': SG_1_index,
+                                      'al': SG_2_index,
+                                      'funct': dihe_func})
+            mol_top.dihe_list.append({'ai': HB1_1_index,
+                                      'aj': CB_1_index,
+                                      'ak': SG_1_index,
+                                      'al': SG_2_index,
+                                      'funct': dihe_func})
+            mol_top.dihe_list.append({'ai': HB2_1_index,
+                                      'aj': CB_1_index,
+                                      'ak': SG_1_index,
+                                      'al': SG_2_index,
+                                      'funct': dihe_func})
+            mol_top.dihe_list.append({'ai': CB_1_index,
+                                      'aj': SG_1_index,
+                                      'ak': SG_2_index,
+                                      'al': CB_2_index,
+                                      'funct': dihe_func})
+            mol_top.dihe_list.append({'ai': SG_1_index,
+                                      'aj': SG_2_index,
+                                      'ak': CB_2_index,
+                                      'al': CA_2_index,
+                                      'funct': dihe_func})
+            mol_top.dihe_list.append({'ai': SG_1_index,
+                                      'aj': SG_2_index,
+                                      'ak': CB_2_index,
+                                      'al': HB1_2_index,
+                                      'funct': dihe_func})
+            mol_top.dihe_list.append({'ai': SG_1_index,
+                                      'aj': SG_2_index,
+                                      'ak': CB_2_index,
+                                      'al': HB2_2_index,
+                                      'funct': dihe_func})
+
+        # print(top_prot.itp_list[0].top_mol_list[0].atom_dict)
+
+        # Correct charge and atom type base on ff .rtp file
+        cys_index_list = mol_top.get_selection_index({
+            'res_name': ['CYS'], 'res_num': flat_res_list})
+        mol_top.correct_charge_type(forcefield=top_prot.forcefield,
+                                    index_list=cys_index_list)
+
+        # Save itp:
+        # print('top name', top_prot.itp_list[0].name)
+        top_prot.itp_list[0].write_file(os.path.join(
+            out_folder, name + "_ss_bond.itp"))
+        top_prot.itp_list[0].name = name + "_ss_bond.itp"
+        top_prot.itp_list[0].fullname = name + "_ss_bond.itp"
+        top_prot.itp_list[0].path = os.path.abspath(
+            os.path.join(out_folder, name + "_ss_bond.itp"))
+
+        # Save top:
+        top_prot.write_file(os.path.join(out_folder, name + "_ss_bond.top"))
+        self.top_file = os.path.join(out_folder, name + "_ss_bond.top")
+
+        # Fix the molecule posre files with the wrong atom number in the .top:
+
+        top_prot.add_posre(posre_name="HA_LOW", selec_dict={
+            'atom_name': HA_NAME},
+            fc=[100, 100, 100])
+        top_prot.add_posre(posre_name="CA_LOW", selec_dict={
+            'atom_name': ['CA']},
+            fc=[100, 100, 100])
+        top_prot.add_posre(posre_name="CA", selec_dict={
+            'atom_name': ['CA']},
+            fc=[1000, 1000, 1000])
 
     #######################################################
     # ###########  SYSTEM CREATION FUNCTIONS  #############
@@ -4050,7 +4292,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         self.run_md_sim(out_folder=out_folder, name=name,
                         mdp_template=mini_template_mdp,
-                        monitor=monitor, mdp_options=mdp_options, maxwarn=maxwarn)
+                        monitor=monitor, mdp_options=mdp_options,
+                        maxwarn=maxwarn)
 
     def em_2_steps(self, out_folder, name=None, no_constr_nsteps=1000,
                    constr_nsteps=1000,
