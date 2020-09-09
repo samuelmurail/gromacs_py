@@ -2537,7 +2537,7 @@ cystein_s_index[0]], ss_coor.atom_dict[cystein_s_index[1]])
 TEST_OUT),'1dn3/top')) #doctest: +ELLIPSIS
         Succeed to read file .../1dn3_cys.pdb ,  144 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method\
+        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method\
 =propka tmp_pdb2pqr.pdb 00_1dn3_cys.pqr
         Succeed to read file 00_1dn3_cys.pqr ,  231 atoms found
         Chain: A  Residue: 0 to 14
