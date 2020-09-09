@@ -2516,6 +2516,81 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         :Example:
 
         >>> TEST_OUT = getfixture('tmpdir')
+        >>>
+        >>> # Measure s-s bond length:
+        >>> ss_coor = pdb_manip.Coor(TEST_PATH+'/1dn3_cys.pdb')
+        Succeed to read file gromacs_py/test_files/1dn3_cys.pdb ,  \
+144 atoms found
+        >>> cystein_s_index = ss_coor.get_index_selection({'name': ['SG'], \
+'res_name' : ['CYS']})
+        >>> print(cystein_s_index)
+        [85, 118]
+        >>> distance = pdb_manip.Coor.atom_dist(ss_coor.atom_dict[\
+cystein_s_index[0]], ss_coor.atom_dict[cystein_s_index[1]])
+        >>> print('S-S distance = {:.2f} Å'.format(distance))
+        S-S distance = 6.38 Å
+        >>> no_ss_pep = GmxSys(name='1dn3_cys', coor_file=TEST_PATH+\
+'/1dn3_cys.pdb')
+        >>>
+        >>> #Basic usage :
+        >>> no_ss_pep.prepare_top(out_folder=os.path.join(str(\
+TEST_OUT),'1dn3/top')) #doctest: +ELLIPSIS
+        Succeed to read file .../1dn3_cys.pdb ,  144 atoms found
+        Succeed to save file tmp_pdb2pqr.pdb
+        pdb2pqr.py --ff CHARMM --ffout CHARMM --chain --ph-calc-method\
+=propka tmp_pdb2pqr.pdb 00_1dn3_cys.pqr
+        Succeed to read file 00_1dn3_cys.pqr ,  231 atoms found
+        Chain: A  Residue: 0 to 14
+        Succeed to save file 01_1dn3_cys_good_his.pdb
+        -Create topologie
+        gmx pdb2gmx -f 01_1dn3_cys_good_his.pdb -o 1dn3_cys_pdb2gmx.pdb \
+-p 1dn3_cys_pdb2gmx.top -i 1dn3_cys_posre.itp -water tip3p -ff \
+charmm36-jul2017 -ignh -vsite none
+        Molecule topologie present in 1dn3_cys_pdb2gmx.top , extract the \
+topologie in a separate file: 1dn3_cys_pdb2gmx.itp
+        Protein_chain_A
+        -ITP file: 1dn3_cys_pdb2gmx.itp
+        -molecules defined in the itp file:
+        * Protein_chain_A
+        Rewrite topologie: 1dn3_cys_pdb2gmx.top
+        >>> no_ss_pep.add_disulfide_bonds(res_list=[[9, 12]], \
+out_folder=os.path.join(str(TEST_OUT),'1dn3/top_ss')) #doctest: +ELLIPSIS
+        Succeed to read file .../1dn3/top/1dn3_cys_pdb2gmx.pdb ,  \
+231 atoms found
+        Succeed to save file .../1dn3/top_ss/1dn3_cys_ss_bond.pdb
+        Read rtp file : .../charmm36-jul2017.ff/merged.rtp
+        Correct residue CYS2 atom SG   atom type S    to SM ...
+        Correct residue CYS2 atom SG   atom type S    to SM ...
+        Protein_chain_A
+        >>> no_ss_pep.em(out_folder=TEST_OUT+'/1dn3/em_ss/', \
+nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
+        -Create pbc box
+        gmx editconf -f ...1dn3/top_ss/1dn3_cys_ss_bond.pdb -o \
+.../1dn3/top_ss/1dn3_cys_ss_bond_box.pdb -bt dodecahedron -d 1.0
+        -Create the tpr file 1dn3_cys.tpr
+        gmx grompp -f 1dn3_cys.mdp -c ../top_ss/1dn3_cys_ss_bond_box.pdb -r \
+../top_ss/1dn3_cys_ss_bond_box.pdb -p ../top_ss/1dn3_cys_ss_bond.top -po \
+out_1dn3_cys.mdp -o 1dn3_cys.tpr -maxwarn 1
+        -Launch the simulation 1dn3_cys.tpr
+        gmx mdrun -s 1dn3_cys.tpr -deffnm 1dn3_cys -nt 0 -ntmpi 0 -nsteps -2 \
+-nocopyright
+        >>> # Need to convert the gro to pdb:
+        >>> no_ss_pep.convert_trj(traj=False) #doctest: +ELLIPSIS
+        -Convert trj/coor
+        gmx trjconv -f .../em_ss/1dn3_cys.gro -o \
+.../em_ss/1dn3_cys_compact.pdb -s .../em_ss/1dn3_cys.tpr -ur compact -pbc mol
+        >>> # Measure s-s bond length:
+        >>> ss_coor = pdb_manip.Coor(no_ss_pep.coor_file) #doctest: +ELLIPSIS
+        Succeed to read file .../em_ss/1dn3_cys_compact.pdb ,  229 atoms found
+        >>> cystein_s_index = ss_coor.get_index_selection({'name': ['SG'], \
+'res_name' : ['CYS']})
+        >>> print(cystein_s_index)
+        [135, 189]
+        >>> distance = pdb_manip.Coor.atom_dist(ss_coor.atom_dict[\
+cystein_s_index[0]], ss_coor.atom_dict[cystein_s_index[1]])
+        >>> print('S-S distance = {:.2f} Å'.format(distance)) \
+#doctest: +ELLIPSIS
+        S-S distance = 2.0... Å
 
         .. note::
             No options are allowed (water model, termini capping) except
@@ -2691,13 +2766,16 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
 
         # Fix the molecule posre files with the wrong atom number in the .top:
 
-        top_prot.add_posre(posre_name="HA_LOW", selec_dict={
+        top_prot.add_posre(posre_name="POSRES", selec_dict={
+            'atom_name': HA_NAME},
+            fc=[1000, 1000, 1000])
+        top_prot.add_posre(posre_name="POSRES_HA_LOW", selec_dict={
             'atom_name': HA_NAME},
             fc=[100, 100, 100])
-        top_prot.add_posre(posre_name="CA_LOW", selec_dict={
+        top_prot.add_posre(posre_name="POSRES_CA_LOW", selec_dict={
             'atom_name': ['CA']},
             fc=[100, 100, 100])
-        top_prot.add_posre(posre_name="CA", selec_dict={
+        top_prot.add_posre(posre_name="POSRES_CA", selec_dict={
             'atom_name': ['CA']},
             fc=[1000, 1000, 1000])
 
