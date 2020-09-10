@@ -2519,8 +2519,9 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         >>> TEST_OUT = getfixture('tmpdir')
         >>>
         >>> # Measure s-s bond length:
-        >>> ss_coor = pdb_manip.Coor(TEST_PATH+'/1dn3_cys.pdb')
-        Succeed to read file gromacs_py/test_files/1dn3_cys.pdb ,  \
+        >>> ss_coor = pdb_manip.Coor(TEST_PATH+'/1dn3_cys.pdb')  \
+#doctest: +ELLIPSIS
+        Succeed to read file .../1dn3_cys.pdb ,  \
 144 atoms found
         >>> cystein_s_index = ss_coor.get_index_selection({'name': ['SG'], \
 'res_name' : ['CYS']})
