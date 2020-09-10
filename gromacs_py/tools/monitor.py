@@ -357,6 +357,103 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
                 print()
 
 
+def progress_bar(proc, func_input_dict, tail_line_num=20):
+    """ Monitor ``.log`` file timestep.
+    The ``func_input_dict`` should contains several keys:
+
+    * `nsteps`: Total number of steps during the simulation
+    * `log`: path of the log file (Defined in ``os_command.run_background()``)
+    * `refresh_time`: time interval to refresh log extract (default=1.0 s)
+
+    :param proc: running subprocess
+    :type proc: subprocess object
+
+    :param func_input_dict: dictionnary containing parameters for log extract
+    :type func_input_dict: dict
+
+    :param tail_line_num: number of line to read at the end of ``.log`` file
+    :type tail_line_num: int, default=20
+
+
+    Example:
+
+    >>> TEST_OUT = str(getfixture('tmpdir'))
+    >>> import sys
+    >>> sys.path.insert(0, os.path.abspath(os.path.join(MONITOR_LIB_DIR, \
+'../..')))
+    >>> from gromacs_py import gmx #doctest: +NORMALIZE_WHITESPACE, +ELLIPSIS
+    <BLANKLINE>
+    ...
+    >>> prot = gmx.GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+    >>> ###################################
+    >>> ####   Create the topologie:   ###
+    >>> ###################################
+    >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
+vsite='hydrogens') #doctest: +ELLIPSIS
+    pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
+tmp_pdb2pqr.pdb 00_1y0m.pqr
+    gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
+1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh \
+-vsite hydrogens
+    >>> ######################################
+    >>> ### Monitor an energy minimisation ###
+    >>> ######################################
+    >>> monitor = PROGRESS_BAR
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100,\
+    constraints='none', create_box_flag=True, monitor=monitor, nstlog=10)\
+    #doctest: +ELLIPSIS
+    gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o \
+.../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+    gmx grompp -f 1y0m.mdp -c ../top_SH3/1y0m_pdb2gmx_box.pdb -r \
+../top_SH3/1y0m_pdb2gmx_box.pdb -p ../top_SH3/1y0m_pdb2gmx.top -po \
+out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
+    gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 \
+-nocopyright
+
+    """
+
+    if isnotebook():
+        from tqdm.notebook import tqdm
+    else:
+        from tqdm import tqdm
+
+    log_to_check = func_input_dict['log']
+    time_modif = None
+    file_time = None
+    count = 1
+    if 'refresh_time' in func_input_dict:
+        refresh_time = func_input_dict['refresh_time']
+    else:
+        refresh_time = 1.0
+
+    pbar = tqdm(total=func_input_dict['nsteps'])
+    last_time = 0
+
+    while proc.poll() is None:
+
+        time.sleep(refresh_time)
+        count += 1
+
+        if os_command.check_file_exist(log_to_check):
+            file_time = os.stat(log_to_check).st_mtime
+
+        if time_modif != file_time:
+
+            time_modif = file_time
+
+            log_dict = extract_log_dict(func_input_dict)
+            if 'step' in log_dict:
+                pbar.update(log_dict['step'] - last_time)
+                last_time = log_dict['step']
+
+    pbar.update(func_input_dict['nsteps'] - last_time)
+    pbar.close()
+
+
+PROGRESS_BAR = {'function': progress_bar,
+                'file_check_ext': 'log'}
+
+
 if __name__ == "__main__":
 
     import doctest

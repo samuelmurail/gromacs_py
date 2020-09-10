@@ -16,6 +16,7 @@ from os_command_py import os_command
 from pdb_manip_py import pdb_manip
 from pdb_manip_py import pdb2pqr
 
+
 # Logging
 logger = logging.getLogger(__name__)
 
@@ -3848,6 +3849,39 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
     # ###########  SIMULATION RELATED FUNCTIONS  #############
     ##########################################################
 
+    def get_mdp_dict(self, mdp_file=None):
+        """ Extract mdp file's parameters and return it as a dict.
+        By default read self.coor, but if mdp_file option is defined,
+        it will read it.
+
+        :param mdp_file: mdp file
+        :type mdp_file: str, default=None
+
+        **Object requirement(s):**
+
+            * self.mdp
+
+        """
+
+        if mdp_file is None:
+            mdp_file = self.mdp
+
+        mdp_dict = {}
+
+        with open(mdp_file) as filein:
+
+            for line in filein:
+                if line[0] != ';':
+                    line_no_space = line[:-1].replace(" ", "")
+                    line_split = line_no_space.split('=')
+                    # print(line)
+                    # print(line_split)
+                    if len(line_split) == 2:
+                        key = line_split[0].lower().replace("-", "_")
+                        mdp_dict[key] = line_split[1].lower()
+
+        return(mdp_dict)
+
     def add_mdp(self, mdp_template, mdp_options, folder_out="",
                 check_file_out=True):
         """Create the MD simulation input mdp file from a template.
@@ -3891,30 +3925,24 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             self.mdp = mdp_out
             return
 
-        filout = open(mdp_out, 'w')
-
         local_mdp_opt = mdp_options.copy()
 
-        with open(mdp_template) as filein:
+        mdp_template_dict = self.get_mdp_dict(mdp_template)
 
-            for line in filein:
-                if line.split():
-                    line_split = line.split()
-                    for key, value in local_mdp_opt.items():
-                        if (line_split[0].lower() == key.replace(
-                                "_", "-").lower() or
-                                line_split[0].lower() == key.lower()):
-                            line = "    " + key.lower() +\
-                                "\t           = " + str(value) + "\n"
-                            del local_mdp_opt[key]
-                            break
-                filout.write(line)
-            # Print remaining options not founded is the mdp_template
-            for key, value in local_mdp_opt.items():
-                line = "    " + key + "\t           = " + str(value) + "\n"
+        # Check options not founded is the mdp_template
+        for key, value in local_mdp_opt.items():
+            if key not in mdp_template_dict:
                 logger.warning("WARNING !!! ADDING unusual parameter : \"{}"
                                "\"in the mdp file {}".format(key, self.mdp))
-                filout.write(line)
+
+        mdp_template_dict.update(local_mdp_opt)
+
+        # Write mdp file:
+        filout = open(mdp_out, 'w')
+        for key, value in mdp_template_dict.items():
+            line = "  {:25}   =    {}\n".format(
+                key.replace("-", "_").lower(), str(value))
+            filout.write(line)
 
         filout.close()
 
@@ -3958,7 +3986,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         filout = open(mdp_out, 'w')
 
         for key, value in mdp_options.items():
-            line = "    " + key.lower() + "\t           = " + str(value) + "\n"
+            line = "  {:25}   =    {}\n".format(
+                key.replace("-", "_").lower(), str(value))
             filout.write(line)
 
         filout.close()
@@ -4112,7 +4141,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         self.tpr = tpr_out
 
     def run_simulation(self, check_file_out=True, cpi=None, nsteps=-2,
-                       rerun=False, monitor=None):
+                       rerun=False, monitor=monitor.PROGRESS_BAR):
         """
         Launch the simulation using ``gmx mdrun``
 
@@ -4224,10 +4253,13 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         if monitor is None:
             cmd_run.run()
         else:
+            if nsteps == -2:
+                sim_mdp_dict = self.get_mdp_dict()
+                nsteps = int(sim_mdp_dict['nsteps'])
             monitor_files = {'xtc': self.sim_name + ".xtc",
                              'edr': self.sim_name + ".edr",
-                             'log': self.sim_name + ".log"
-                             }
+                             'log': self.sim_name + ".log",
+                             'nsteps': nsteps}
             monitor.update(monitor_files)
             cmd_run.run_background(monitor)
 
@@ -4245,7 +4277,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             self.edr = self.sim_name + ".edr"
 
     def run_md_sim(self, out_folder, name, mdp_template, mdp_options,
-                   pdb_restr=None, maxwarn=0, monitor=None):
+                   pdb_restr=None, maxwarn=0, monitor=monitor.PROGRESS_BAR):
         """Run a simulation using 3 steps:
 
         1. Create a mdp file
@@ -4318,8 +4350,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         # Get absolute path:
         os.chdir(start_dir)
 
-    def em(self, out_folder, name=None, nsteps=1000, posres="",
-           create_box_flag=False, monitor=None, maxwarn=1,
+    def em(self, out_folder, name=None, posres="",
+           create_box_flag=False, monitor=monitor.PROGRESS_BAR, maxwarn=1,
            **mdp_options):
         """Minimize a system.
 
@@ -4366,7 +4398,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         # mdp :
         mini_template_mdp = os.path.join(GROMACS_MOD_DIRNAME,
                                          "template/mini.mdp")
-        mdp_options.update({'nsteps': int(nsteps), 'define': posres})
+        mdp_options.update({'define': posres})
 
         self.run_md_sim(out_folder=out_folder, name=name,
                         mdp_template=mini_template_mdp,
@@ -4375,7 +4407,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
     def em_2_steps(self, out_folder, name=None, no_constr_nsteps=1000,
                    constr_nsteps=1000,
-                   posres="", create_box_flag=False, monitor=None,
+                   posres="", create_box_flag=False,
+                   monitor=monitor.PROGRESS_BAR,
                    maxwarn=1,
                    **mdp_options):
         """Minimize a system in two steps:
@@ -4442,7 +4475,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                         nsteps_HA=100000,
                         nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.002,
                         dt_HA=0.001,
-                        maxwarn=0, monitor=None, vsite='none', **mdp_options):
+                        maxwarn=0,
+                        monitor=monitor.PROGRESS_BAR,
+                        vsite='none', **mdp_options):
         """Equilibrate a system in 3 steps:
 
         1. equilibration of nsteps_HA with position restraints on Heavy Atoms
@@ -4542,7 +4577,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                       pdb_restr=None, nsteps_HA=100000,
                                       nsteps_CA=200000, nsteps_CA_LOW=400000,
                                       dt=0.002, dt_HA=0.001, maxwarn=0,
-                                      iter_num=3, monitor=None, vsite='none',
+                                      iter_num=3,
+                                      monitor=monitor.PROGRESS_BAR,
+                                      vsite='none',
                                       **mdp_options):
         """ Minimize a system in 2 steps:
 
@@ -4626,6 +4663,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                 no_constr_nsteps=no_constr_nsteps,
                                 constr_nsteps=constr_nsteps,
                                 posres="", create_box_flag=False,
+                                monitor=monitor,
                                 **mdp_options)
                 self.convert_trj(traj=False)
 
@@ -4653,7 +4691,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         os.chdir(start_dir)
 
     def production(self, out_folder, name=None, nsteps=400000, dt=0.002,
-                   maxwarn=0, monitor=None, vsite='none', **mdp_options):
+                   maxwarn=0,
+                   monitor=monitor.PROGRESS_BAR, vsite='none',
+                   **mdp_options):
         """Run a production run.
 
         :param out_folder: path of the output file folder
@@ -4703,7 +4743,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                         monitor=monitor, maxwarn=maxwarn)
 
     def extend_equi_prod(self, tpr_file=None, nsteps=200000, dt=0.005,
-                         monitor=None):
+                         monitor=monitor.PROGRESS_BAR):
         """Extend a simulation run.
 
         :param tpr_file: path of the tpr file
@@ -4768,7 +4808,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         os.chdir(start_dir)
 
     def em_CG(self, out_folder, name=None, nsteps=500000,
-              maxwarn=0, monitor=None, **mdp_options):
+              maxwarn=0,
+              monitor=monitor.PROGRESS_BAR,
+              **mdp_options):
         """Equilibrate a system a CG system:
 
         1. equilibration of nsteps_HA with position restraints on Heavy Atoms
@@ -4827,7 +4869,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                         monitor=monitor)
 
     def equi_CG(self, out_folder, name=None, pdb_restr=None, nsteps=500000,
-                dt=0.02, maxwarn=0, monitor=None, **mdp_options):
+                dt=0.02, maxwarn=0,
+                monitor=monitor.PROGRESS_BAR,
+                **mdp_options):
         """Equilibrate a system a CG system:
 
         1. equilibration of nsteps_HA with position restraints on Heavy Atoms
@@ -4888,7 +4932,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                         monitor=monitor)
 
     def prod_CG(self, out_folder, name=None, nsteps=5000000, dt=0.02,
-                maxwarn=0, monitor=None, **mdp_options):
+                maxwarn=0,
+                monitor=monitor.PROGRESS_BAR,
+                **mdp_options):
         """Equilibrate a system a CG system:
 
         1. equilibration of nsteps_HA with position restraints on Heavy Atoms
