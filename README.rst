@@ -39,14 +39,15 @@ Main features:
    - Solvation
    - Ion insertion
    - Energy minimisation
-   - Equilibration with position restraints
+   - Equilibration with different position restraints
    - Production
    - **GPU** acceleration
 
 * Topologie manipulation starting from a raw ``PDB``:
    - Amino acid protonation and pKa calculation using `apbs/pdb2pqr <http://www.poissonboltzmann.org/>`_
    - Position constraints file ``.itp`` creation
-   - Cyclic petide topologie
+   - Cyclic peptide topologie
+   - Cystein bond topologie modification
 
 * Advanced simulation tools:
    - Monitor a simulation while running
@@ -106,7 +107,7 @@ Seven successive steps are used:
 .. code-block:: bash
 
    # Create topologie
-   create_top.py -f gromacs_py/test/input/1y0m.pdb  -o tmp/1y0m/top -vsite
+   create_top.py -f gromacs_py/test_files/1y0m.pdb -o tmp/1y0m/top -vsite
 
    # Minimize the protein structure
    minimize_pdb.py -f tmp/1y0m/top/1y0m_pdb2gmx_box.pdb -p tmp/1y0m/top/1y0m_pdb2gmx.top -o tmp/1y0m/em/  -n em_1y0m -nt 2
@@ -118,10 +119,10 @@ Seven successive steps are used:
    minimize_pdb.py -f tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.gro -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/em/  -n em_1y0m
 
    # Do three small equilibrations with postion contraints on heavy atoms (first), Carbon alpha (second) and low constraint on Carbon alpha (third)
-   equi_3_step.py -f tmp/1y0m_water_ions/em/em_1y0m_compact.pdb -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/  -n 1y0m -HA_time 0.1 -CA_time 0.1 -CA_LOW_time 0.1
+   equi_3_step.py -f tmp/1y0m_water_ions/em/em_1y0m_compact.pdb -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/  -n 1y0m -HA_time 0.1 -dt_HA 0.002 -CA_time 0.1 -CA_LOW_time 0.1 -dt 0.004 -maxwarn 1
 
    # Small production run of 0.1 ns
-   production.py -f tmp/1y0m_water_ions/02_equi_CA_LOW/equi_CA_LOW_1y0m.gro -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/03_prod -n 1y0m -time 0.1
+   production.py -f tmp/1y0m_water_ions/02_equi_CA_LOW/equi_CA_LOW_1y0m.gro -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/03_prod -n 1y0m -time 0.1 -dt 0.004 -maxwarn 1
 
    # Extension of the simulation
    extend.py -s tmp/1y0m_water_ions/03_prod/prod_1y0m.tpr -time 0.2
