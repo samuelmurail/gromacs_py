@@ -35,10 +35,13 @@ def parser_input():
                         help='Equilibration with HA constraint time(ns), default = 5ns',
                         type=float, default=5)
     parser.add_argument('-dt_HA', action="store", dest="dt_HA",
-                        help='Equi HA dt, default=0.005 (5 fs)', type=float, default=0.002)
+                        help='Equi HA dt, default=0.002 (2 fs)', type=float, default=0.002)
     parser.add_argument('-dt', action="store", dest="dt",
-                        help='Equi CA, CA_LOW, dt, default=0.005 (5 fs)', type=float,
-                        default=0.005)
+                        help='Equi CA, CA_LOW, dt, default=0.002 (2 fs)', type=float,
+                        default=0.002)
+    parser.add_argument('-maxwarn', action="store", dest="maxwarn",
+                        help='Total number of warnings allowed for the equilibration, default=0', type=int,
+                        default=0)
     parser.add_argument('-nt', action="store", dest="nt",
                         help='Total number of threads to start, default=0', type=float,
                         default=0)
@@ -74,7 +77,8 @@ if __name__ == "__main__":
         sys_equi.gpu_id = args.gpuid
 
     sys_equi.equi_three_step(out_folder=args.o, name=args.name, nsteps_HA=HA_step,
-                             nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA)
+                             nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, dt=dt, dt_HA=dt_HA,
+                             maxwarn=maxwarn)
 
     print("\n\nEquilibration was sucessfull \n\tEquilibration directory :\t" + args.o)
 
