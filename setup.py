@@ -29,6 +29,7 @@ setup(
              'bin/minimize_pdb.py',
              'bin/solvate_ions.py',
              'bin/prepare_prot_topo_edit.py',
+             'bin/equi_3_step.py',
              'bin/production.py',
              'bin/test_gromacs_py.py',
              'bin/top_em_equi_3_step_prod.py'],
