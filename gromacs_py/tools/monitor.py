@@ -170,7 +170,7 @@ tmp_pdb2pqr.pdb 00_1y0m.pqr
     for i, function in enumerate(function_list):
         y_list.append([])
         x_list.append([])
-        axarr[i].set_xlabel('time (ns)')
+        axarr[i].set_xlabel('time (ps)')
         axarr[i].set_ylabel(function['term'])
         axarr[i].plot(x_list[i], y_list[i],
                       'ko-', markersize=2,
