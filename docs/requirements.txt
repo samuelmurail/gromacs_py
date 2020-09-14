@@ -1,0 +1,4 @@
+sphinx-argparse
+sphinx_rtd_theme
+nbsphinx
+pygments>=2.4.1
