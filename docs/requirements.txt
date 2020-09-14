@@ -2,3 +2,8 @@ sphinx-argparse
 sphinx_rtd_theme
 nbsphinx
 pygments>=2.4.1
+pandas
+matplotlib
+os_command_py
+pdb2pqr_htmd_propka30
+pdb_manip_py>=1.2.1
