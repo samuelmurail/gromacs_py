@@ -12,8 +12,8 @@ git:
   depth: false
 
 branches:
-  only:
-    - master
+  except:
+    - experimental
 
 env:
   global:
