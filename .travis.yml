@@ -19,7 +19,7 @@ env:
   global:
     - GROMACS_VERSION=2019.5
     - PYTHON_VERSION=3.7
-    - CONDA_DEPENDENCIES="gromacs pandoc ipython"
+    - CONDA_DEPENDENCIES="gromacs pandoc ipython ambertools"
     - CONDA_CHANNELS="conda-forge bioconda"
 
 matrix:
