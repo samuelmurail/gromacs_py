@@ -5,7 +5,7 @@ channels:
 dependencies:
   - python=3.7
   - gromacs=2019.1 
-  - ambertools
+  - acpype
   - pip
   - pip:
     - gromacs_py
