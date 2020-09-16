@@ -149,7 +149,7 @@ def antechamber(pdb_in, mol2_out, charge_model="bcc",
     # Define reduce command:
     cmd_antechamber = os_command.Command([ANTECHAMBER_BIN,
                                           "-i", pdb_in,
-                                          "-fi", pdb_in.split('.')[-1],
+                                          "-fi", str(pdb_in).split('.')[-1],
                                           "-o", mol2_out,
                                           "-fo", "mol2",
                                           "-c", charge_model],
