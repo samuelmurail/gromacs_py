@@ -136,7 +136,9 @@ def antechamber(pdb_in, mol2_out, charge_model="bcc",
 #doctest: +ELLIPSIS
     Succeed to read file .../phenol_h.pdb ,  13 atoms found
     >>> antechamber(pdb_in=TEST_OUT+'/phenol_h.pdb',\
-    mol2_out=TEST_OUT+'/phenol_h.mol2')
+    mol2_out=TEST_OUT+'/phenol_h.mol2') #doctest: +ELLIPSIS
+    antechamber -i .../phenol_h.pdb -fi pdb -o .../phenol_h.mol2 -fo \
+mol2 -c bcc
 
     """
 
@@ -228,7 +230,8 @@ def acpype(pdb_in, out_folder, charge_model="bcc",
     cmd_acpype.display()
     cmd_acpype.run(display=False)
 
-    logger.info("Succeed to create topologie in %s" % os.path.relpath(out_folder))
+    logger.info("Succeed to create topologie in %s" % os.path.relpath(
+        out_folder))
 
     return
 
