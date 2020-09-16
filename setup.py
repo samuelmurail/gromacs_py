@@ -55,6 +55,7 @@ setup(
         "os_command_py",
         "pdb2pqr_htmd_propka30",
         "pdb_manip_py",
+        "tqdm",
     ],
     package_data={
         '': ['docs/*rst',
