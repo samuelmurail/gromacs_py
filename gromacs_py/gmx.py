@@ -1980,28 +1980,14 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
         >>> TEST_OUT = getfixture('tmpdir')
         >>> # Create the topologie of a protein and do a minimisation:
-        >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
-        >>> prot.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_SH3/', \
-vsite='hydrogens') #doctest: +ELLIPSIS
-        Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
-        Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
-        Succeed to save file tmp_pdb2pqr.pdb
-        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
-tmp_pdb2pqr.pdb 00_1y0m.pqr
-        Succeed to read file 00_1y0m.pqr ,  996 atoms found
-        Chain: A  Residue: 0 to 60
-        Succeed to save file 01_1y0m_good_his.pdb
-        -Create topologie
-        gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
-1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 \
--ignh -vsite hydrogens
-        Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
-topologie in a separate file: 1y0m_pdb2gmx.itp
-        Protein_chain_A
-        -ITP file: 1y0m_pdb2gmx.itp
-        -molecules defined in the itp file:
-        * Protein_chain_A
-        Rewrite topologie: 1y0m_pdb2gmx.top
+        >>> dna_lig = GmxSys(name='5W77', coor_file=TEST_PATH+'/5W77_1.pdb')
+        
+        dna_lig.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_dna/', \
+ff='amber99sb-ildn', include_mol=['9WP']) #doctest: +ELLIPSIS
+        dna_lig.em(out_folder=TEST_OUT + '/prepare_top/em_dna'), \
+nsteps=100)
+
+        acpype est TROP LONG, A CHANGER !!!
 
         .. note::
             No options are allowed (forcefield, water model, termini capping)
@@ -2060,10 +2046,11 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
                                    " add this residue in ...".format(
                                     resname))
 
-        coor_in.correct_his_name()
-        coor_in.correct_cys_name()
         coor_in.correct_water_name()
-        coor_in.correct_chain()
+        if start_coor.get_aa_num() > 0:
+            coor_in.correct_his_name()
+            coor_in.correct_cys_name()
+            coor_in.correct_chain()
 
         if not ignore_ZN:
             zinc_in = coor_in.add_zinc_finger(start_pdb)
@@ -4032,7 +4019,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             self.mdp = mdp_out
             return
 
-        local_mdp_opt = mdp_options.copy()
+        # Replace - by _:
+        local_mdp_opt = {}
+        for key, value in mdp_options.items():
+            local_mdp_opt[key.replace("-", "_").lower()] = str(value)
+
+        #local_mdp_opt = mdp_options.copy()
 
         mdp_template_dict = self.get_mdp_dict(mdp_template)
 
