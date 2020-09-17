@@ -22,11 +22,12 @@ logger = logging.getLogger(__name__)
 
 # In case gmx5 is launched as main, relative import will failed
 try:
-    from .tools import monitor
+    from .tools import monitor, ambertools
 except ImportError:
     logger.info("Relative import from .tools fails,"
                 " use absolute import instead")
     import tools.monitor as monitor
+    import tools.ambertools as ambertools
 
 
 # Autorship information
@@ -150,7 +151,7 @@ class TopSys:
     def __init__(self, top_in):
 
         self.path = os_command.full_path_and_check(top_in)
-        self.forcefield = []
+        self.forcefield = None
         self.itp_list = []
         self.mol_comp = []
         self.name = ""
@@ -253,7 +254,10 @@ class TopSys:
                                               'num': line_list[1]})
 
     def display(self):
-        print("Forcefield include :\n", self.forcefield['name'])
+        if self.forcefield:
+            print("Forcefield include :\n", self.forcefield['name'])
+        else:
+            print('No forcefield defined !')
         for itp in self.itp_list:
             itp.display()
         print("Mol List:")
@@ -265,10 +269,10 @@ class TopSys:
     def write_file(self, top_out):
         filout = open(top_out, 'w')
 
-        filout.write("; Topologie file created by " + __author__ + "\n")
-        filout.write("; Using library " + __name__ + " \n\n")
-        filout.write("; Forcefield: \n")
-        filout.write("#include \"" + self.forcefield['fullname'] + "\"\n")
+        filout.write("; Topologie file created by " + __name__ + "\n")
+        if self.forcefield:
+            filout.write("; Forcefield: \n")
+            filout.write("#include \"" + self.forcefield['fullname'] + "\"\n")
         # print include files
         filout.write("\n; Itp to include: \n")
         for itp in self.itp_list:
@@ -286,7 +290,6 @@ class TopSys:
             filout.write(mol['name'] + " \t" + mol['num'] + "\n")
         filout.write("\n")
         filout.close()
-
         self.copy_dependancies(os_command.get_directory(top_out))
 
     def charge(self):
@@ -390,19 +393,27 @@ class TopSys:
         file_list = []
         # print("\n\nIncluded files: ")
         for itp in self.itp_list:
-            if (self.forcefield['fullname'].split("/")[0] !=
-                    itp.fullname.split("/")[0]):
-                # print(itp.path)
+            if self.forcefield:
+                if (self.forcefield['fullname'].split("/")[0] !=
+                        itp.fullname.split("/")[0]):
+                    # print(itp.path)
+                    file_list.append(itp.path)
+                    file_list = file_list + itp.get_include_file_list()
+            else:
                 file_list.append(itp.path)
                 file_list = file_list + itp.get_include_file_list()
+
         return file_list
 
     def get_include_no_posre_file_list(self):
         file_list = []
         # print("\n\nIncluded files: ")
         for itp in self.itp_list:
-            if (self.forcefield['fullname'].split("/")[0] !=
-                    itp.fullname.split("/")[0]):
+            if self.forcefield:
+                if (self.forcefield['fullname'].split("/")[0] !=
+                        itp.fullname.split("/")[0]):
+                    file_list.append(itp.path)
+            else:
                 file_list.append(itp.path)
         return file_list
 
@@ -535,8 +546,13 @@ class Itp:
                         # ai, aj, funct = [int(line[i*5:(i+1)*5]) for i in
                         # range(3)]
                         ai, aj, funct = [int(col) for col in line_list[:3]]
+                        if len(line_list) < 5:
+                            r = k = ''
+                        else:
+                            r, k = line_list[3:5]
                         local_top.bond_list.append({'ai': ai, 'aj': aj,
-                                                    'funct': funct})
+                                                    'funct': funct, 'r': r,
+                                                    'k': k})
                     elif field == 'constraints':
                         ai, aj, funct = [int(col) for col in line_list[:3]]
                         local_top.cons_list.append({'ai': ai, 'aj': aj,
@@ -547,14 +563,27 @@ class Itp:
                                                     'funct': funct})
                     elif field == 'angles':
                         ai, aj, ak, funct = [int(col) for col in line_list[:4]]
+                        if len(line_list) < 6:
+                            theta = cth = ''
+                        else:
+                            theta, cth = line_list[4:6]
                         local_top.angl_list.append({'ai': ai, 'aj': aj,
-                                                    'ak': ak, 'funct': funct})
+                                                    'ak': ak, 'funct': funct,
+                                                    'theta': theta,
+                                                    'cth': cth})
                     elif field == 'dihedrals':
-                        ai, aj, ak, al, funct = [
-                            int(col) for col in line_list[:5]]
+                        ai, aj, ak, al, funct = [int(col) for col in
+                                                 line_list[:5]]
+                        if len(line_list) < 7:
+                            phase = kd = pn = ''
+                        else:
+                            phase, kd = line_list[5:7]
+                            pn = int(line_list[7])
                         local_top.dihe_list.append({'ai': ai, 'aj': aj,
                                                     'ak': ak, 'al': al,
-                                                    'funct': funct})
+                                                    'funct': funct,
+                                                    'phase': phase, 'kd': kd,
+                                                    'pn': pn})
                     elif field == 'virtual_sites3':
                         ai, aj, ak, al, funct = [
                             int(col) for col in line_list[:5]]
@@ -596,8 +625,7 @@ class Itp:
 
     def write_file(self, itp_file):
         filout = open(itp_file, 'w')
-        filout.write("; Itp file created by " + __author__ + "\n")
-        filout.write("; Using library " + __name__ + " \n\n")
+        filout.write("; Itp file created by " + __name__ + "\n")
 
         for top_mol in self.top_mol_list:
             logger.info(top_mol.name)
@@ -773,7 +801,7 @@ class TopMol:
         for atom in self.atom_dict.values():
             tot_charge += atom['charge']
             # print('ATOM:',atom)
-            filout.write("{:>6}{:>11}{:>7}{:>7}{:>7}{:>7}{:>11.2f}{:>11} "
+            filout.write("{:>6}{:>11}{:>7}{:>7}{:>7}{:>7}{:>11.5f}{:>11} "
                          "  ; qtot {:<6.2f} \n".
                          format(atom['num'],
                                 atom['atom_type'],
@@ -787,8 +815,9 @@ class TopMol:
         filout.write("\n[ bonds ]\n;  ai    aj funct            c0           "
                      " c1            c2            c3\n")
         for param in self.bond_list:
-            filout.write("{:>6}{:>6}{:>6}\n".format(
-                param['ai'], param['aj'], param['funct']))
+            filout.write("{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
+                param['ai'], param['aj'], param['funct'],
+                param['r'], param['k']))
         # Print constraints field
         filout.write("\n[ constraints ]\n;  ai    aj funct            c0    "
                      "        c1\n")
@@ -805,18 +834,20 @@ class TopMol:
         filout.write("\n[ angles ]\n;  ai    aj    ak funct            c0   "
                      "         c1            c2            c3\n")
         for param in self.angl_list:
-            filout.write("{:>6}{:>6}{:>6}{:>6}\n".format(
+            filout.write("{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
                 param['ai'], param['aj'],
-                param['ak'], param['funct']))
+                param['ak'], param['funct'],
+                param['theta'], param['cth']))
         # Print dihedrals field
         filout.write("\n[ dihedrals ]\n;  ai    aj    ak    al funct        "
                      "    c0            c1            c2            c3      "
                      "      c4            c5\n")
         for param in self.dihe_list:
-            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
-                param['ai'], param['aj'],
-                param['ak'], param['al'],
-                param['funct']))
+            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}"
+                         "{:>6}\n".format(param['ai'], param['aj'],
+                                          param['ak'], param['al'],
+                                          param['funct'], param['phase'],
+                                          param['kd'], param['pn']))
         # Print virtual_sites3 field
         filout.write("\n[ cmap ]\n;  ai    aj    ak    al    am funct\n")
         for param in self.cmap_list:
@@ -897,27 +928,27 @@ class TopMol:
         for i, param in enumerate(self.bond_list):
             if not ((param['ai'] in index_list) or
                     (param['aj'] in index_list)):
-                new_bond_list.append({'ai': dict_atom_index[param['ai']],
-                                      'aj': dict_atom_index[param['aj']],
-                                      'funct': param['funct']})
+                param.update({'ai': dict_atom_index[param['ai']],
+                              'aj': dict_atom_index[param['aj']]})
+                new_bond_list.append(param)
         self.bond_list = new_bond_list
 
         new_cons_list = []
         for i, param in enumerate(self.cons_list):
             if not ((param['ai'] in index_list) or
                     (param['aj'] in index_list)):
-                new_cons_list.append({'ai': dict_atom_index[param['ai']],
-                                      'aj': dict_atom_index[param['aj']],
-                                      'funct': param['funct']})
+                param.update({'ai': dict_atom_index[param['ai']],
+                              'aj': dict_atom_index[param['aj']]})
+                new_cons_list.append(param)
         self.cons_list = new_cons_list
 
         new_pair_list = []
         for i, param in enumerate(self.pair_list):
             if not ((param['ai'] in index_list) or
                     (param['aj'] in index_list)):
-                new_pair_list.append({'ai': dict_atom_index[param['ai']],
-                                      'aj': dict_atom_index[param['aj']],
-                                      'funct': param['funct']})
+                param.update({'ai': dict_atom_index[param['ai']],
+                              'aj': dict_atom_index[param['aj']]})
+                new_pair_list.append(param)
         self.pair_list = new_pair_list
 
         new_angl_list = []
@@ -925,10 +956,11 @@ class TopMol:
             if not ((param['ai'] in index_list) or
                     (param['aj'] in index_list) or
                     (param['ak'] in index_list)):
-                new_angl_list.append({'ai': dict_atom_index[param['ai']],
-                                      'aj': dict_atom_index[param['aj']],
-                                      'ak': dict_atom_index[param['ak']],
-                                      'funct': param['funct']})
+                param.update({'ai': dict_atom_index[param['ai']],
+                              'aj': dict_atom_index[param['aj']],
+                              'ak': dict_atom_index[param['ak']]})
+                new_angl_list.append(param)
+
         self.angl_list = new_angl_list
 
         new_dihe_list = []
@@ -937,11 +969,12 @@ class TopMol:
                     (param['aj'] in index_list) or
                     (param['ak'] in index_list) or
                     (param['al'] in index_list)):
-                new_dihe_list.append({'ai': dict_atom_index[param['ai']],
-                                      'aj': dict_atom_index[param['aj']],
-                                      'ak': dict_atom_index[param['ak']],
-                                      'al': dict_atom_index[param['al']],
-                                      'funct': param['funct']})
+                param.update({'ai': dict_atom_index[param['ai']],
+                              'aj': dict_atom_index[param['aj']],
+                              'ak': dict_atom_index[param['ak']],
+                              'al': dict_atom_index[param['al']]})
+                new_dihe_list.append(param)
+
         self.dihe_list = new_dihe_list
 
         new_vs3_list = []
@@ -950,11 +983,11 @@ class TopMol:
                     (param['aj'] in index_list) or
                     (param['ak'] in index_list) or
                     (param['al'] in index_list)):
-                new_vs3_list.append({'ai': dict_atom_index[param['ai']],
-                                     'aj': dict_atom_index[param['aj']],
-                                     'ak': dict_atom_index[param['ak']],
-                                     'al': dict_atom_index[param['al']],
-                                     'funct': param['funct']})
+                param.update({'ai': dict_atom_index[param['ai']],
+                              'aj': dict_atom_index[param['aj']],
+                              'ak': dict_atom_index[param['ak']],
+                              'al': dict_atom_index[param['al']]})
+                new_vs3_list.append(param)
         self.vs3_list = new_vs3_list
 
         new_cmap_list = []
@@ -964,12 +997,12 @@ class TopMol:
                     (param['ak'] in index_list) or
                     (param['al'] in index_list) or
                     (param['am'] in index_list)):
-                new_cmap_list.append({'ai': dict_atom_index[param['ai']],
-                                      'aj': dict_atom_index[param['aj']],
-                                      'ak': dict_atom_index[param['ak']],
-                                      'al': dict_atom_index[param['al']],
-                                      'am': dict_atom_index[param['am']],
-                                      'funct': param['funct']})
+                param.update({'ai': dict_atom_index[param['ai']],
+                              'aj': dict_atom_index[param['aj']],
+                              'ak': dict_atom_index[param['ak']],
+                              'al': dict_atom_index[param['al']],
+                              'am': dict_atom_index[param['am']]})
+                new_cmap_list.append(param)
         self.cmap_list = new_cmap_list
 
         new_vs4_list = []
@@ -979,12 +1012,12 @@ class TopMol:
                     (param['ak'] in index_list) or
                     (param['al'] in index_list) or
                     (param['am'] in index_list)):
-                new_vs4_list.append({'ai': dict_atom_index[param['ai']],
-                                     'aj': dict_atom_index[param['aj']],
-                                     'ak': dict_atom_index[param['ak']],
-                                     'al': dict_atom_index[param['al']],
-                                     'am': dict_atom_index[param['am']],
-                                     'funct': param['funct']})
+                param.update({'ai': dict_atom_index[param['ai']],
+                              'aj': dict_atom_index[param['aj']],
+                              'ak': dict_atom_index[param['ak']],
+                              'al': dict_atom_index[param['al']],
+                              'am': dict_atom_index[param['am']]})
+                new_vs4_list.append(param)
         self.vs4_list = new_vs4_list
 
     def correct_charge_type(self, forcefield, index_list=None):
@@ -1162,8 +1195,7 @@ def write_index_posre_file(atom_index_list, posre_file, type_val=1,
     """
 
     filout = open(posre_file, 'w')
-    filout.write("; Position restraint file created by " + __author__ + "\n")
-    filout.write(";using library " + __name__ + " \n\n")
+    filout.write("; Position restraint file created by " + __name__ + "\n")
     filout.write("[ position_restraints ]\n")
     filout.write("; atom  type      fx      fy      fz\n")
 
@@ -1249,6 +1281,7 @@ class GmxSys:
     >>> ###################################
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
 vsite='hydrogens') #doctest: +ELLIPSIS
+    Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
     Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
     Succeed to save file tmp_pdb2pqr.pdb
     pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
@@ -1711,7 +1744,13 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
 
         import nglview as nv
 
+        if self.coor_file[:-3] != 'pdb':
+            if self.tpr is None:
+                self.tpr = self.coor_file
+            self.convert_trj(traj=False, pbc='none')
+
         coor = pdb_manip.Coor(self.coor_file)
+
         struct_str = nv.TextStructure(coor.get_structure_string())
         return nv.NGLWidget(struct_str)
 
@@ -1897,7 +1936,9 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         os.chdir(start_dir)
 
     def prepare_top(self, out_folder, name=None,
-                    vsite="none", ignore_ZN=True, ff="charmm36-jul2017"):
+                    vsite="none", ignore_ZN=True,
+                    ff="charmm36-jul2017",
+                    include_mol=[]):
         """Prepare the topologie of a protein:
 
         1. compute hisdine protonation with ``pdb2pqr``.
@@ -1943,6 +1984,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_SH3/', \
 vsite='hydrogens') #doctest: +ELLIPSIS
         Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
+        Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
         pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
 tmp_pdb2pqr.pdb 00_1y0m.pqr
@@ -1981,6 +2023,11 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
         # Save initial pdb file:
         start_pdb = self.coor_file
+        start_coor = pdb_manip.Coor(start_pdb)
+
+        # Get initial list of residue name
+        res_name_input = start_coor.get_attribute_selection(
+            attribute='res_name')
 
         if ff.startswith('amber'):
             pdb2pqr_ff = 'AMBER'
@@ -1996,10 +2043,28 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         # Correct His resname
         coor_in = pdb_manip.Coor(pdb_in="00_" + name + ".pqr",
                                  pqr_format=True)
+        res_name_pdb2pqr = coor_in.get_attribute_selection(
+            attribute='res_name')
+        res_name_pdb2pqr += ['HIS', 'HOH']
+
+        mol_sys_list = []
+        for resname in res_name_input:
+            if resname not in res_name_pdb2pqr:
+                if resname in include_mol:
+                    mol_top = ambertools.make_amber_top_mol(
+                            start_pdb, resname)
+                    mol_top['name'] = resname
+                    mol_sys_list.append(mol_top)
+                else:
+                    logger.warning("residue(s) {} not included,"
+                                   " add this residue in ...".format(
+                                    resname))
+
         coor_in.correct_his_name()
         coor_in.correct_cys_name()
         coor_in.correct_water_name()
         coor_in.correct_chain()
+
         if not ignore_ZN:
             zinc_in = coor_in.add_zinc_finger(start_pdb)
         else:
@@ -2016,9 +2081,45 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         else:
             pdb2gmx_option_dict = {'vsite': vsite, 'ignh': None,
                                    'merge': 'all'}
-
         self.add_top(out_folder=".", check_file_out=True, ff=ff,
                      pdb2gmx_option_dict=pdb2gmx_option_dict)
+
+        # Add molecules coordinates and topologies:
+
+        # Get the system topologie:
+        sys_topologie = TopSys(self.top_file)
+
+        pdb_mol_list = []
+        # Add the molecule in the sys topologie and update the water num:
+        for mol in mol_sys_list:
+            print('Add Molecule', mol['name'])
+
+            pdb_mol_list.append(mol['coor'])
+            # Add topologie:
+            mol['GmxSys'].display()
+            mol_top = TopSys(mol['GmxSys'].top_file)
+            mol_itp = mol_top.get_include_no_posre_file_list()
+            sys_topologie.add_mol(mol_name=mol['name'],
+                                  mol_itp_file=mol_itp[-1],
+                                  mol_num=mol['num'])
+            # Add atomtypes itp:
+            fullname = (mol_itp[0].split("/")[-1])
+            include = fullname.split(".")[0]
+            path = os_command.full_path_and_check(mol_itp[0])
+            atomtype_itp = Itp(name=include, fullname=fullname, path=path)
+
+            sys_topologie.itp_list = [atomtype_itp] + sys_topologie.itp_list
+
+        if mol_sys_list:
+            # Add coordinates:
+            GmxSys.concat_coor(self.coor_file, *pdb_mol_list,
+                               pdb_out=self.coor_file[:-4]+'_mol.pdb',
+                               check_file_out=False)
+            self.coor_file = self.coor_file[:-4]+'_mol.pdb'
+            # Save topologie
+            sys_topologie.write_file(self.top_file[:-4]+'_mol.top')
+            self.top_file = self.top_file[:-4]+'_mol.top'
+
         os.chdir(start_dir)
 
     def cyclic_peptide_top(self, out_folder, name=None, check_file_out=True,
@@ -2334,7 +2435,7 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         # Bond:
         # N-C
         mol_top.bond_list.append({'ai': N_index, 'aj': prev_C_index,
-                                  'funct': 1})
+                                  'funct': 1, 'r': '', 'k': ''})
 
         # Pairs
         pair_list = [[N_index, prev_HA_index],
@@ -2359,7 +2460,8 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
 
         for ai, aj, ak in angle_list:
             mol_top.angl_list.append({'ai': ai, 'aj': aj, 'ak': ak,
-                                      'funct': angle_func})
+                                      'funct': angle_func,
+                                      'theta': '', 'cth': ''})
 
         # Dihed: type 9
         dihed_list = [[N_index, prev_C_index, prev_CA_index, prev_HA_index],
@@ -2375,7 +2477,8 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
 
         for ai, aj, ak, al in dihed_list:
             mol_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak,
-                                      'al': al, 'funct': dihe_func})
+                                      'al': al, 'funct': dihe_func,
+                                      'phase': '', 'kd': '', 'pn': ''})
 
         # Dihed: type 2
         if ff.startswith('charmm'):
@@ -2389,7 +2492,8 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
 
         for ai, aj, ak, al in dihed_list_impr:
             mol_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak,
-                                      'al': al, 'funct': dihe_impr_func})
+                                      'al': al, 'funct': dihe_impr_func,
+                                      'phase': '', 'kd': '', 'pn': ''})
 
         # Cmap
         if ff.startswith('charmm'):
@@ -2537,6 +2641,7 @@ cystein_s_index[0]], ss_coor.atom_dict[cystein_s_index[1]])
         >>> #Basic usage :
         >>> no_ss_pep.prepare_top(out_folder=os.path.join(str(\
 TEST_OUT),'1dn3/top')) #doctest: +ELLIPSIS
+        Succeed to read file .../1dn3_cys.pdb ,  144 atoms found
         Succeed to read file .../1dn3_cys.pdb ,  144 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
         pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method\
@@ -2696,54 +2801,47 @@ cystein_s_index[0]], ss_coor.atom_dict[cystein_s_index[1]])
             # Add S-S bond
             mol_top.bond_list.append({'ai': SG_1_index,
                                       'aj': SG_2_index,
-                                      'funct': bond_func})
+                                      'funct': bond_func,
+                                      'r': '',
+                                      'k': ''})
 
             # Add X-S-S, S-S-X angles
-            mol_top.angl_list.append({'ai': SG_1_index,
-                                      'aj': SG_2_index,
-                                      'ak': CB_2_index,
-                                      'funct': angle_func})
-            mol_top.angl_list.append({'ai': SG_1_index,
-                                      'aj': SG_2_index,
-                                      'ak': CB_2_index,
-                                      'funct': angle_func})
+            local_angle_list = [[SG_1_index, SG_2_index, CB_2_index]]
+            local_angle_list.append([CB_1_index, SG_1_index, SG_2_index])
+
+            for angle in local_angle_list:
+                mol_top.angl_list.append({'ai': angle[0],
+                                          'aj': angle[1],
+                                          'ak': angle[2],
+                                          'funct': angle_func,
+                                          'theta': '',
+                                          'cth': ''})
 
             # Add X-S-S-X, S-S-X-X, X-X-S-S angles
-            mol_top.dihe_list.append({'ai': CA_1_index,
-                                      'aj': CB_1_index,
-                                      'ak': SG_1_index,
-                                      'al': SG_2_index,
-                                      'funct': dihe_func})
-            mol_top.dihe_list.append({'ai': HB1_1_index,
-                                      'aj': CB_1_index,
-                                      'ak': SG_1_index,
-                                      'al': SG_2_index,
-                                      'funct': dihe_func})
-            mol_top.dihe_list.append({'ai': HB2_1_index,
-                                      'aj': CB_1_index,
-                                      'ak': SG_1_index,
-                                      'al': SG_2_index,
-                                      'funct': dihe_func})
-            mol_top.dihe_list.append({'ai': CB_1_index,
-                                      'aj': SG_1_index,
-                                      'ak': SG_2_index,
-                                      'al': CB_2_index,
-                                      'funct': dihe_func})
-            mol_top.dihe_list.append({'ai': SG_1_index,
-                                      'aj': SG_2_index,
-                                      'ak': CB_2_index,
-                                      'al': CA_2_index,
-                                      'funct': dihe_func})
-            mol_top.dihe_list.append({'ai': SG_1_index,
-                                      'aj': SG_2_index,
-                                      'ak': CB_2_index,
-                                      'al': HB1_2_index,
-                                      'funct': dihe_func})
-            mol_top.dihe_list.append({'ai': SG_1_index,
-                                      'aj': SG_2_index,
-                                      'ak': CB_2_index,
-                                      'al': HB2_2_index,
-                                      'funct': dihe_func})
+            local_dihed_list = [[CA_1_index, CB_1_index, SG_1_index,
+                                 SG_2_index]]
+            local_dihed_list.append([HB1_1_index, CB_1_index, SG_1_index,
+                                     SG_2_index])
+            local_dihed_list.append([HB2_1_index, CB_1_index, SG_1_index,
+                                     SG_2_index])
+            local_dihed_list.append([CB_1_index, SG_1_index, SG_2_index,
+                                     CB_2_index])
+            local_dihed_list.append([SG_1_index, SG_2_index, CB_2_index,
+                                     CA_2_index])
+            local_dihed_list.append([SG_1_index, SG_2_index, CB_2_index,
+                                     HB1_2_index])
+            local_dihed_list.append([SG_1_index, SG_2_index, CB_2_index,
+                                     HB2_2_index])
+
+            for dihed in local_dihed_list:
+                mol_top.dihe_list.append({'ai': dihed[0],
+                                          'aj': dihed[1],
+                                          'ak': dihed[2],
+                                          'al': dihed[3],
+                                          'funct': dihe_func,
+                                          'phase': '',
+                                          'kd': '',
+                                          'pn': ''})
 
         # print(top_prot.itp_list[0].top_mol_list[0].atom_dict)
 
@@ -3203,7 +3301,8 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         os.chdir(start_dir)
 
     def add_ions(self, out_folder, name=None, ion_C=0.15, pname="NA",
-                 nname="CL", solv_name="SOL", check_file_out=True):
+                 nname="CL", solv_name="SOL", maxwarn=1,
+                 check_file_out=True):
         """Add ion in a system to neutralise the sys_charge and to reach the
         ionic concentration ``ion_C``.
 
@@ -3336,7 +3435,7 @@ nsteps=100, constraints="none")
 
         # Create tpr:
         self.mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/mini.mdp")
-        self.add_tpr(name="genion_" + name, maxwarn=1)
+        self.add_tpr(name="genion_" + name, maxwarn=maxwarn)
 
         # Get charge:
         top = TopSys(self.top_file)
@@ -3373,7 +3472,8 @@ nsteps=100, constraints="none")
         os.chdir(start_dir)
 
     def solvate_add_ions(self, out_folder, name=None, ion_C=0.15,
-                         create_box_flag=True, box_dist=1.1):
+                         create_box_flag=True, box_dist=1.1,
+                         maxwarn=1):
         """Solvate a system with three succesive steps:
 
             1. Create box using ``create_box()``
@@ -3466,7 +3566,7 @@ sytem charge = 0.0 water num= 62...
         # Add ions:
         self.add_ions(out_folder=out_folder,
                       name=name + "_water_ion",
-                      ion_C=ion_C)
+                      ion_C=ion_C, maxwarn=maxwarn)
 
     def create_peptide(self, sequence, out_folder, N_ter="None", C_ter="COOH",
                        em_nsteps=1000, equi_nsteps=10000, posre_post="_pep",
@@ -3745,7 +3845,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         os.chdir(start_dir)
 
     @staticmethod
-    def concat_coor(*coor_in_files, pdb_out):
+    def concat_coor(*coor_in_files, pdb_out, check_file_out=True):
         """Concat a list of coordinates file in one coordinate file:
 
         :param coor_in_files: list of pdb/gro files
@@ -3761,6 +3861,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             This function does not use or affect the GmxSys object.
 
         """
+
+        # Check if output files exist:
+        if check_file_out and os.path.isfile(pdb_out):
+            logger.info("PDB files not created, {} already exist".format(
+                pdb_out))
+            return
 
         pdb_in_files = []
 
@@ -4665,6 +4771,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                 constr_nsteps=constr_nsteps,
                                 posres="", create_box_flag=False,
                                 monitor=monitor,
+                                maxwarn=maxwarn,
                                 **mdp_options)
                 self.convert_trj(traj=False)
 
