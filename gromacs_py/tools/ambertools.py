@@ -10,8 +10,12 @@ https://ambermd.org/AmberTools.php
 
 import os
 import logging
+import sys
 
 from os_command_py import os_command
+from pdb_manip_py import pdb_manip
+
+from .. import gmx
 
 # Logging
 logger = logging.getLogger(__name__)
@@ -40,6 +44,30 @@ else:
     REDUCE_BIN = os_command.which('reduce')
     ANTECHAMBER_BIN = os_command.which('antechamber')
     ACPYPE_BIN = os_command.which('acpype')
+
+
+def show_log():
+    """ To use only with Doctest !!!
+    Redirect logger output to sys.stdout
+    """
+    # Delete all handlers
+    logger.handlers = []
+    # Set the logger level to INFO
+    logger.setLevel(logging.INFO)
+    # Add sys.sdout as handler
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+
+
+def show_debug(pdb_manip_log=True):
+    """ To use only with Doctest !!!
+    Redirect logger output to sys.stdout
+    """
+    # Delete all handlers
+    logger.handlers = []
+    # Set the logger level to INFO
+    logger.setLevel(logging.DEBUG)
+    # Add sys.sdout as handler
+    logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def add_hydrogen(pdb_in, pdb_out, check_file_out=True, **reduce_options):
@@ -126,7 +154,6 @@ def antechamber(pdb_in, mol2_out, charge_model="bcc",
 
     :Example:
 
-    >>> from pdb_manip_py import pdb_manip
     >>> pdb_manip.show_log()
     >>> TEST_OUT = getfixture('tmpdir')
     >>> add_hydrogen(pdb_in=TEST_PATH+'/phenol.pdb',\
@@ -137,7 +164,7 @@ def antechamber(pdb_in, mol2_out, charge_model="bcc",
     Succeed to read file .../phenol_h.pdb ,  13 atoms found
     >>> antechamber(pdb_in=TEST_OUT+'/phenol_h.pdb',\
     mol2_out=TEST_OUT+'/phenol_h.mol2') #doctest: +ELLIPSIS
-    antechamber -i .../phenol_h.pdb -fi pdb -o .../phenol_h.mol2 -fo \
+    antechamber -i phenol_h.pdb -fi pdb -o phenol_h.mol2 -fo \
 mol2 -c bcc
 
     """
@@ -147,6 +174,11 @@ mol2 -c bcc
         logger.info("MOL2 files not created, {} already exist".format(
             mol2_out))
         return
+
+    start_dir = os.path.abspath(".")
+    # Create and go in out_folder:
+    out_folder = os_command.get_directory(mol2_out)
+    os_command.create_and_go_dir(out_folder)
 
     # Define reduce command:
     cmd_antechamber = os_command.Command([ANTECHAMBER_BIN,
@@ -161,6 +193,9 @@ mol2 -c bcc
     cmd_antechamber.run(display=False)
 
     logger.info("Succeed to save file %s" % os.path.relpath(mol2_out))
+
+    # Get absolute path:
+    os.chdir(start_dir)
 
     return
 
@@ -186,22 +221,11 @@ def acpype(pdb_in, out_folder, charge_model="bcc",
         created. If the file is present then the command break.
     :type check_file_out: bool, optional, default=True
 
-    :param reduce_options: Optional arguments for ``reduce``
+    :param acpype_options: Optional arguments for ``acpype``
 
-    Output files:
-
-        - mol2_out
-        - ANTECHAMBER_AM1BCC_PRE.AC
-        - ANTECHAMBER_BOND_TYPE.AC
-        - ANTECHAMBER_BOND_TYPE.AC0
-        - ANTECHAMBER_AC.AC
-        - ATOMTYPE.INF
-        - ANTECHAMBER_AC.AC0
-        - ANTECHAMBER_AM1BCC.AC
 
     :Example:
 
-    >>> from pdb_manip_py import pdb_manip
     >>> pdb_manip.show_log()
     >>> TEST_OUT = getfixture('tmpdir')
     >>> add_hydrogen(pdb_in=TEST_PATH+'/phenol.pdb',\
@@ -219,6 +243,12 @@ def acpype(pdb_in, out_folder, charge_model="bcc",
             out_folder))
         return
 
+    # Remove tha last char if == '/'
+    if out_folder[-1] == '/':
+        out_folder = out_folder[:-1]
+
+    name = out_folder.split('/')[-1]
+
     # Define reduce command:
     cmd_acpype = os_command.Command([ACPYPE_BIN,
                                      "-i", pdb_in,
@@ -233,6 +263,85 @@ def acpype(pdb_in, out_folder, charge_model="bcc",
     logger.info("Succeed to create topologie in %s" % os.path.relpath(
         out_folder))
 
-    return
+    # Split the itp file atom_type part:
+    extract_itp_atomtypes('{}.acpype/{}_GMX.itp'.format(
+                          out_folder, name),
+                          '{}.acpype/{}_GMX_atomtypes.itp'.format(
+                          out_folder, name))
 
-# acpype -i phenol_h.mol2
+    sys_top = gmx.TopSys('{}.acpype/{}_GMX.top'.format(out_folder, name))
+
+    fullname = '{}_GMX_atomtypes.itp'.format(name)
+    include = '{}_GMX_atomtypes'.format(name)
+    path = '{}.acpype/{}_GMX_atomtypes.itp'.format(out_folder, name)
+
+    atomtypes_itp = gmx.Itp(name=include, fullname=fullname, path=path)
+
+    sys_top.itp_list = [atomtypes_itp] + sys_top.itp_list
+    sys_top.write_file('{}.acpype/{}_GMX_split.top'.format(
+                                out_folder, name))
+
+    molecule = gmx.GmxSys(name='mol',
+                          coor_file='{}.acpype/{}_GMX.gro'.format(
+                            out_folder, name),
+                          top_file='{}.acpype/{}_GMX_split.top'.format(
+                            out_folder, name))
+
+    return molecule
+
+
+def make_amber_top_mol(pdb_in, res_name, charge_model="bcc",
+                       atom_type="gaff"):
+
+    full_coor = pdb_manip.Coor(pdb_in)
+    # Select coor:
+    mol_coor = full_coor.select_part_dict(selec_dict={'res_name': [res_name]})
+    mol_coor.write_pdb(res_name+'.pdb')
+
+    # Add hydrogens:
+    add_hydrogen(res_name+'.pdb', res_name+'_h.pdb')
+
+    # Get only one molecule
+    mol_h_coor = pdb_manip.Coor(res_name+'_h.pdb')
+    res_list = mol_h_coor.get_attribute_selection(attribute='uniq_resid')
+    mol_uniq_coor = mol_h_coor.select_part_dict(
+        selec_dict={'uniq_resid': [res_list[0]]})
+    # Save coordinates:
+    mol_uniq_coor.write_pdb(res_name+'_h_unique.pdb')
+
+    # Compute topologie with acpype:
+    gmxsys = acpype(res_name+'_h_unique.pdb', res_name, charge_model="bcc",
+                    atom_type="gaff")
+
+    return({'GmxSys': gmxsys,
+            'coor': os_command.full_path_and_check(res_name+'_h.pdb'),
+            'num': len(res_list)})
+
+
+def extract_itp_atomtypes(itp_in, itp_atomtypes_out):
+
+    field = None
+    atom_types_list = "[ atomtypes ]\n"
+
+    with open(itp_in) as itpfile:
+        for line in itpfile:
+
+            if line.startswith("["):
+                # Remove space and [ ]
+                field = line.strip()[1:-1].strip()
+                # print(field)
+                continue
+            if field == 'atomtypes':
+                atom_types_list += line
+
+    filout = open(itp_atomtypes_out, "w")
+    filout.write(atom_types_list)
+    filout.close()
+
+    # Read and write itp to remove the [ atomtypes ] part
+    fullname = (itp_in.split("/")[-1])
+    include = fullname.split(".")[0]
+    path = os_command.full_path_and_check(itp_in)
+
+    top_mol = gmx.Itp(name=include, fullname=fullname, path=path)
+    top_mol.write_file(path)
