@@ -1980,7 +1980,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
         >>> TEST_OUT = getfixture('tmpdir')
         >>> # Create the topologie of a protein and do a minimisation:
-        >>> dna_lig = GmxSys(name='5W77', coor_file=TEST_PATH+'/5W77_1.pdb')
+        dna_lig = GmxSys(name='5W77', coor_file=TEST_PATH+'/5W77_1.pdb')
         
         dna_lig.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_dna/', \
 ff='amber99sb-ildn', include_mol=['9WP']) #doctest: +ELLIPSIS
