@@ -31,7 +31,6 @@ setup(
              'bin/prepare_prot_topo_edit.py',
              'bin/equi_3_step.py',
              'bin/production.py',
-             'bin/test_gromacs_py.py',
              'bin/top_em_equi_3_step_prod.py'],
     description='Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software.',
     long_description=open('README.rst', encoding='utf-8').read(),
