@@ -1983,8 +1983,45 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> dna_lig = GmxSys(name='1D30', coor_file=TEST_PATH+'/1D30.pdb')
         >>> dna_lig.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_dna/', \
 ff='amber99sb-ildn', include_mol=['DAP']) #doctest: +ELLIPSIS
-        >>> dna_lig.em(out_folder=TEST_OUT + '/prepare_top/em_dna'), \
-nsteps=100)
+        Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
+        Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
+        Succeed to save file tmp_pdb2pqr.pdb
+        pdb2pqr.py --ff AMBER --ffout AMBER --chain --ph-calc-method=propka \
+tmp_pdb2pqr.pdb 00_1D30.pqr
+        Succeed to read file 00_1D30.pqr ,  758 atoms found
+        Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
+        Succeed to save file DAP.pdb
+        reduce -build -nuclear DAP.pdb
+        Succeed to read file DAP_h.pdb ,  36 atoms found
+        Succeed to save file DAP_h_unique.pdb
+        acpype -i DAP_h_unique.pdb -b DAP -c bcc -a gaff -o gmx
+        DAP
+        Succeed to save file 01_1D30_good_his.pdb
+        -Create topologie
+        gmx pdb2gmx -f 01_1D30_good_his.pdb -o 1D30_pdb2gmx.pdb -p \
+1D30_pdb2gmx.top -i 1D30_posre.itp -water tip3p -ff amber99sb-ildn \
+-ignh -vsite none
+        Add Molecule DAP
+        name         : mol
+        coor_file    : DAP.acpype/DAP_GMX.gro
+        top_file     : DAP.acpype/DAP_GMX_split.top
+        nt           : 0
+        ntmpi        : 0
+        sys_history  : 0
+        Add 1 mol .../top_dna/DAP.acpype/DAP_GMX.itp
+        Concat files: ['1D30_pdb2gmx.pdb', '.../top_dna/DAP_h.pdb']
+        Succeed to save concat file:  1D30_pdb2gmx_mol.pdb
+        >>> dna_lig.em(out_folder=TEST_OUT + '/prepare_top/em_dna', \
+nsteps=100, create_box_flag=True, maxwarn=1) #doctest: +ELLIPSIS
+        -Create pbc box
+        gmx editconf -f .../top_dna/1D30_pdb2gmx_mol.pdb -o \
+.../top_dna/1D30_pdb2gmx_mol_box.pdb -bt dodecahedron -d 1.0
+        -Create the tpr file 1D30.tpr
+        gmx grompp -f 1D30.mdp -c .../top_dna/1D30_pdb2gmx_mol_box.pdb -r \
+.../top_dna/1D30_pdb2gmx_mol_box.pdb -p .../top_dna/1D30_pdb2gmx_mol.top -po \
+out_1D30.mdp -o 1D30.tpr -maxwarn 1
+        -Launch the simulation 1D30.tpr
+        gmx mdrun -s 1D30.tpr -deffnm 1D30 -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
 
         acpype est TROP LONG, A CHANGER !!!
 
@@ -4023,7 +4060,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         for key, value in mdp_options.items():
             local_mdp_opt[key.replace("-", "_").lower()] = str(value)
 
-        #local_mdp_opt = mdp_options.copy()
+        # local_mdp_opt = mdp_options.copy()
 
         mdp_template_dict = self.get_mdp_dict(mdp_template)
 
