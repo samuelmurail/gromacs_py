@@ -201,7 +201,7 @@ mol2 -c bcc
 
 
 def acpype(pdb_in, out_folder, charge_model="bcc",
-           atom_type="gaff",
+           atom_type="gaff", net_charge=None,
            check_file_out=True, **acpype_options):
     """Compute a molecule topologie using the ``antechamber`` software:
 
@@ -249,13 +249,18 @@ def acpype(pdb_in, out_folder, charge_model="bcc",
 
     name = out_folder.split('/')[-1]
 
+    cmd_list = [ACPYPE_BIN,
+                "-i", pdb_in,
+                "-b", out_folder,
+                "-c", charge_model,
+                "-a", atom_type,
+                "-o", "gmx"]
+
+    if net_charge is not None:
+        cmd_list += ["-n", str(net_charge)]
+
     # Define reduce command:
-    cmd_acpype = os_command.Command([ACPYPE_BIN,
-                                     "-i", pdb_in,
-                                     "-b", out_folder,
-                                     "-c", charge_model,
-                                     "-a", atom_type,
-                                     "-o", "gmx"], **acpype_options)
+    cmd_acpype = os_command.Command(cmd_list, **acpype_options)
 
     cmd_acpype.display()
     cmd_acpype.run(display=False)
@@ -290,7 +295,7 @@ def acpype(pdb_in, out_folder, charge_model="bcc",
     return molecule
 
 
-def make_amber_top_mol(pdb_in, res_name, charge_model="bcc",
+def make_amber_top_mol(pdb_in, res_name, charge, charge_model="bcc",
                        atom_type="gaff"):
 
     full_coor = pdb_manip.Coor(pdb_in)
@@ -310,7 +315,9 @@ def make_amber_top_mol(pdb_in, res_name, charge_model="bcc",
     mol_uniq_coor.write_pdb(res_name+'_h_unique.pdb')
 
     # Compute topologie with acpype:
-    gmxsys = acpype(res_name+'_h_unique.pdb', res_name, charge_model="bcc",
+    gmxsys = acpype(res_name+'_h_unique.pdb', res_name,
+                    net_charge=charge,
+                    charge_model="bcc",
                     atom_type="gaff")
 
     return({'GmxSys': gmxsys,

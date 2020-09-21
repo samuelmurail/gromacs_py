@@ -520,7 +520,11 @@ class Itp:
                     elif field == 'atoms':
                         atom_num = int(line_list[0])
                         atom_type = line_list[1]
-                        res_num = int(line_list[2])
+                        # In rare case the residue num is not an integer eg "184A"
+                        try:
+                            res_num = int(line_list[2])
+                        except ValueError:
+                            res_num = line_list[2]
                         res_name = line_list[3]
                         atom_name = line_list[4]
                         charge_num = int(line_list[5])
@@ -1285,7 +1289,7 @@ vsite='hydrogens') #doctest: +ELLIPSIS
     Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
     Succeed to save file tmp_pdb2pqr.pdb
     pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
-tmp_pdb2pqr.pdb 00_1y0m.pqr
+--with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
     Succeed to read file 00_1y0m.pqr ,  996 atoms found
     Chain: A  Residue: 0 to 60
     Succeed to save file 01_1y0m_good_his.pdb
@@ -1937,8 +1941,8 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
     def prepare_top(self, out_folder, name=None,
                     vsite="none", ignore_ZN=True,
-                    ff="charmm36-jul2017",
-                    include_mol=[]):
+                    ff="charmm36-jul2017", ph=7.0,
+                    include_mol={}):
         """Prepare the topologie of a protein:
 
         1. compute hisdine protonation with ``pdb2pqr``.
@@ -1967,6 +1971,15 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         :param ignore_ZN: option for not adding parameters to ZINC finger
         :type ignore_ZN: bool, optional, default=False
 
+        :param ff: forcefield
+        :type ff: str, optional, default="charmm36-jul2017"
+
+        :param pH: pH to assign AA protonation (using pdb2pqr)
+        :type pH: float, optional, default=7.0
+
+        :param include_mol: list of ligand's residue name to include
+        :type include_mol: list, optional, default=[]
+
         **Object requirement(s):**
 
             * self.coor_file
@@ -1982,19 +1995,19 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> # Create the topologie of a protein and do a minimisation:
         >>> dna_lig = GmxSys(name='1D30', coor_file=TEST_PATH+'/1D30.pdb')
         >>> dna_lig.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_dna/', \
-ff='amber99sb-ildn', include_mol=['DAP']) #doctest: +ELLIPSIS
+ff='amber99sb-ildn', include_mol={'DAP':0}) #doctest: +ELLIPSIS
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
-        pdb2pqr.py --ff AMBER --ffout AMBER --chain --ph-calc-method=propka \
-tmp_pdb2pqr.pdb 00_1D30.pqr
+        pdb2pqr... --ff AMBER --ffout AMBER --chain --ph-calc-method=propka \
+--with-ph=7.00 tmp_pdb2pqr.pdb 00_1D30.pqr
         Succeed to read file 00_1D30.pqr ,  758 atoms found
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to save file DAP.pdb
         reduce -build -nuclear DAP.pdb
         Succeed to read file DAP_h.pdb ,  36 atoms found
         Succeed to save file DAP_h_unique.pdb
-        acpype -i DAP_h_unique.pdb -b DAP -c bcc -a gaff -o gmx
+        acpype -i DAP_h_unique.pdb -b DAP -c bcc -a gaff -o gmx -n 0
         DAP
         Succeed to save file 01_1D30_good_his.pdb
         -Create topologie
@@ -2059,7 +2072,7 @@ out_1D30.mdp -o 1D30.tpr -maxwarn 1
         # Compute protonation:
         pdb2pqr.compute_pdb2pqr(self.coor_file,
                                 "00_" + name + ".pqr",
-                                ff=pdb2pqr_ff,
+                                ff=pdb2pqr_ff, ph=ph,
                                 check_file_out=True)
 
         # Correct His resname
@@ -2074,7 +2087,7 @@ out_1D30.mdp -o 1D30.tpr -maxwarn 1
             if resname not in res_name_pdb2pqr:
                 if resname in include_mol:
                     mol_top = ambertools.make_amber_top_mol(
-                            start_pdb, resname)
+                            start_pdb, resname, charge=include_mol[resname])
                     mol_top['name'] = resname
                     mol_sys_list.append(mol_top)
                 else:
@@ -2668,7 +2681,7 @@ TEST_OUT),'1dn3/top')) #doctest: +ELLIPSIS
         Succeed to read file .../1dn3_cys.pdb ,  144 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
         pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method\
-=propka tmp_pdb2pqr.pdb 00_1dn3_cys.pqr
+=propka --with-ph=7.00 tmp_pdb2pqr.pdb 00_1dn3_cys.pqr
         Succeed to read file 00_1dn3_cys.pqr ,  231 atoms found
         Chain: A  Residue: 0 to 14
         Succeed to save file 01_1dn3_cys_good_his.pdb
