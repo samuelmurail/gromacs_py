@@ -9,6 +9,7 @@ import os
 import copy
 import logging
 import sys
+import math
 
 from shutil import copy as shutil_copy
 
@@ -4956,6 +4957,106 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         os.chdir(start_dir)
 
+    def free_ener(self, out_folder, mol_name, lambda_elec_num, lambda_vdw_num,
+                  em_steps=5000, nvt_time=10, npt_time=10, prod_time=100,
+                  dt=0.002, name=None, temperature=310.0, maxwarn=1):
+
+
+        if name is None:
+            name = self.name
+
+        coul_lambdas = " ".join([
+            str(round(i/(lambda_elec_num-1),3)) for i in range(lambda_elec_num)])+" 1.0"*lambda_vdw_num
+        vdw_lambdas = "0.0 " * lambda_elec_num + " ".join([
+            str(round(i/(lambda_vdw_num),3)) for i in range(1, lambda_vdw_num+1)])
+
+        print('Coulomb lambda :'+coul_lambdas + "\n" +'Vdw lambda :' + vdw_lambdas)
+
+        free_ener_option_init = {'integrator': 'sd',
+                                 'dt': dt,
+                                 'constraints': 'all-bonds',    
+                                 'nstcalcenergy': 50,
+                                 'tc_grps': 'System',
+                                 'tau_t': 0.1,
+                                 'ref_t': temperature,
+                                 'vdwtype': 'cut_off',
+                                 'vdw_modifier': 'force_switch',
+                                 'rvdw_switch': 1.0,
+                                 'rvdw':1.1,
+                                 'coulombtype': 'pme',
+                                 'rcoulomb':1.1,
+                                 'free_energy': 'yes',
+                                 'init_lambda-state': 0,
+                                 'delta_lambda': 0,
+                                 'coul_lambdas': coul_lambdas,
+                                 'vdw_lambdas': vdw_lambdas,
+                                 'sc_alpha': 0.5,
+                                 'sc_power': 1,
+                                 'sc_sigma': 0.3,
+                                 'couple_moltype': mol_name,
+                                 'couple_lambda0': 'vdw-q',
+                                 'couple_lambda1': 'none',
+                                 'couple_intramol': 'no',
+                                 'nstdhdl': 50,
+                                 'separate_dhdl_file': 'yes',
+                                 'nstcalcenergy': 50}
+
+        mini_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/mini.mdp")
+        equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
+
+        nvt_steps = int(nvt_time / dt)
+        npt_steps = int(npt_time / dt)
+        prod_steps = int(prod_time / dt)
+
+        start_sys = copy.deepcopy(self)
+        mol_sys = copy.deepcopy(start_sys)
+
+        xvg_file_list = []
+
+        print('\n\n\n')
+
+        for i in range(lambda_elec_num+lambda_vdw_num):
+
+            sys_name = '{}_vdwq_{:02d}'.format(name, i)
+
+            free_ener_option = copy.deepcopy(free_ener_option_init)
+            free_ener_option.update({'init_lambda-state': i})
+
+            # Mini 5000 steps
+            free_ener_option.update({'nsteps':em_steps})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '00_em'), name='em_'+sys_name, mdp_template=mini_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn)
+            # NVT 10ps
+            free_ener_option.update({'nsteps':nvt_steps, 'pcoupl':'no'})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '01_equi_nvt'), name='nvt_'+sys_name, mdp_template=equi_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn)
+            # NPT 10ps
+            free_ener_option.update({'nsteps':npt_steps, 'pcoupl':'parrinello-Rahman'})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '02_equi_npt'), name='npt_'+sys_name, mdp_template=equi_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn)
+
+            # Prod 100ps
+            free_ener_option.update({'nsteps':prod_steps})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '03_prod'), name='prod_'+sys_name, mdp_template=equi_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn)
+            xvg_file_list.append(os.path.join(out_folder, '03_prod/', 'prod_' + sys_name + '.xvg'))
+            mol_sys = copy.deepcopy(start_sys)
+
+        ener_pd = GmxSys.get_bar(xvg_file_list, bar_xvg='bar.xvg',
+                barint_xvg='barint.xvg', hist_xvg='histogram.xvg',
+                check_file_out=True, keep_ener_file=True)
+
+        Boltzmann = 1.380649e-23
+        N_A = 6.02214076e+23
+
+        ddg = sum(ener_pd.iloc[:, 1]) * Boltzmann * temperature * N_A * 1e-3
+        std = math.sqrt(sum((ener_pd.iloc[:, 2])**2)) * Boltzmann * temperature * N_A * 1e-3
+
+        print('DDG = {:.2f} +/- {:.2f} KJ/mol-1'.format(ddg, std))
+        print('DDG = {:.2f} +/- {:.2f} Kcal/mol-1'.format(ddg/4.184, std/4.184))
+
+        return ener_pd
+
     def em_CG(self, out_folder, name=None, nsteps=500000,
               maxwarn=0,
               monitor=monitor.PROGRESS_BAR,
@@ -5272,6 +5373,38 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         if not keep_ener_file:
             os_command.delete_file(output_xvg)
+
+        return(ener_pd)
+
+    @staticmethod
+    def get_bar(xvg_file_list, bar_xvg='bar.xvg',
+                barint_xvg='barint.xvg', hist_xvg='histogram.xvg',
+                check_file_out=True, keep_ener_file=False):
+        """Get energy of a system using ``gmx bar``.
+
+        I don't know how to compute std like in gmx bar.
+        """
+
+        logger.info("-Extract bar energy")
+
+        # Check if output files exist:
+        if check_file_out and os.path.isfile(bar_xvg):
+            logger.info("get_ener not launched {} already exist".format(
+                bar_xvg))
+        else:
+            cmd_convert = os_command.Command([GMX_BIN, "bar",
+                                              "-f", *xvg_file_list,
+                                              "-o", bar_xvg,
+                                              "-oi", barint_xvg,
+                                              "-oh", hist_xvg])
+
+            cmd_convert.display()
+            cmd_convert.run()
+
+        ener_pd = monitor.read_xvg(bar_xvg)
+
+        #if not keep_ener_file:
+        #    os_command.delete_file(output_xvg)
 
         return(ener_pd)
 
