@@ -53,7 +53,7 @@ def isnotebook():
         return False      # Probably standard Python interpreter
 
 
-def read_xvg(xvg_file, x_axis='time'):
+def read_xvg(xvg_file):
     """ Read a `.xvg` file and return a pandas dataframe.
 
     :param xvg_file: path of the xvg file
@@ -67,21 +67,38 @@ def read_xvg(xvg_file, x_axis='time'):
     >>> xvg_file = os.path.join(TEST_PATH, 'volume.xvg')
     >>> vol_df = read_xvg(xvg_file)
     >>> vol_df.head()
-       time      Volume
-    0   0.0  171.237213
-    1   5.0  135.081039
-    2  10.0   94.224792
-    3  15.0   59.942383
-    4  20.0   58.125397
+       Time (ps)      Volume
+    0        0.0  171.237213
+    1        5.0  135.081039
+    2       10.0   94.224792
+    3       15.0   59.942383
+    4       20.0   58.125397
     """
 
     y_label_list = []
+    legend = False
 
     # Get first line without command in output file:
     with open(xvg_file, 'r') as file_in:
         for first_line, line in enumerate(file_in):
-            if line.startswith("@ s"):
+            if line.startswith("@    xaxis  label "):
+                x_axis = line.split("\"")[1]
+                # Remove \x, \f{}
+                x_axis = x_axis.replace('\\x','')
+                x_axis = x_axis.replace('\\f{}','')
+            if line.startswith("@    yaxis  label "):
+                y_axis = line.split("\"")[1]
+                # Remove \x, \f{}
+                y_axis = y_axis.replace('\\x','')
+                y_axis = y_axis.replace('\\f{}','')
+                y_label_list = [y_axis]
+            if line.startswith("@TYPE xydy"):
+                y_label_list.append("+/-")
+            if line.startswith("@ s") and legend:
                 y_label_list.append(line.split("\"")[1])
+            if line.startswith("@ s") and not legend:
+                legend = True
+                y_label_list = [line.split("\"")[1]]
             if not line.startswith(("#", "@")):
                 break
 
