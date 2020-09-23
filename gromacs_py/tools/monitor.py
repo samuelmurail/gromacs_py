@@ -84,13 +84,13 @@ def read_xvg(xvg_file):
             if line.startswith("@    xaxis  label "):
                 x_axis = line.split("\"")[1]
                 # Remove \x, \f{}
-                x_axis = x_axis.replace('\\x','')
-                x_axis = x_axis.replace('\\f{}','')
+                x_axis = x_axis.replace('\\x', '')
+                x_axis = x_axis.replace('\\f{}', '')
             if line.startswith("@    yaxis  label "):
                 y_axis = line.split("\"")[1]
                 # Remove \x, \f{}
-                y_axis = y_axis.replace('\\x','')
-                y_axis = y_axis.replace('\\f{}','')
+                y_axis = y_axis.replace('\\x', '')
+                y_axis = y_axis.replace('\\f{}', '')
                 y_label_list = [y_axis]
             if line.startswith("@TYPE xydy"):
                 y_label_list.append("+/-")
