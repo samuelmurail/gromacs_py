@@ -9,7 +9,6 @@ import os
 import copy
 import logging
 import sys
-import math
 
 from shutil import copy as shutil_copy
 
@@ -521,7 +520,8 @@ class Itp:
                     elif field == 'atoms':
                         atom_num = int(line_list[0])
                         atom_type = line_list[1]
-                        # In rare case the residue num is not an integer eg "184A"
+                        # In rare cases the residue num is not an integer
+                        # With duplicate residues like : eg "184A"
                         try:
                             res_num = int(line_list[2])
                         except ValueError:
@@ -2035,9 +2035,8 @@ nsteps=100, create_box_flag=True, maxwarn=1) #doctest: +ELLIPSIS
 .../top_dna/1D30_pdb2gmx_mol_box.pdb -p .../top_dna/1D30_pdb2gmx_mol.top -po \
 out_1D30.mdp -o 1D30.tpr -maxwarn 1
         -Launch the simulation 1D30.tpr
-        gmx mdrun -s 1D30.tpr -deffnm 1D30 -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-
-        acpype est TROP LONG, A CHANGER !!!
+        gmx mdrun -s 1D30.tpr -deffnm 1D30 -nt 0 -ntmpi 0 -nsteps -2 \
+-nocopyright
 
         .. note::
             No options are allowed (forcefield, water model, termini capping)
@@ -3881,6 +3880,75 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         os.chdir(start_dir)
 
+    def extract_mol_sys(self, out_folder, res_name):
+        """Extract a molecule topologie and coordinates from a system:
+
+        :param out_folder: path of the output file folder
+        :type out_folder: str
+
+        :param res_name: Molecule residue name to extract
+        :type res_name: str
+
+        :return: The GmxSys of the molecule alone
+        :rtype: GmxSys
+
+        .. note::
+            This function does not use or affect the GmxSys object.
+
+        """
+
+        # Extract coordinates:
+        print(self.coor_file[-3:])
+        if self.coor_file[-3:] != 'pdb':
+            print('Convert to gro file')
+            self.convert_trj(traj=False)
+        full_coor = pdb_manip.Coor(self.coor_file)
+        # Select coor:
+        mol_coor = full_coor.select_part_dict(selec_dict={'res_name': [res_name]})
+        print(mol_coor.num)
+        mol_coor.write_pdb(os.path.join(out_folder, res_name+'_only.pdb'))
+
+        # Extract topologie:
+        
+        # Get the system topologie:
+        sys_topologie = gmx.TopSys(self.top_file)
+        mol_top = copy.deepcopy(sys_topologie)
+        
+        itp_list = []
+        # Keep only res_name itp
+        for itp in mol_top.itp_list:
+            
+            print(itp.name)
+            to_keep = False
+            mol_num = 0
+            
+            for top_mol in itp.top_mol_list:
+                mol_num += 1
+                print('\t'+top_mol.name)
+                if top_mol.name in [res_name, 'SOL']:
+                    to_keep = True
+                    break
+            if to_keep or mol_num == 0:
+                itp_list.append(itp)
+        
+        mol_top.itp_list = itp_list
+                
+        new_mol_comp = []
+        # Keep only res_name in mol composition
+        for mol in mol_top.mol_comp:
+            if mol['name'] == res_name:
+                new_mol_comp.append(mol)
+
+        mol_top.mol_comp = new_mol_comp
+                
+        mol_top.display()
+        mol_top.write_file(os.path.join(out_folder, res_name+'_only.top'))
+        
+        mol_sys = gmx.GmxSys(name=res_name,
+                             coor_file=os.path.join(out_folder, res_name+'_only.pdb'),
+                             top_file=os.path.join(out_folder, res_name+'_only.top'))
+        return mol_sys
+    
     @staticmethod
     def concat_coor(*coor_in_files, pdb_out, check_file_out=True):
         """Concat a list of coordinates file in one coordinate file:
@@ -4290,7 +4358,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         self.tpr = tpr_out
 
     def run_simulation(self, check_file_out=True, cpi=None, nsteps=-2,
-                       rerun=False, monitor=monitor.PROGRESS_BAR):
+                       rerun=False, monitor_tool=monitor.PROGRESS_BAR):
         """
         Launch the simulation using ``gmx mdrun``
 
@@ -4308,11 +4376,11 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :param rerun: option to rerun a simulation (eg. recompute energy)
         :type rerun: bool, default=False
 
-        :param monitor: option to monitor a simulation, if not none monitor
+        :param monitor_tool: option to monitor a simulation, if not none monitor
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function.
-        :type rerun: dict, default=None
+        :type monitor_tool: dict, default=None
 
         **Object requirement(s):**
 
@@ -4399,7 +4467,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         cmd_run = os_command.Command(cmd_list)
 
         cmd_run.display()
-        if monitor is None:
+        if monitor_tool is None:
             cmd_run.run()
         else:
             if nsteps == -2:
@@ -4409,8 +4477,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                              'edr': self.sim_name + ".edr",
                              'log': self.sim_name + ".log",
                              'nsteps': nsteps}
-            monitor.update(monitor_files)
-            cmd_run.run_background(monitor)
+            monitor_tool.update(monitor_files)
+            cmd_run.run_background(monitor_tool)
 
         # If it's not a rerun, assign all output to the object variables
         # xtc, edr, log
@@ -4426,7 +4494,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             self.edr = self.sim_name + ".edr"
 
     def run_md_sim(self, out_folder, name, mdp_template, mdp_options,
-                   pdb_restr=None, maxwarn=0, monitor=monitor.PROGRESS_BAR):
+                   pdb_restr=None, maxwarn=0, monitor_tool=monitor.PROGRESS_BAR):
         """Run a simulation using 3 steps:
 
         1. Create a mdp file
@@ -4494,13 +4562,13 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         self.sim_name = name
         self.add_mdp(mdp_template=mdp_template, mdp_options=mdp_options)
         self.add_tpr(name=name, r=pdb_restr, maxwarn=maxwarn)
-        self.run_simulation(monitor=monitor)
+        self.run_simulation(monitor_tool=monitor_tool)
 
         # Get absolute path:
         os.chdir(start_dir)
 
     def em(self, out_folder, name=None, posres="",
-           create_box_flag=False, monitor=monitor.PROGRESS_BAR, maxwarn=1,
+           create_box_flag=False, monitor_tool=monitor.PROGRESS_BAR, maxwarn=1,
            **mdp_options):
         """Minimize a system.
 
@@ -4551,13 +4619,13 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         self.run_md_sim(out_folder=out_folder, name=name,
                         mdp_template=mini_template_mdp,
-                        monitor=monitor, mdp_options=mdp_options,
+                        monitor_tool=monitor_tool, mdp_options=mdp_options,
                         maxwarn=maxwarn)
 
     def em_2_steps(self, out_folder, name=None, no_constr_nsteps=1000,
                    constr_nsteps=1000,
                    posres="", create_box_flag=False,
-                   monitor=monitor.PROGRESS_BAR,
+                   monitor_tool=monitor.PROGRESS_BAR,
                    maxwarn=1,
                    **mdp_options):
         """Minimize a system in two steps:
@@ -4611,21 +4679,21 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                 nsteps=int(no_constr_nsteps),
                 posres=posres, create_box_flag=create_box_flag,
                 constraints="none",
-                monitor=monitor,
+                monitor_tool=monitor_tool,
                 maxwarn=maxwarn,
                 **mdp_options)
 
         self.em(out_folder=out_folder, name=name, nsteps=int(constr_nsteps),
                 posres=posres, create_box_flag=False, constraints="all-bonds",
                 maxwarn=maxwarn,
-                monitor=monitor, **mdp_options)
+                monitor_tool=monitor_tool, **mdp_options)
 
     def equi_three_step(self, out_folder, name=None, pdb_restr=None,
                         nsteps_HA=100000,
                         nsteps_CA=200000, nsteps_CA_LOW=400000, dt=0.002,
                         dt_HA=0.001,
                         maxwarn=0,
-                        monitor=monitor.PROGRESS_BAR,
+                        monitor_tool=monitor.PROGRESS_BAR,
                         vsite='none', **mdp_options):
         """Equilibrate a system in 3 steps:
 
@@ -4702,7 +4770,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                         name="equi_HA_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn,
-                        monitor=monitor)
+                        monitor_tool=monitor_tool)
 
         mdp_options.update({'nsteps': int(nsteps_CA),
                             'define': '-DPOSRES_CA', 'dt': dt})
@@ -4710,7 +4778,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                         name="equi_CA_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn,
-                        monitor=monitor)
+                        monitor_tool=monitor_tool)
 
         mdp_options.update({'nsteps': int(nsteps_CA_LOW),
                             'define': '-DPOSRES_CA_LOW', 'dt': dt})
@@ -4718,7 +4786,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                         name="equi_CA_LOW_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn,
-                        monitor=monitor)
+                        monitor_tool=monitor_tool)
 
     def em_equi_three_step_iter_error(self, out_folder, name=None,
                                       no_constr_nsteps=1000,
@@ -4727,7 +4795,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                       nsteps_CA=200000, nsteps_CA_LOW=400000,
                                       dt=0.002, dt_HA=0.001, maxwarn=0,
                                       iter_num=3,
-                                      monitor=monitor.PROGRESS_BAR,
+                                      monitor_tool=monitor.PROGRESS_BAR,
                                       vsite='none',
                                       **mdp_options):
         """ Minimize a system in 2 steps:
@@ -4812,7 +4880,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                 no_constr_nsteps=no_constr_nsteps,
                                 constr_nsteps=constr_nsteps,
                                 posres="", create_box_flag=False,
-                                monitor=monitor,
+                                monitor_tool=monitor_tool,
                                 maxwarn=maxwarn,
                                 **mdp_options)
                 self.convert_trj(traj=False)
@@ -4823,7 +4891,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                      nsteps_CA=nsteps_CA,
                                      nsteps_CA_LOW=nsteps_CA_LOW,
                                      dt=dt, dt_HA=dt_HA,
-                                     maxwarn=maxwarn, monitor=monitor,
+                                     maxwarn=maxwarn, monitor_tool=monitor_tool,
                                      vsite=vsite, **mdp_options)
                 break
 
@@ -4842,7 +4910,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
     def production(self, out_folder, name=None, nsteps=400000, dt=0.002,
                    maxwarn=0,
-                   monitor=monitor.PROGRESS_BAR, vsite='none',
+                   monitor_tool=monitor.PROGRESS_BAR, vsite='none',
                    **mdp_options):
         """Run a production run.
 
@@ -4890,10 +4958,10 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         mdp_options.update({'nsteps': int(nsteps), 'dt': dt, 'define': ''})
         self.run_md_sim(out_folder=out_folder, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, name="prod_" + name,
-                        monitor=monitor, maxwarn=maxwarn)
+                        monitor_tool=monitor_tool, maxwarn=maxwarn)
 
     def extend_equi_prod(self, tpr_file=None, nsteps=200000, dt=0.005,
-                         monitor=monitor.PROGRESS_BAR):
+                         monitor_tool=monitor.PROGRESS_BAR):
         """Extend a simulation run.
 
         :param tpr_file: path of the tpr file
@@ -4952,57 +5020,77 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         self.run_simulation(cpi=self.sim_name + ".cpt",
                             nsteps=int(nsteps_to_run),
-                            check_file_out=False, monitor=monitor)
+                            check_file_out=False, monitor_tool=monitor_tool)
         self.get_last_output()
 
         os.chdir(start_dir)
 
     def free_ener(self, out_folder, mol_name, lambda_elec_num, lambda_vdw_num,
                   em_steps=5000, nvt_time=10, npt_time=10, prod_time=100,
-                  dt=0.002, name=None, temperature=310.0, maxwarn=1):
-
+                  dt=0.002, name=None, temperature=310.0, maxwarn=1,
+                  monitor_tool=monitor.PROGRESS_BAR):
+        """ Compute free energy using ...
+        """
 
         if name is None:
             name = self.name
 
+        if monitor.isnotebook():
+            from tqdm.notebook import tqdm
+        else:
+            from tqdm import tqdm
+
+
         coul_lambdas = " ".join([
-            str(round(i/(lambda_elec_num-1),3)) for i in range(lambda_elec_num)])+" 1.0"*lambda_vdw_num
+            str(round(i/(lambda_elec_num-1), 3)) for i in
+            range(lambda_elec_num)]) + " 1.0" * lambda_vdw_num
         vdw_lambdas = "0.0 " * lambda_elec_num + " ".join([
-            str(round(i/(lambda_vdw_num),3)) for i in range(1, lambda_vdw_num+1)])
+            str(round(i/(lambda_vdw_num), 3)) for i in
+            range(1, lambda_vdw_num + 1)])
 
-        print('Coulomb lambda :'+coul_lambdas + "\n" +'Vdw lambda :' + vdw_lambdas)
+        print('Coulomb lambda :' + coul_lambdas + "\n" +
+              'Vdw lambda :' + vdw_lambdas)
 
-        free_ener_option_init = {'integrator': 'sd',
-                                 'dt': dt,
-                                 'constraints': 'all-bonds',    
-                                 'nstcalcenergy': 50,
-                                 'tc_grps': 'System',
-                                 'tau_t': 0.1,
-                                 'ref_t': temperature,
-                                 'vdwtype': 'cut_off',
-                                 'vdw_modifier': 'force_switch',
-                                 'rvdw_switch': 1.0,
-                                 'rvdw':1.1,
-                                 'coulombtype': 'pme',
-                                 'rcoulomb':1.1,
-                                 'free_energy': 'yes',
-                                 'init_lambda-state': 0,
-                                 'delta_lambda': 0,
-                                 'coul_lambdas': coul_lambdas,
-                                 'vdw_lambdas': vdw_lambdas,
-                                 'sc_alpha': 0.5,
-                                 'sc_power': 1,
-                                 'sc_sigma': 0.3,
-                                 'couple_moltype': mol_name,
-                                 'couple_lambda0': 'vdw-q',
-                                 'couple_lambda1': 'none',
-                                 'couple_intramol': 'no',
-                                 'nstdhdl': 50,
-                                 'separate_dhdl_file': 'yes',
-                                 'nstcalcenergy': 50}
+        free_ener_option_md = {'integrator': 'sd',
+                               'dt': dt,
+                               'constraints': 'all-bonds',
+                               'nstcalcenergy': 50,
+                               'tc_grps': 'System',
+                               'tau_t': 0.1,
+                               'ref_t': temperature,
+                               'vdwtype': 'cut_off',
+                               'vdw_modifier': 'force_switch',
+                               'rvdw_switch': 1.0,
+                               'rvdw': 1.1,
+                               'coulombtype': 'pme',
+                               'rcoulomb': 1.1,
+                               'free_energy': 'yes',
+                               'init_lambda-state': 0,
+                               'delta_lambda': 0,
+                               'coul_lambdas': coul_lambdas,
+                               'vdw_lambdas': vdw_lambdas,
+                               'sc_alpha': 0.5,
+                               'sc_power': 1,
+                               'sc_sigma': 0.3,
+                               'couple_moltype': mol_name,
+                               'couple_lambda0': 'vdw-q',
+                               'couple_lambda1': 'none',
+                               'couple_intramol': 'no',
+                               'nstdhdl': 50,
+                               'separate_dhdl_file': 'yes'}
 
-        mini_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/mini.mdp")
-        equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, "template/equi.mdp")
+        free_ener_option_em = copy.deepcopy(free_ener_option_md)
+        # Remove useless options for EM
+        del(free_ener_option_em['integrator'],
+            free_ener_option_em['dt'],
+            free_ener_option_em['tc_grps'],
+            free_ener_option_em['tau_t'],
+            free_ener_option_em['ref_t'])
+
+        mini_template_mdp = os.path.join(
+            GROMACS_MOD_DIRNAME, "template/mini.mdp")
+        equi_template_mdp = os.path.join(
+            GROMACS_MOD_DIRNAME, "template/equi.mdp")
 
         nvt_steps = int(nvt_time / dt)
         npt_steps = int(npt_time / dt)
@@ -5015,51 +5103,80 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         print('\n\n\n')
 
+        tot_step = (lambda_elec_num + lambda_vdw_num) * (
+            em_steps + nvt_steps + npt_steps + prod_steps)
+        pbar = tqdm(total=tot_step)
+
+
         for i in range(lambda_elec_num+lambda_vdw_num):
 
             sys_name = '{}_vdwq_{:02d}'.format(name, i)
 
-            free_ener_option = copy.deepcopy(free_ener_option_init)
+            free_ener_option = copy.deepcopy(free_ener_option_em)
             free_ener_option.update({'init_lambda-state': i})
 
             # Mini 5000 steps
-            free_ener_option.update({'nsteps':em_steps})
-            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '00_em'), name='em_'+sys_name, mdp_template=mini_template_mdp,
-                               mdp_options=free_ener_option, maxwarn=maxwarn)
+            free_ener_option = copy.deepcopy(free_ener_option_md)
+            free_ener_option.update({'init_lambda-state': i,
+                                     'nsteps': em_steps})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '00_em'),
+                               name='em_'+sys_name,
+                               mdp_template=mini_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn,
+                               monitor_tool=monitor_tool)
+            pbar.update(em_steps)
+
             # NVT 10ps
-            free_ener_option.update({'nsteps':nvt_steps, 'pcoupl':'no'})
-            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '01_equi_nvt'), name='nvt_'+sys_name, mdp_template=equi_template_mdp,
-                               mdp_options=free_ener_option, maxwarn=maxwarn)
+            free_ener_option.update({'nsteps': nvt_steps,
+                                     'pcoupl': 'no'})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder,
+                                                       '01_equi_nvt'),
+                               name='nvt_'+sys_name,
+                               mdp_template=equi_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn,
+                               monitor_tool=monitor_tool)
+            pbar.update(nvt_steps)
+
             # NPT 10ps
-            free_ener_option.update({'nsteps':npt_steps, 'pcoupl':'parrinello-Rahman'})
-            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '02_equi_npt'), name='npt_'+sys_name, mdp_template=equi_template_mdp,
-                               mdp_options=free_ener_option, maxwarn=maxwarn)
+            free_ener_option.update({'nsteps': npt_steps,
+                                     'pcoupl': 'parrinello-Rahman'})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder,
+                                                       '02_equi_npt'),
+                               name='npt_'+sys_name,
+                               mdp_template=equi_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn,
+                               monitor_tool=monitor_tool)
+            pbar.update(npt_steps)
 
             # Prod 100ps
-            free_ener_option.update({'nsteps':prod_steps})
-            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '03_prod'), name='prod_'+sys_name, mdp_template=equi_template_mdp,
-                               mdp_options=free_ener_option, maxwarn=maxwarn)
-            xvg_file_list.append(os.path.join(out_folder, '03_prod/', 'prod_' + sys_name + '.xvg'))
+            free_ener_option.update({'nsteps': prod_steps})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '03_prod'),
+                               name='prod_'+sys_name,
+                               mdp_template=equi_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn,
+                               monitor_tool=monitor_tool)
+            pbar.update(prod_steps)
+
+            xvg_file_list.append(os.path.join(out_folder, '03_prod/',
+                                              'prod_' + sys_name + '.xvg'))
             mol_sys = copy.deepcopy(start_sys)
 
-        ener_pd = GmxSys.get_bar(xvg_file_list, bar_xvg='bar.xvg',
-                barint_xvg='barint.xvg', hist_xvg='histogram.xvg',
-                check_file_out=True, keep_ener_file=True)
+        ener = GmxSys.get_bar(xvg_file_list, bar_xvg='bar.xvg',
+                              barint_xvg='barint.xvg',
+                              hist_xvg='histogram.xvg',
+                              check_file_out=True,
+                              keep_ener_file=True)
 
-        Boltzmann = 1.380649e-23
-        N_A = 6.02214076e+23
+        print('DDG = {:.2f} +/- {:.2f} KJ/mol-1'.format(
+            ener['DG'], ener['std']))
+        print('DDG = {:.2f} +/- {:.2f} Kcal/mol-1'.format(
+            ener['DG']/4.184, ener['std']/4.184))
 
-        ddg = sum(ener_pd.iloc[:, 1]) * Boltzmann * temperature * N_A * 1e-3
-        std = math.sqrt(sum((ener_pd.iloc[:, 2])**2)) * Boltzmann * temperature * N_A * 1e-3
-
-        print('DDG = {:.2f} +/- {:.2f} KJ/mol-1'.format(ddg, std))
-        print('DDG = {:.2f} +/- {:.2f} Kcal/mol-1'.format(ddg/4.184, std/4.184))
-
-        return ener_pd
+        return ener
 
     def em_CG(self, out_folder, name=None, nsteps=500000,
               maxwarn=0,
-              monitor=monitor.PROGRESS_BAR,
+              monitor_tool=monitor.PROGRESS_BAR,
               **mdp_options):
         """Equilibrate a system a CG system:
 
@@ -5116,11 +5233,11 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         self.run_md_sim(out_folder=out_folder, name="em_CG_" + name,
                         mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn,
-                        monitor=monitor)
+                        monitor_tool=monitor_tool)
 
     def equi_CG(self, out_folder, name=None, pdb_restr=None, nsteps=500000,
                 dt=0.02, maxwarn=0,
-                monitor=monitor.PROGRESS_BAR,
+                monitor_tool=monitor.PROGRESS_BAR,
                 **mdp_options):
         """Equilibrate a system a CG system:
 
@@ -5179,11 +5296,11 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         self.run_md_sim(out_folder=out_folder, name="equi_CG_BB_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn,
-                        monitor=monitor)
+                        monitor_tool=monitor_tool)
 
     def prod_CG(self, out_folder, name=None, nsteps=5000000, dt=0.02,
                 maxwarn=0,
-                monitor=monitor.PROGRESS_BAR,
+                monitor_tool=monitor.PROGRESS_BAR,
                 **mdp_options):
         """Equilibrate a system a CG system:
 
@@ -5235,7 +5352,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         self.run_md_sim(out_folder=out_folder, name="prod_CG_" + name,
                         mdp_template=equi_template_mdp,
                         mdp_options=mdp_options, maxwarn=maxwarn,
-                        monitor=monitor)
+                        monitor_tool=monitor_tool)
 
     def get_last_output(self):
         """In a case of a simulation restart, outputs edr, log, gro and xtc
@@ -5387,26 +5504,22 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         logger.info("-Extract bar energy")
 
-        # Check if output files exist:
-        if check_file_out and os.path.isfile(bar_xvg):
-            logger.info("get_ener not launched {} already exist".format(
-                bar_xvg))
-        else:
-            cmd_convert = os_command.Command([GMX_BIN, "bar",
-                                              "-f", *xvg_file_list,
-                                              "-o", bar_xvg,
-                                              "-oi", barint_xvg,
-                                              "-oh", hist_xvg])
+        cmd_convert = os_command.Command([GMX_BIN, "bar",
+                                          "-f", *xvg_file_list,
+                                          "-o", bar_xvg,
+                                          "-oi", barint_xvg,
+                                          "-oh", hist_xvg])
 
-            cmd_convert.display()
-            cmd_convert.run()
+        cmd_convert.display()
+        output = cmd_convert.run(out_data=True)
 
-        ener_pd = monitor.read_xvg(bar_xvg)
-
-        #if not keep_ener_file:
-        #    os_command.delete_file(output_xvg)
-
-        return(ener_pd)
+        # Search in all line, if it start with "Last frame"
+        for line in output['stdout'].splitlines():
+            if line.startswith("total"):
+                print(line)
+                total = float(line.split()[5])
+                std = float(line.split()[7])
+                return {'DG': total, 'std': std}
 
     ##########################################################
     # ###########   ANALYSIS RELATED FUNCTIONS   #############
