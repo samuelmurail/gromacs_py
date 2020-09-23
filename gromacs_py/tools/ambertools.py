@@ -43,7 +43,7 @@ if on_rtd:
 else:
     REDUCE_BIN = os_command.which('reduce')
     ANTECHAMBER_BIN = os_command.which('antechamber')
-    ACPYPE_BIN = os_command.which('acpype')
+    ACPYPE_BIN = os_command.which('acpype', 'acpype.py')
 
 
 def show_log():
@@ -301,6 +301,13 @@ def make_amber_top_mol(pdb_in, res_name, charge, charge_model="bcc",
     full_coor = pdb_manip.Coor(pdb_in)
     # Select coor:
     mol_coor = full_coor.select_part_dict(selec_dict={'res_name': [res_name]})
+    # Rmove hydrogens:
+    to_del_list = []
+    for atom_num, atom in mol_coor.atom_dict.items():
+        if atom['name'][0] == 'H':
+            to_del_list.append(atom_num)
+    mol_coor.del_atom_index(to_del_list)
+
     mol_coor.write_pdb(res_name+'.pdb')
 
     # Add hydrogens:
