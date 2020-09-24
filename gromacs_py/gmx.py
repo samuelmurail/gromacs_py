@@ -2008,20 +2008,14 @@ ff='amber99sb-ildn', include_mol={'DAP':0}) #doctest: +ELLIPSIS
         reduce -build -nuclear DAP.pdb
         Succeed to read file DAP_h.pdb ,  36 atoms found
         Succeed to save file DAP_h_unique.pdb
-        acpype -i DAP_h_unique.pdb -b DAP -c bcc -a gaff -o gmx -n 0
+        acpype... -i DAP_h_unique.pdb -b DAP -c bcc -a gaff -o gmx -n 0
         DAP
         Succeed to save file 01_1D30_good_his.pdb
         -Create topologie
         gmx pdb2gmx -f 01_1D30_good_his.pdb -o 1D30_pdb2gmx.pdb -p \
 1D30_pdb2gmx.top -i 1D30_posre.itp -water tip3p -ff amber99sb-ildn \
 -ignh -vsite none
-        Add Molecule DAP
-        name         : mol
-        coor_file    : DAP.acpype/DAP_GMX.gro
-        top_file     : DAP.acpype/DAP_GMX_split.top
-        nt           : 0
-        ntmpi        : 0
-        sys_history  : 0
+        Add Molecule: DAP
         Add 1 mol .../top_dna/DAP.acpype/DAP_GMX.itp
         Concat files: ['1D30_pdb2gmx.pdb', '.../top_dna/DAP_h.pdb']
         Succeed to save concat file:  1D30_pdb2gmx_mol.pdb
@@ -2037,6 +2031,70 @@ out_1D30.mdp -o 1D30.tpr -maxwarn 1
         -Launch the simulation 1D30.tpr
         gmx mdrun -s 1D30.tpr -deffnm 1D30 -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
+        >>> lig = dna_lig.extract_mol_sys(out_folder=TEST_OUT+\
+'/prepare_top/top_DAP/', res_name='DAP') #doctest: +ELLIPSIS
+        -Convert trj/coor
+        gmx trjconv -f ...1D30.gro -o ...1D30_compact.pdb -s ...1D30.tpr \
+-ur compact -pbc mol
+        Succeed to read file ...1D30_compact.pdb ,  794 atoms found
+        Succeed to save file ...DAP_only.pdb
+        Forcefield include :
+         amber99sb-ildn
+        -ITP file: DAP_GMX_atomtypes
+        -molecules defined in the itp file:
+        -ITP file: tip3p
+        -molecules defined in the itp file:
+        * SOL
+        -ITP file: DAP_GMX
+        -molecules defined in the itp file:
+        * DAP
+        Mol List:
+           * 1 DAP
+        Mol Name:
+         Protein
+        >>> lig.create_box() #doctest: +ELLIPSIS
+        -Create pbc box
+        gmx editconf -f ...DAP_only.pdb -o ...DAP_only_box.pdb -bt \
+dodecahedron -d 1.0
+        >>> lig.solvate_box(out_folder=TEST_OUT + '/prepare_top/water_lig_top')
+        -Solvate the pbc box
+        Copy topologie file and dependancies
+        >>> lig.em(out_folder=TEST_OUT + '/prepare_top/em_water_DAP', \
+nsteps=100, maxwarn=1) #doctest: +ELLIPSIS
+        -Create the tpr file DAP.tpr
+        gmx grompp -f DAP.mdp -c ...DAP_water.pdb -r ...DAP_water.pdb -p \
+...DAP_water.top -po out_DAP.mdp -o DAP.tpr -maxwarn 1
+        -Launch the simulation DAP.tpr
+        gmx mdrun -s DAP.tpr -deffnm DAP -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+        >>> ener = lig.free_ener(out_folder=TEST_OUT + \
+'/prepare_top/em_water_DAP', mol_name='DAP', lambda_elec_num=2, \
+lambda_vdw_num=2, em_steps=10, nvt_time=.05, \
+npt_time=.05, prod_time=.05) #doctest: +ELLIPSIS
+        Coulomb lambda :0.0 1.0 1.0 1.0
+        Vdw lambda :0.0 0.0 0.5 1.0
+        -Create the tpr file em_DAP_vdwq_00.tpr
+        gmx grompp -f em_DAP_vdwq_00.mdp -c ...DAP.gro -r ...DAP.gro -p \
+...DAP_water.top -po out_em_DAP_vdwq_00.mdp -o em_DAP_vdwq_00.tpr -maxwarn 1
+        -Launch the simulation em_DAP_vdwq_00.tpr
+        gmx mdrun -s em_DAP_vdwq_00.tpr -deffnm em_DAP_vdwq_00 -nt 0 -ntmpi 0 \
+-nsteps -2 -nocopyright
+        ...
+        -Create the tpr file prod_DAP_vdwq_03.tpr
+        gmx grompp -f prod_DAP_vdwq_03.mdp -c ...npt_DAP_vdwq_03.gro -r \
+...npt_DAP_vdwq_03.gro -p ....top -po out_prod_DAP_vdwq_03.mdp -o \
+prod_DAP_vdwq_03.tpr -maxwarn 1
+        -Launch the simulation prod_DAP_vdwq_03.tpr
+        gmx mdrun -s prod_DAP_vdwq_03.tpr -deffnm prod_DAP_vdwq_03 -nt 0 \
+-ntmpi 0 -nsteps -2 -nocopyright
+        -Extract bar energy
+        gmx bar -f ...prod_DAP_vdwq_00.xvg ...prod_DAP_vdwq_01.xvg \
+...prod_DAP_vdwq_02.xvg ...prod_DAP_vdwq_03.xvg -o bar.xvg -oi barint.xvg \
+-oh histogram.xvg
+        DDG = -... +/- ... KJ/mol-1
+        DDG = -... +/- ... Kcal/mol-1
+        >>> (ener['DG'] > -260.0) and (ener['DG'] < -170.0)
+        True
+
 
         .. note::
             No options are allowed (forcefield, water model, termini capping)
@@ -2128,11 +2186,11 @@ out_1D30.mdp -o 1D30.tpr -maxwarn 1
         pdb_mol_list = []
         # Add the molecule in the sys topologie and update the water num:
         for mol in mol_sys_list:
-            print('Add Molecule', mol['name'])
+            logger.info('Add Molecule: {}'.format(mol['name']))
 
             pdb_mol_list.append(mol['coor'])
             # Add topologie:
-            mol['GmxSys'].display()
+            # mol['GmxSys'].display()
             mol_top = TopSys(mol['GmxSys'].top_file)
             mol_itp = mol_top.get_include_no_posre_file_list()
             sys_topologie.add_mol(mol_name=mol['name'],
@@ -3898,41 +3956,39 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         """
 
         # Extract coordinates:
-        print(self.coor_file[-3:])
         if self.coor_file[-3:] != 'pdb':
-            print('Convert to gro file')
             self.convert_trj(traj=False)
         full_coor = pdb_manip.Coor(self.coor_file)
         # Select coor:
-        mol_coor = full_coor.select_part_dict(selec_dict={'res_name': [res_name]})
-        print(mol_coor.num)
+        mol_coor = full_coor.select_part_dict(
+            selec_dict={'res_name': [res_name]})
         mol_coor.write_pdb(os.path.join(out_folder, res_name+'_only.pdb'))
 
         # Extract topologie:
-        
+
         # Get the system topologie:
-        sys_topologie = gmx.TopSys(self.top_file)
+        sys_topologie = TopSys(self.top_file)
         mol_top = copy.deepcopy(sys_topologie)
-        
+
         itp_list = []
         # Keep only res_name itp
         for itp in mol_top.itp_list:
-            
-            print(itp.name)
+
+            # print(itp.name)
             to_keep = False
             mol_num = 0
-            
+
             for top_mol in itp.top_mol_list:
                 mol_num += 1
-                print('\t'+top_mol.name)
+                # print('\t'+top_mol.name)
                 if top_mol.name in [res_name, 'SOL']:
                     to_keep = True
                     break
             if to_keep or mol_num == 0:
                 itp_list.append(itp)
-        
+
         mol_top.itp_list = itp_list
-                
+
         new_mol_comp = []
         # Keep only res_name in mol composition
         for mol in mol_top.mol_comp:
@@ -3940,15 +3996,17 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                 new_mol_comp.append(mol)
 
         mol_top.mol_comp = new_mol_comp
-                
+
         mol_top.display()
         mol_top.write_file(os.path.join(out_folder, res_name+'_only.top'))
-        
-        mol_sys = gmx.GmxSys(name=res_name,
-                             coor_file=os.path.join(out_folder, res_name+'_only.pdb'),
-                             top_file=os.path.join(out_folder, res_name+'_only.top'))
+
+        mol_sys = GmxSys(name=res_name,
+                         coor_file=os.path.join(out_folder,
+                                                res_name+'_only.pdb'),
+                         top_file=os.path.join(out_folder,
+                                               res_name+'_only.top'))
         return mol_sys
-    
+
     @staticmethod
     def concat_coor(*coor_in_files, pdb_out, check_file_out=True):
         """Concat a list of coordinates file in one coordinate file:
@@ -4376,10 +4434,10 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :param rerun: option to rerun a simulation (eg. recompute energy)
         :type rerun: bool, default=False
 
-        :param monitor_tool: option to monitor a simulation, if not none monitor
-            should contains two values: ``function`` the function to be ran
-            while simulation is running and ``input`` parameters for the
-            function.
+        :param monitor_tool: option to monitor a simulation, if not `None`,
+            monitor should contains two values: ``function`` the function
+            to be ran while simulation is running and ``input`` parameters
+            for the function.
         :type monitor_tool: dict, default=None
 
         **Object requirement(s):**
@@ -4494,7 +4552,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             self.edr = self.sim_name + ".edr"
 
     def run_md_sim(self, out_folder, name, mdp_template, mdp_options,
-                   pdb_restr=None, maxwarn=0, monitor_tool=monitor.PROGRESS_BAR):
+                   pdb_restr=None, maxwarn=0,
+                   monitor_tool=monitor.PROGRESS_BAR):
         """Run a simulation using 3 steps:
 
         1. Create a mdp file
@@ -4891,7 +4950,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                      nsteps_CA=nsteps_CA,
                                      nsteps_CA_LOW=nsteps_CA_LOW,
                                      dt=dt, dt_HA=dt_HA,
-                                     maxwarn=maxwarn, monitor_tool=monitor_tool,
+                                     maxwarn=maxwarn,
+                                     monitor_tool=monitor_tool,
                                      vsite=vsite, **mdp_options)
                 break
 
@@ -5040,7 +5100,6 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         else:
             from tqdm import tqdm
 
-
         coul_lambdas = " ".join([
             str(round(i/(lambda_elec_num-1), 3)) for i in
             range(lambda_elec_num)]) + " 1.0" * lambda_vdw_num
@@ -5101,12 +5160,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         xvg_file_list = []
 
-        print('\n\n\n')
-
         tot_step = (lambda_elec_num + lambda_vdw_num) * (
             em_steps + nvt_steps + npt_steps + prod_steps)
         pbar = tqdm(total=tot_step)
-
 
         for i in range(lambda_elec_num+lambda_vdw_num):
 
@@ -5164,8 +5220,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         ener = GmxSys.get_bar(xvg_file_list, bar_xvg='bar.xvg',
                               barint_xvg='barint.xvg',
                               hist_xvg='histogram.xvg',
-                              check_file_out=True,
-                              keep_ener_file=True)
+                              check_file_out=True)
 
         print('DDG = {:.2f} +/- {:.2f} KJ/mol-1'.format(
             ener['DG'], ener['std']))
@@ -5516,10 +5571,17 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         # Search in all line, if it start with "Last frame"
         for line in output['stdout'].splitlines():
             if line.startswith("total"):
-                print(line)
                 total = float(line.split()[5])
                 std = float(line.split()[7])
-                return {'DG': total, 'std': std}
+
+        ener_pd = monitor.read_xvg(bar_xvg)
+
+        if not keep_ener_file:
+            os_command.delete_file(bar_xvg)
+            os_command.delete_file(barint_xvg)
+            os_command.delete_file(hist_xvg)
+
+        return {'DG': -total, 'std': std, 'table': ener_pd}
 
     ##########################################################
     # ###########   ANALYSIS RELATED FUNCTIONS   #############
