@@ -5304,7 +5304,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             sys_name = '{}_vdwq_{:02d}'.format(name, i)
 
             free_ener_option = copy.deepcopy(free_ener_option_em)
-            free_ener_option.update({'init_lambda-state': i})
+            free_ener_option.update({'init_lambda-state': i,
+                                     'nsteps': em_steps})
 
             # Mini 5000 steps
             mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '00_em'),
@@ -5316,8 +5317,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
             # MD
             free_ener_option = copy.deepcopy(free_ener_option_md)
-            free_ener_option.update({'init_lambda-state': i,
-                                     'nsteps': em_steps})
+            free_ener_option.update({'init_lambda-state': i}
 
             # NVT 10ps
             free_ener_option.update({'nsteps': nvt_steps,
