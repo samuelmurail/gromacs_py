@@ -2066,8 +2066,10 @@ nsteps=100, maxwarn=1) #doctest: +ELLIPSIS
 ...DAP_water.top -po out_DAP.mdp -o DAP.tpr -maxwarn 1
         -Launch the simulation DAP.tpr
         gmx mdrun -s DAP.tpr -deffnm DAP -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+        >>> # As the system is small use only 1 proc
+        >>> lig.nt = 1
         >>> ener = lig.free_ener(out_folder=TEST_OUT + \
-'/prepare_top/em_water_DAP', mol_name='DAP', lambda_elec_num=2, \
+'/prepare_top/free_ener_DAP', mol_name='DAP', lambda_elec_num=2, \
 lambda_vdw_num=2, em_steps=10, nvt_time=.05, \
 npt_time=.05, prod_time=.05) #doctest: +ELLIPSIS
         Coulomb lambda :0.0 1.0 1.0 1.0
@@ -2212,6 +2214,139 @@ prod_DAP_vdwq_03.tpr -maxwarn 1
             self.coor_file = self.coor_file[:-4]+'_mol.pdb'
             # Save topologie
             sys_topologie.write_file(self.top_file[:-4]+'_mol.top')
+            self.top_file = self.top_file[:-4]+'_mol.top'
+
+        os.chdir(start_dir)
+
+    def prepare_top_ligand(self, out_folder, name=None,
+                           ff="amber99sb-ildn", water_model='tip3p',
+                           include_mol={}):
+        """Prepare the topologie of a ligand:
+
+        :param out_folder: path of the output file folder
+        :type out_folder: str
+
+        :param name: generic name of the system
+        :type name: str, optional, default=None
+
+        :param ff: forcefield
+        :type ff: str, optional, default="amber99sb-ildn"
+
+        :param include_mol: list of ligand's residue name to include
+        :type include_mol: list, optional, default=[]
+
+        **Object requirement(s):**
+
+            * self.coor_file
+
+        **Object field(s) changed:**
+
+            * self.coor_file
+            * self.top_file
+
+        :Example:
+
+        >>> TEST_OUT = getfixture('tmpdir')
+        >>> # Create the topologie of a protein and do a minimisation:
+        >>> lig = GmxSys(name='1D30', coor_file=TEST_PATH+'/1D30.pdb')
+
+
+
+        .. note::
+            Starting file need to be a pdb, this should be changed.
+        """
+
+        start_dir = os.path.abspath(".")
+
+        # Create and go in out_folder:
+        # This is necessary for the topologie creation
+        os_command.create_and_go_dir(out_folder)
+
+        # If name is not define use the object name
+        if name is None:
+            name = self.name
+
+        # Save initial pdb file:
+        start_pdb = self.coor_file
+        start_coor = pdb_manip.Coor(start_pdb)
+
+        # Get initial list of residue name
+        res_name_input = start_coor.get_attribute_selection(
+            attribute='res_name')
+
+        mol_sys_list = []
+        for resname in res_name_input:
+            if resname in include_mol:
+                mol_top = ambertools.make_amber_top_mol(
+                        start_pdb, resname, charge=include_mol[resname],
+                        remove_h=False)
+                mol_top['name'] = resname
+                mol_sys_list.append(mol_top)
+            else:
+                logger.warning("residue(s) {} not included,"
+                               " add this residue in ...".format(
+                               resname))
+
+        # Create empty topologie:
+        with open('{}.top'.format(name), 'w') as fp: 
+            pass
+        # Create empty coordinates:
+        with open('{}.pdb'.format(name), 'w') as fp: 
+            pass
+        self.coor_file = '{}.pdb'.format(name)
+        self.top_file = '{}.top'.format(name)
+
+        # Get the system topologie:
+        sys_top = TopSys('{}.top'.format(name))
+
+        # Get path of forcefield and water model
+        for forcefield in FORCEFIELD_PATH_LIST:
+            if os_command.check_file_exist(
+                        os.path.join(forcefield, ff+'.ff', 'forcefield.itp')):
+                path_ff = os.path.abspath(
+                os.path.join(forcefield, ff+'.ff', 'forcefield.itp'))
+            if os_command.check_file_exist(
+                        os.path.join(forcefield, ff+'.ff', water_model+'.itp')):
+                path_water = os.path.abspath(
+                os.path.join(forcefield, ff+'.ff', water_model+'.itp'))
+
+        sys_top.forcefield = {'name': ff,
+                              'fullname': "{}.ff/forcefield.itp".format(ff),
+                              'path': path_ff}
+        water_itp = Itp(name=water_model,
+                        fullname="{}.ff/{}.itp".format(ff, water_model),
+                        path=path_water)
+        sys_top.itp_list = [water_itp]
+
+        pdb_mol_list = []
+        # Add the molecule in the sys topologie and update the water num:
+        for mol in mol_sys_list:
+            logger.info('Add Molecule: {}'.format(mol['name']))
+
+            pdb_mol_list.append(mol['coor'])
+            # Add topologie:
+            # mol['GmxSys'].display()
+            mol_top = TopSys(mol['GmxSys'].top_file)
+            mol_itp = mol_top.get_include_no_posre_file_list()
+            sys_top.add_mol(mol_name=mol['name'],
+                                  mol_itp_file=mol_itp[-1],
+                                  mol_num=mol['num'])
+            # Add atomtypes itp:
+            fullname = (mol_itp[0].split("/")[-1])
+            include = fullname.split(".")[0]
+            path = os_command.full_path_and_check(mol_itp[0])
+            atomtype_itp = Itp(name=include, fullname=fullname, path=path)
+
+            sys_top.itp_list = [atomtype_itp] + sys_top.itp_list
+
+        if mol_sys_list:
+            # Add coordinates:
+            GmxSys.concat_coor(self.coor_file, *pdb_mol_list,
+                               pdb_out=self.coor_file[:-4]+'_mol.pdb',
+                               check_file_out=False)
+            self.coor_file = self.coor_file[:-4]+'_mol.pdb'
+            # Save topologie
+            sys_top.write_file(self.top_file[:-4]+'_mol.top')
             self.top_file = self.top_file[:-4]+'_mol.top'
 
         os.chdir(start_dir)
@@ -5172,15 +5307,17 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             free_ener_option.update({'init_lambda-state': i})
 
             # Mini 5000 steps
-            free_ener_option = copy.deepcopy(free_ener_option_md)
-            free_ener_option.update({'init_lambda-state': i,
-                                     'nsteps': em_steps})
             mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '00_em'),
                                name='em_'+sys_name,
                                mdp_template=mini_template_mdp,
                                mdp_options=free_ener_option, maxwarn=maxwarn,
                                monitor_tool=monitor_tool)
             pbar.update(em_steps)
+
+            # MD
+            free_ener_option = copy.deepcopy(free_ener_option_md)
+            free_ener_option.update({'init_lambda-state': i,
+                                     'nsteps': em_steps})
 
             # NVT 10ps
             free_ener_option.update({'nsteps': nvt_steps,
