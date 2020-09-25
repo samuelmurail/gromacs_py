@@ -2078,7 +2078,7 @@ npt_time=.05, prod_time=.05) #doctest: +ELLIPSIS
         gmx grompp -f em_DAP_vdwq_00.mdp -c ...DAP.gro -r ...DAP.gro -p \
 ...DAP_water.top -po out_em_DAP_vdwq_00.mdp -o em_DAP_vdwq_00.tpr -maxwarn 1
         -Launch the simulation em_DAP_vdwq_00.tpr
-        gmx mdrun -s em_DAP_vdwq_00.tpr -deffnm em_DAP_vdwq_00 -nt 0 -ntmpi 0 \
+        gmx mdrun -s em_DAP_vdwq_00.tpr -deffnm em_DAP_vdwq_00 -nt 1 -ntmpi 0 \
 -nsteps -2 -nocopyright
         ...
         -Create the tpr file prod_DAP_vdwq_03.tpr
@@ -2086,7 +2086,7 @@ npt_time=.05, prod_time=.05) #doctest: +ELLIPSIS
 ...npt_DAP_vdwq_03.gro -p ....top -po out_prod_DAP_vdwq_03.mdp -o \
 prod_DAP_vdwq_03.tpr -maxwarn 1
         -Launch the simulation prod_DAP_vdwq_03.tpr
-        gmx mdrun -s prod_DAP_vdwq_03.tpr -deffnm prod_DAP_vdwq_03 -nt 0 \
+        gmx mdrun -s prod_DAP_vdwq_03.tpr -deffnm prod_DAP_vdwq_03 -nt 1 \
 -ntmpi 0 -nsteps -2 -nocopyright
         -Extract bar energy
         gmx bar -f ...prod_DAP_vdwq_00.xvg ...prod_DAP_vdwq_01.xvg \
