@@ -5317,7 +5317,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
             # MD
             free_ener_option = copy.deepcopy(free_ener_option_md)
-            free_ener_option.update({'init_lambda-state': i}
+            free_ener_option.update({'init_lambda-state': i})
 
             # NVT 10ps
             free_ener_option.update({'nsteps': nvt_steps,
