@@ -367,6 +367,110 @@ class TopSys:
         self.mol_comp.append({'name': mol_itp.name, 'num': str(mol_num)})
         self.itp_list.append(mol_itp)
 
+    def add_atomtypes(self, new_atomtypes):
+        """ Add atomtypes in a topologie.
+        """
+
+        # check if and atomtypes file exists:
+        # self.display()
+        atom_type = False
+        for itp_file in self.get_include_no_posre_file_list():
+            if itp_file.split("/")[-1].endswith('atomtypes.itp'):
+                # print('atomtypes file present', itp_file)
+                atom_type = True
+                atomtype_path = itp_file
+                break
+
+        # If it doesn't exist create it
+        if not atom_type:
+            fullname = (new_atomtypes.split("/")[-1])
+            include = fullname.split(".")[0]
+            path = os_command.full_path_and_check(new_atomtypes)
+            atomtype_itp = Itp(name=include, fullname=fullname, path=path)
+
+            self.itp_list = [atomtype_itp] + self.itp_list
+        # If it does exist add the new atomtypes in the first one:
+        else:
+            # First extract old atom types:
+            field = None
+            atom_dict = {}
+            name_list = []
+            with open(atomtype_path) as file:
+                for line in file:
+                    if line.strip().startswith("["):
+                        # Remove space and [ ], remove also comments
+                        field = line.replace(" ", "").split("]")[0][1:]
+                        continue
+
+                    if (line[0] != ";" and line[0] != "#" and
+                            line.strip() != ""):
+                        # Remove commentary in the line
+                        line_comment = line.split(';')
+                        line_list = line_comment[0].split()
+
+                        if field == 'atomtypes':
+                            name_list.append(line_list[0])
+                            name, bond_type, mass, charge, ptype, sigma, \
+                                epsilon = line_list[:7]
+                            atom_dict[name] = {'bond_type': bond_type,
+                                               'mass': float(mass),
+                                               'charge': float(charge),
+                                               'ptype': ptype,
+                                               'sigma': float(sigma),
+                                               'epsilon': float(epsilon)}
+                            name_list.append(name)
+
+            # Second extract new atom types and
+            # check if they are already present:
+            field = None
+            new_atom_dict = {}
+            with open(new_atomtypes) as file:
+                for line in file:
+                    if line.strip().startswith("["):
+                        # Remove space and [ ], remove also comments
+                        field = line.replace(" ", "").split("]")[0][1:]
+                        continue
+
+                    if (line[0] != ";" and line[0] != "#" and
+                            line.strip() != ""):
+                        # Remove commentary in the line
+                        line_comment = line.split(';')
+                        line_list = line_comment[0].split()
+
+                        if field == 'atomtypes':
+                            name, bond_type, mass, charge, ptype, sigma, \
+                                epsilon = line_list[:7]
+                            local_dict = {'bond_type': bond_type,
+                                          'mass': float(mass),
+                                          'charge': float(charge),
+                                          'ptype': ptype,
+                                          'sigma': float(sigma),
+                                          'epsilon': float(epsilon)}
+                            if name not in name_list:
+                                new_atom_dict[name] = local_dict
+                            else:
+                                # Check if the new values are the same:
+                                if local_dict != atom_dict[name]:
+                                    logger.warning(
+                                        'Atom types parameters for {} are '
+                                        'different in {} and {}. Only one '
+                                        'version is kept !!!'.format(
+                                            name, atomtype_path,
+                                            new_atomtypes))
+
+            # Finally append the new param in the old one
+            with open(atomtype_path, 'a') as file:
+                for name, atom_dict in new_atom_dict.items():
+                    file.write(' {:3}      {:3}         {:.5f}  {:.5f}'
+                               '   {}     {:.5e}   {:.5e}\n'.format(
+                                name,
+                                atom_dict['bond_type'],
+                                atom_dict['mass'],
+                                atom_dict['charge'],
+                                atom_dict['ptype'],
+                                atom_dict['sigma'],
+                                atom_dict['epsilon']))
+
     def change_mol_num(self, mol_name, mol_num):
         """ Update molecule number.
         And remove multiple molecule definition if they are consecutive.
@@ -2199,12 +2303,13 @@ prod_DAP_vdwq_03.tpr -maxwarn 1
                                   mol_itp_file=mol_itp[-1],
                                   mol_num=mol['num'])
             # Add atomtypes itp:
-            fullname = (mol_itp[0].split("/")[-1])
-            include = fullname.split(".")[0]
-            path = os_command.full_path_and_check(mol_itp[0])
-            atomtype_itp = Itp(name=include, fullname=fullname, path=path)
+            sys_topologie.add_atomtypes(mol_itp[0])
+            #fullname = (mol_itp[0].split("/")[-1])
+            #include = fullname.split(".")[0]
+            #path = os_command.full_path_and_check(mol_itp[0])
+            #atomtype_itp = Itp(name=include, fullname=fullname, path=path)
 
-            sys_topologie.itp_list = [atomtype_itp] + sys_topologie.itp_list
+            #sys_topologie.itp_list = [atomtype_itp] + sys_topologie.itp_list
 
         if mol_sys_list:
             # Add coordinates:
@@ -2284,15 +2389,15 @@ prod_DAP_vdwq_03.tpr -maxwarn 1
                 mol_sys_list.append(mol_top)
             else:
                 logger.warning("residue(s) {} not included,"
-                               " add this residue in ...".format(
-                               resname))
+                               " if you want add this residue, "
+                               "add the residue name in include_mol".format(
+                                    resname))
 
         # Create empty topologie:
-        with open('{}.top'.format(name), 'w') as fp: 
-            pass
+        open('{}.top'.format(name), 'a').close()
         # Create empty coordinates:
-        with open('{}.pdb'.format(name), 'w') as fp: 
-            pass
+        open('{}.pdb'.format(name), 'a').close()
+
         self.coor_file = '{}.pdb'.format(name)
         self.top_file = '{}.top'.format(name)
 
@@ -2304,11 +2409,12 @@ prod_DAP_vdwq_03.tpr -maxwarn 1
             if os_command.check_file_exist(
                         os.path.join(forcefield, ff+'.ff', 'forcefield.itp')):
                 path_ff = os.path.abspath(
-                os.path.join(forcefield, ff+'.ff', 'forcefield.itp'))
+                    os.path.join(forcefield, ff+'.ff', 'forcefield.itp'))
             if os_command.check_file_exist(
-                        os.path.join(forcefield, ff+'.ff', water_model+'.itp')):
+                        os.path.join(forcefield, ff+'.ff',
+                                     water_model+'.itp')):
                 path_water = os.path.abspath(
-                os.path.join(forcefield, ff+'.ff', water_model+'.itp'))
+                    os.path.join(forcefield, ff+'.ff', water_model+'.itp'))
 
         sys_top.forcefield = {'name': ff,
                               'fullname': "{}.ff/forcefield.itp".format(ff),
@@ -2329,15 +2435,16 @@ prod_DAP_vdwq_03.tpr -maxwarn 1
             mol_top = TopSys(mol['GmxSys'].top_file)
             mol_itp = mol_top.get_include_no_posre_file_list()
             sys_top.add_mol(mol_name=mol['name'],
-                                  mol_itp_file=mol_itp[-1],
-                                  mol_num=mol['num'])
+                            mol_itp_file=mol_itp[-1],
+                            mol_num=mol['num'])
             # Add atomtypes itp:
-            fullname = (mol_itp[0].split("/")[-1])
-            include = fullname.split(".")[0]
-            path = os_command.full_path_and_check(mol_itp[0])
-            atomtype_itp = Itp(name=include, fullname=fullname, path=path)
+            sys_top.add_atomtypes(mol_itp[0])
 
-            sys_top.itp_list = [atomtype_itp] + sys_top.itp_list
+            # fullname = (mol_itp[0].split("/")[-1])
+            # include = fullname.split(".")[0]
+            # path = os_command.full_path_and_check(mol_itp[0])
+            # atomtype_itp = Itp(name=include, fullname=fullname, path=path)
+            # sys_top.itp_list = [atomtype_itp] + sys_top.itp_list
 
         if mol_sys_list:
             # Add coordinates:
