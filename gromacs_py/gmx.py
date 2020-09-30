@@ -211,10 +211,7 @@ class TopSys:
                                            'fullname': file_name,
                                            'path': path}
                     else:
-                        # print("name =", include, "fullname = ",file_name,
-                        # "path = ",path)
-                        self.itp_list.append(
-                            Itp(name=include, fullname=file_name, path=path))
+                        self.add_mol_itp(path)
                 # Check field
                 elif not ifdef and line.startswith("["):
                     # Remove space and [ ]
@@ -240,9 +237,10 @@ class TopSys:
                         top_itp.write_file(os.path.join(self.folder, name_itp))
                         top_itp.display()
                         # Add the itp to the itp_list
-                        self.itp_list.append(
-                            Itp(name=name_itp, fullname=name_itp,
-                                path=os.path.join(self.folder, name_itp)))
+                        self.add_mol_itp(os.path.join(self.folder, name_itp))
+                        #self.itp_list.append(
+                        #    Itp(name=name_itp, fullname=name_itp,
+                        #        path=os.path.join(self.folder, name_itp)))
                         self.include_itp = True
                     # Name of the system
                     elif field == 'system':
@@ -356,16 +354,40 @@ class TopSys:
                 itp.add_posre(mol_name=mol['name'], posre_name=posre_name,
                               selec_dict=selec_dict, fc=fc)
 
+    def add_mol_itp(self, mol_itp_file):
+        """Add a molecule itp in the topologie itp_list.
+        """
+        fullname = (mol_itp_file.split("/")[-1])
+        include = fullname.split(".")[0]
+        path = os_command.full_path_and_check(mol_itp_file)
+        mol_itp = Itp(name=include, fullname=fullname, path=path)
+
+        # 1. Get new mol name:
+        mol_name_list = []
+        for top_mol in mol_itp.top_mol_list:
+            mol_name_list.append(top_mol.name)
+
+        # 2. Check if it already present
+        present = False
+        for itp in self.itp_list:
+            for top_mol in itp.top_mol_list:
+                if top_mol.name in mol_name_list:
+                    present = True
+                    break
+            if present:
+                break
+
+        # Add the itp if not present
+        if not present:
+            self.itp_list.append(mol_itp)
+
     def add_mol(self, mol_name, mol_itp_file, mol_num):
         """Add a molecule in the topologie (composition and itp_list)
         """
 
         logger.info("Add {} mol {}".format(mol_num, mol_itp_file))
-        mol_itp = Itp(name=mol_name,
-                      fullname=mol_itp_file,
-                      path=os.path.abspath(mol_itp_file))
-        self.mol_comp.append({'name': mol_itp.name, 'num': str(mol_num)})
-        self.itp_list.append(mol_itp)
+        self.mol_comp.append({'name': mol_name, 'num': str(mol_num)})
+        self.add_mol_itp(mol_itp_file)
 
     def add_atomtypes(self, new_atomtypes):
         """ Add atomtypes in a topologie.
@@ -1432,7 +1454,7 @@ sytem charge = 0.0 water num= 4775
     >>> ###################################
     >>> ####    Minimize the system     ###
     >>> ###################################
-    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100, \
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=10, \
 constraints='none')
     -Create the tpr file 1y0m.tpr
     gmx grompp -f 1y0m.mdp -c ../top_sys/1y0m_water_ion.gro -r \
@@ -1445,7 +1467,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     >>> ###################################
     >>> pep = GmxSys(name='D')
     >>> pep.create_peptide(sequence='D', out_folder=os.path.join(TEST_OUT, \
-'top_D'), em_nsteps=100, equi_nsteps=0, vsite='hydrogens') #doctest: +ELLIPSIS
+'top_D'), em_nsteps=10, equi_nsteps=0, vsite='hydrogens') #doctest: +ELLIPSIS
     -Make peptide: D
     residue name:X
     residue name:D
@@ -1532,7 +1554,7 @@ SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
     >>> ####   Minimize the system   ###
     >>> ################################
     >>> prot.em_2_steps(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), \
-no_constr_nsteps=100, constr_nsteps=100)
+no_constr_nsteps=10, constr_nsteps=10)
     -Create the tpr file Init_em_1y0m.tpr
     gmx grompp -f Init_em_1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro \
 -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp -o Init_em_1y0m.tpr -maxwarn 1
@@ -2124,7 +2146,7 @@ ff='amber99sb-ildn', include_mol={'DAP':0}) #doctest: +ELLIPSIS
         Concat files: ['1D30_pdb2gmx.pdb', '.../top_dna/DAP_h.pdb']
         Succeed to save concat file:  1D30_pdb2gmx_mol.pdb
         >>> dna_lig.em(out_folder=TEST_OUT + '/prepare_top/em_dna', \
-nsteps=100, create_box_flag=True, maxwarn=1) #doctest: +ELLIPSIS
+nsteps=10, create_box_flag=True, maxwarn=1) #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f .../top_dna/1D30_pdb2gmx_mol.pdb -o \
 .../top_dna/1D30_pdb2gmx_mol_box.pdb -bt dodecahedron -d 1.0
@@ -2164,7 +2186,7 @@ dodecahedron -d 1.0
         -Solvate the pbc box
         Copy topologie file and dependancies
         >>> lig.em(out_folder=TEST_OUT + '/prepare_top/em_water_DAP', \
-nsteps=100, maxwarn=1) #doctest: +ELLIPSIS
+nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
         -Create the tpr file DAP.tpr
         gmx grompp -f DAP.mdp -c ...DAP_water.pdb -r ...DAP_water.pdb -p \
 ...DAP_water.top -po out_DAP.mdp -o DAP.tpr -maxwarn 1
@@ -2174,7 +2196,7 @@ nsteps=100, maxwarn=1) #doctest: +ELLIPSIS
         >>> lig.nt = 1
         >>> ener = lig.free_ener(out_folder=TEST_OUT + \
 '/prepare_top/free_ener_DAP', mol_name='DAP', lambda_elec_num=2, \
-lambda_vdw_num=2, em_steps=10, nvt_time=.05, \
+lambda_vdw_num=2, em_steps=10, nvt_time=.01, \
 npt_time=.05, prod_time=.05) #doctest: +ELLIPSIS
         Coulomb lambda :0.0 1.0 1.0 1.0
         Vdw lambda :0.0 0.0 0.5 1.0
@@ -2548,7 +2570,7 @@ extract the topologie in a separate file: no_cyclic_5vav_pdb2gmx.itp
            * 1 Protein_chain_A
         Mol Name:
          CYC-MC12
-        >>> cyclic_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=100, \
+        >>> cyclic_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=10, \
 create_box_flag=True) #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f .../cyclic/top/5vav_pdb2gmx.pdb -o \
@@ -2590,7 +2612,7 @@ extract the topologie in a separate file: no_cyclic_5vav_amber_pdb2gmx.itp
         >>> print(cyclic_amber_top.charge())
         0.0
         >>> cyclic_amber_pep.em(out_folder=TEST_OUT+'/cyclic/em/', \
-nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
+nsteps=10, create_box_flag=True) #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f ...cyclic/top/5vav_amber_pdb2gmx.pdb -o \
 ...cyclic/top/5vav_amber_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
@@ -3006,7 +3028,7 @@ out_folder=os.path.join(str(TEST_OUT),'1dn3/top_ss')) #doctest: +ELLIPSIS
         Correct residue CYS2 atom SG   atom type S    to SM ...
         Protein_chain_A
         >>> no_ss_pep.em(out_folder=TEST_OUT+'/1dn3/em_ss/', \
-nsteps=100, create_box_flag=True) #doctest: +ELLIPSIS
+nsteps=10, create_box_flag=True) #doctest: +ELLIPSIS
         -Create pbc box
         gmx editconf -f ...1dn3/top_ss/1dn3_cys_ss_bond.pdb -o \
 .../1dn3/top_ss/1dn3_cys_ss_bond_box.pdb -bt dodecahedron -d 1.0
@@ -3368,7 +3390,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         -Solvate the pbc box
         Copy topologie file and dependancies
         >>> prot.em(out_folder=TEST_OUT+'/convert_trj/em_SH3_water/', \
-nsteps=100, constraints="none")
+nsteps=10, constraints="none")
         -Create the tpr file 1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water/1y0m_water.pdb -r \
 ../top_SH3_water/1y0m_water.pdb -p ../top_SH3_water/1y0m_water.top -po \
@@ -3720,7 +3742,7 @@ num= 56...
 -np 15 -pname NA -nn 15 \
 -nname CL
         >>> prot.em(out_folder=TEST_OUT+'/add_ions/em_SH3_water_ions/', \
-nsteps=100, constraints="none")
+nsteps=10, constraints="none")
         -Create the tpr file 1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water_ions/1y0m_ion.gro -r \
 ../top_SH3_water_ions/1y0m_ion.gro -p ../top_SH3_water_ions/1y0m_ion.top \
@@ -3870,7 +3892,7 @@ sytem charge = 0.0 water num= 62...
         gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o \
 1y0m_water_ion.gro -np 17 -pname NA -nn 17 -nname CL
         >>> prot.em(out_folder=TEST_OUT+'/solvate_add_ions/em_SH3_water_ions/'\
-, nsteps=100, constraints = "none")
+, nsteps=10, constraints = "none")
         -Create the tpr file 1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water_ions/1y0m_water_ion.gro \
 -r ../top_SH3_water_ions/1y0m_water_ion.gro -p \
@@ -3940,7 +3962,7 @@ sytem charge = 0.0 water num= 62...
         >>> TEST_OUT = getfixture('tmpdir')
         >>> pep = GmxSys(name='SAM_pep')
         >>> pep.create_peptide(sequence='SAM', out_folder=os.path.join(\
-str(TEST_OUT), 'peptide'), em_nsteps=100, equi_nsteps=100, vsite='hydrogens')\
+str(TEST_OUT), 'peptide'), em_nsteps=10, equi_nsteps=10, vsite='hydrogens')\
 #doctest: +ELLIPSIS
         -Make peptide: SAM
         residue name:X
