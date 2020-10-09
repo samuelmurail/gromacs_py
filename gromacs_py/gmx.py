@@ -110,11 +110,17 @@ TEST_PATH = os.path.join(GMX_LIB_DIR, "test_files/")
 
 
 # Global variable
+# Protein heavy atoms
 HA_NAME = ['N', 'C', 'O', 'CA', 'CB', 'CG', 'CG1', 'CG2', 'SG',
            'OG', 'OG1', 'CD', 'CD1', 'CD2', 'OD1', 'OD2', 'SD',
            'ND1', 'CE', 'CE1', 'CE2', 'CE3', 'OE1', 'OE2', 'NE',
            'NE1', 'NE2', 'OH', 'CZ', 'CZ2', 'CZ3', 'NZ', 'NH1',
            'NH2']
+# DNA heavy atoms
+HA_NAME += ['O5\'', 'C5\'', 'C4\'', 'O4\'', 'C1\'', 'N1', 'C6',
+            'CG2', 'C5', 'C4', 'N4', 'N3', 'C2', 'O2', 'C3\'',
+            'C2\'', 'O3\'', 'P', 'O1P', 'O2P', 'N9', 'C8', 'N7',
+            'O6', 'N2', 'C7', 'N6', 'O4']
 
 
 class TopSys:
@@ -238,9 +244,6 @@ class TopSys:
                         top_itp.display()
                         # Add the itp to the itp_list
                         self.add_mol_itp(os.path.join(self.folder, name_itp))
-                        #self.itp_list.append(
-                        #    Itp(name=name_itp, fullname=name_itp,
-                        #        path=os.path.join(self.folder, name_itp)))
                         self.include_itp = True
                     # Name of the system
                     elif field == 'system':
@@ -345,7 +348,8 @@ class TopSys:
                 mol_num = mol_num + int(mol['num'])
         return mol_num
 
-    def add_posre(self, posre_name="CA", selec_dict={'atom_name': ['CA']},
+    def add_posre(self, posre_name="POSRE_CA",
+                  selec_dict={'atom_name': ['CA']},
                   fc=[1000, 1000, 1000]):
         """Add position restraint based on the selection for each itp
         """
@@ -1872,8 +1876,13 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
         >>> view = prot.view_coor() #doctest: +SKIP
         >>> view #doctest: +SKIP
         """
-
-        import nglview as nv
+        try:
+            import nglview as nv
+        except ImportError:
+            logger.warning(
+                'Could not load nglview \nInstall it using conda:\n' +
+                'conda install -c conda-forge nglview')
+            return
 
         if self.coor_file[:-3] != 'pdb':
             if self.tpr is None:
@@ -2055,10 +2064,10 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             'atom_name': HA_NAME},
             fc=[100, 100, 100])
         top.add_posre(posre_name="POSRES_CA_LOW" + posre_post, selec_dict={
-            'atom_name': ['CA']},
+            'atom_name': ['CA', 'P']},
             fc=[100, 100, 100])
         top.add_posre(posre_name="POSRES_CA" + posre_post, selec_dict={
-            'atom_name': ['CA']},
+            'atom_name': ['CA', 'P']},
             fc=[1000, 1000, 1000])
 
         self.coor_file = new_coor
@@ -2122,7 +2131,8 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> # Create the topologie of a protein and do a minimisation:
         >>> dna_lig = GmxSys(name='1D30', coor_file=TEST_PATH+'/1D30.pdb')
         >>> dna_lig.prepare_top(out_folder=TEST_OUT+'/prepare_top/top_dna/', \
-ff='amber99sb-ildn', include_mol={'DAP':0}) #doctest: +ELLIPSIS
+ff='amber99sb-ildn', include_mol={'DAP':\
+'NC(=N)c1ccc(cc1)c2[nH]c3cc(ccc3c2)C(N)=N'}) #doctest: +ELLIPSIS
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
@@ -2131,7 +2141,8 @@ ff='amber99sb-ildn', include_mol={'DAP':0}) #doctest: +ELLIPSIS
         Succeed to read file 00_1D30.pqr ,  758 atoms found
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to save file DAP.pdb
-        reduce -build -nuclear DAP.pdb
+        Succeed to read file DAP_h.pdb ,  36 atoms found
+        Succeed to save file DAP_h.pdb
         Succeed to read file DAP_h.pdb ,  36 atoms found
         Succeed to save file DAP_h_unique.pdb
         acpype... -i DAP_h_unique.pdb -b DAP -c bcc -a gaff -o gmx -n 0
@@ -2197,9 +2208,10 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
         >>> ener = lig.free_ener(out_folder=TEST_OUT + \
 '/prepare_top/free_ener_DAP', mol_name='DAP', lambda_elec_num=2, \
 lambda_vdw_num=2, em_steps=10, nvt_time=.01, \
-npt_time=.05, prod_time=.05) #doctest: +ELLIPSIS
-        Coulomb lambda :0.0 1.0 1.0 1.0
-        Vdw lambda :0.0 0.0 0.5 1.0
+npt_time=.01, prod_time=.01) #doctest: +ELLIPSIS
+        Coulomb lambda :0.00 0.50 1.00 1.00 1.00...
+        Vdw lambda     :0.00 0.00 0.00 0.50 1.00...
+        bond_lambdas   :1.00 1.00 1.00 1.00 1.00...
         -Create the tpr file em_DAP_vdwq_00.tpr
         gmx grompp -f em_DAP_vdwq_00.mdp -c ...DAP.gro -r ...DAP.gro -p \
 ...DAP_water.top -po out_em_DAP_vdwq_00.mdp -o em_DAP_vdwq_00.tpr -maxwarn 1
@@ -2207,20 +2219,21 @@ npt_time=.05, prod_time=.05) #doctest: +ELLIPSIS
         gmx mdrun -s em_DAP_vdwq_00.tpr -deffnm em_DAP_vdwq_00 -nt 1 -ntmpi 0 \
 -nsteps -2 -nocopyright
         ...
-        -Create the tpr file prod_DAP_vdwq_03.tpr
-        gmx grompp -f prod_DAP_vdwq_03.mdp -c ...npt_DAP_vdwq_03.gro -r \
-...npt_DAP_vdwq_03.gro -p ....top -po out_prod_DAP_vdwq_03.mdp -o \
-prod_DAP_vdwq_03.tpr -maxwarn 1
-        -Launch the simulation prod_DAP_vdwq_03.tpr
-        gmx mdrun -s prod_DAP_vdwq_03.tpr -deffnm prod_DAP_vdwq_03 -nt 1 \
+        -Create the tpr file prod_DAP_vdwq_04.tpr
+        gmx grompp -f prod_DAP_vdwq_04.mdp -c ...npt_DAP_vdwq_04.gro -r \
+...npt_DAP_vdwq_04.gro -p ....top -po out_prod_DAP_vdwq_04.mdp -o \
+prod_DAP_vdwq_04.tpr -maxwarn 1
+        -Launch the simulation prod_DAP_vdwq_04.tpr
+        gmx mdrun -s prod_DAP_vdwq_04.tpr -deffnm prod_DAP_vdwq_04 -nt 1 \
 -ntmpi 0 -nsteps -2 -nocopyright
         -Extract bar energy
-        gmx bar -f ...prod_DAP_vdwq_00.xvg ...prod_DAP_vdwq_01.xvg \
-...prod_DAP_vdwq_02.xvg ...prod_DAP_vdwq_03.xvg -o bar.xvg -oi barint.xvg \
+        gmx bar -f ...prod_DAP_vdwq_00.xvg ...prod_DAP_vdwq_04.xvg \
+-o bar.xvg -oi barint.xvg \
 -oh histogram.xvg
         DDG = -... +/- ... KJ/mol-1
         DDG = -... +/- ... Kcal/mol-1
-        >>> (ener['DG'] > -260.0) and (ener['DG'] < -170.0)
+        Log P = ... +/- ...
+        >>> (ener['DG'] > -260.0) and (ener['DG'] < -100.0)
         True
 
 
@@ -2272,8 +2285,12 @@ prod_DAP_vdwq_03.tpr -maxwarn 1
         for resname in res_name_input:
             if resname not in res_name_pdb2pqr:
                 if resname in include_mol:
-                    mol_top = ambertools.make_amber_top_mol(
-                            start_pdb, resname, charge=include_mol[resname])
+                    # mol_top = ambertools.make_amber_top_mol(
+                    #        start_pdb, resname, charge=include_mol[resname])
+                    mol_top = ambertools.make_amber_top_mol_rdkit(
+                            start_pdb, res_name=resname,
+                            smile=include_mol[resname],
+                            remove_h=True)
                     mol_top['name'] = resname
                     mol_sys_list.append(mol_top)
                 else:
@@ -2326,12 +2343,6 @@ prod_DAP_vdwq_03.tpr -maxwarn 1
                                   mol_num=mol['num'])
             # Add atomtypes itp:
             sys_topologie.add_atomtypes(mol_itp[0])
-            #fullname = (mol_itp[0].split("/")[-1])
-            #include = fullname.split(".")[0]
-            #path = os_command.full_path_and_check(mol_itp[0])
-            #atomtype_itp = Itp(name=include, fullname=fullname, path=path)
-
-            #sys_topologie.itp_list = [atomtype_itp] + sys_topologie.itp_list
 
         if mol_sys_list:
             # Add coordinates:
@@ -2404,8 +2415,8 @@ prod_DAP_vdwq_03.tpr -maxwarn 1
         mol_sys_list = []
         for resname in res_name_input:
             if resname in include_mol:
-                mol_top = ambertools.make_amber_top_mol(
-                        start_pdb, resname, charge=include_mol[resname],
+                mol_top = ambertools.make_amber_top_mol_rdkit(
+                        start_pdb, resname, smile=include_mol[resname],
                         remove_h=False)
                 mol_top['name'] = resname
                 mol_sys_list.append(mol_top)
@@ -5350,8 +5361,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         os.chdir(start_dir)
 
     def free_ener(self, out_folder, mol_name, lambda_elec_num, lambda_vdw_num,
+                  lambda_bond_num=0,
                   em_steps=5000, nvt_time=10, npt_time=10, prod_time=100,
-                  dt=0.002, name=None, temperature=310.0, maxwarn=1,
+                  dt=0.002, name=None, temperature=300.0, maxwarn=1,
                   monitor_tool=monitor.PROGRESS_BAR):
         """ Compute free energy using ...
         """
@@ -5364,15 +5376,20 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         else:
             from tqdm import tqdm
 
-        coul_lambdas = " ".join([
-            str(round(i/(lambda_elec_num-1), 3)) for i in
-            range(lambda_elec_num)]) + " 1.0" * lambda_vdw_num
-        vdw_lambdas = "0.0 " * lambda_elec_num + " ".join([
-            str(round(i/(lambda_vdw_num), 3)) for i in
-            range(1, lambda_vdw_num + 1)])
+        bond_lambdas = "".join([
+            '{:.2f} '.format(i/(lambda_bond_num)) for i in
+            range(lambda_bond_num)]) + "1.00 " * (lambda_vdw_num +
+                                                  lambda_elec_num + 1)
+        coul_lambdas = "0.00 " * lambda_bond_num + "".join([
+            '{:.2f} '.format(i/(lambda_elec_num)) for i in
+            range(lambda_elec_num)]) + "1.00 " * (lambda_vdw_num + 1)
+        vdw_lambdas = "0.00 " * (lambda_elec_num + lambda_bond_num) + "".join([
+            '{:.2f} '.format(i/(lambda_vdw_num)) for i in range(
+                lambda_vdw_num+1)])
 
-        print('Coulomb lambda :' + coul_lambdas + "\n" +
-              'Vdw lambda :' + vdw_lambdas)
+        logger.info('Coulomb lambda :' + coul_lambdas + "\n" +
+                    'Vdw lambda     :' + vdw_lambdas + "\n" +
+                    'bond_lambdas   :' + bond_lambdas)
 
         free_ener_option_md = {'integrator': 'sd',
                                'dt': dt,
@@ -5392,6 +5409,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                'delta_lambda': 0,
                                'coul_lambdas': coul_lambdas,
                                'vdw_lambdas': vdw_lambdas,
+                               'bonded_lambdas': bond_lambdas,
                                'sc_alpha': 0.5,
                                'sc_power': 1,
                                'sc_sigma': 0.3,
@@ -5424,11 +5442,11 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         xvg_file_list = []
 
-        tot_step = (lambda_elec_num + lambda_vdw_num) * (
+        tot_step = (lambda_bond_num + lambda_elec_num + lambda_vdw_num + 1) * (
             em_steps + nvt_steps + npt_steps + prod_steps)
         pbar = tqdm(total=tot_step)
 
-        for i in range(lambda_elec_num+lambda_vdw_num):
+        for i in range(lambda_bond_num + lambda_elec_num + lambda_vdw_num + 1):
 
             sys_name = '{}_vdwq_{:02d}'.format(name, i)
 
@@ -5488,10 +5506,13 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                               hist_xvg='histogram.xvg',
                               check_file_out=True)
 
-        print('DDG = {:.2f} +/- {:.2f} KJ/mol-1'.format(
+        logger.info('DDG = {:.2f} +/- {:.2f} KJ/mol-1'.format(
             ener['DG'], ener['std']))
-        print('DDG = {:.2f} +/- {:.2f} Kcal/mol-1'.format(
+        logger.info('DDG = {:.2f} +/- {:.2f} Kcal/mol-1'.format(
             ener['DG']/4.184, ener['std']/4.184))
+        logger.info('Log P = {:.2f} +/- {:.2f}'.format(
+            ener['DG'] * -2.303 * 8.31446261815324 * 300 / 4184,
+            ener['std'] * -2.303 * 8.31446261815324 * 300 / 4184))
 
         return ener
 
