@@ -152,7 +152,7 @@ vsite='hydrogens') #doctest: +ELLIPSIS
                            {'func': extract_log_dict,\
                              'term': 'Temperature'}],\
            'file_check_ext':'log'}
-    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100,\
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=50,\
     constraints='none', create_box_flag=True, monitor=monitor, nstlog=10)\
     #doctest: +ELLIPSIS
     gmx editconf -f ...top_SH3/1y0m_pdb2gmx.pdb -o \
@@ -330,8 +330,8 @@ vsite='hydrogens') #doctest: +ELLIPSIS
     >>> monitor = {'function': print_log_file,\
            'terms':['Potential'],\
            'file_check_ext':'log'}
-    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100,\
-    constraints='none', create_box_flag=True, monitor=monitor, nstlog=10)\
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=50,\
+    constraints='none', create_box_flag=True, monitor=monitor, nstlog=1)\
     #doctest: +ELLIPSIS
     gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o \
 .../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
@@ -416,8 +416,8 @@ vsite='hydrogens') #doctest: +ELLIPSIS
     >>> ### Monitor an energy minimisation ###
     >>> ######################################
     >>> monitor = PROGRESS_BAR
-    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=100,\
-    constraints='none', create_box_flag=True, monitor=monitor, nstlog=10)\
+    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=50,\
+    constraints='none', create_box_flag=True, monitor=monitor, nstlog=1)\
     #doctest: +ELLIPSIS
     gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o \
 .../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
