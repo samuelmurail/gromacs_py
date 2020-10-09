@@ -144,6 +144,8 @@ def add_hydrogen_rdkit(pdb_in, smile, pdb_out, check_file_out=True):
     >>> add_hydrogen_rdkit(pdb_in=os.path.join(TEST_PATH,'phenol.pdb'),\
 smile="C1=CC=C(C=C1)O",\
 pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
+    Succeed to read file ...phenol_h.pdb ,  13 atoms found
+    Succeed to save file ...phenol_h.pdb
     0
     >>> phenol_coor = pdb_manip.Coor(os.path.join(TEST_OUT,'phenol_h.pdb'))\
 #doctest: +ELLIPSIS
