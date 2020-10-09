@@ -70,6 +70,7 @@
     delta_lambda            = 0
     coul_lambdas            =
     vdw_lambdas             =
+    bonded_lambdas          =
     sc_alpha                = 0.5
     sc_power                = 1
     sc_sigma                = 0.3
