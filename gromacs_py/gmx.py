@@ -2229,7 +2229,7 @@ prod_DAP_vdwq_04.tpr -maxwarn 1
         -Extract bar energy
         gmx bar -f ...prod_DAP_vdwq_00.xvg ...prod_DAP_vdwq_04.xvg \
 -o bar.xvg -oi barint.xvg \
--oh histogram.xvg
+-oh histogram.xvg -b 0 -e -1
         DDG = -... +/- ... KJ/mol-1
         DDG = -... +/- ... Kcal/mol-1
         Log P = ... +/- ...
@@ -5838,6 +5838,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
     @staticmethod
     def get_bar(xvg_file_list, bar_xvg='bar.xvg',
                 barint_xvg='barint.xvg', hist_xvg='histogram.xvg',
+                begin_time=0, end_time=-1,
                 check_file_out=True, keep_ener_file=False):
         """Get energy of a system using ``gmx bar``.
 
@@ -5850,7 +5851,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                           "-f", *xvg_file_list,
                                           "-o", bar_xvg,
                                           "-oi", barint_xvg,
-                                          "-oh", hist_xvg])
+                                          "-oh", hist_xvg,
+                                          "-b", str(begin_time),
+                                          "-e", str(end_time)])
 
         cmd_convert.display()
         output = cmd_convert.run(out_data=True)
