@@ -19,7 +19,7 @@ env:
   global:
     - GROMACS_VERSION=2019.5
     - PYTHON_VERSION=3.7
-    - CONDA_DEPENDENCIES="gromacs pandoc ipython acpype"
+    - CONDA_DEPENDENCIES="gromacs pandoc ipython acpype rdkit"
     - CONDA_CHANNELS="conda-forge bioconda"
 
 matrix:
