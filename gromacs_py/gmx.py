@@ -5098,8 +5098,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                ', that may induce sever issues with your '
                                'simualtion !'.format(dt, dt_HA))
 
+        # Use berendsen instead of Parinello with pos constraints
+        # Not necessarly, just need to center prot/DNA in the box
         mdp_options.update({'nsteps': int(nsteps_HA),
-                            'define': '-DPOSRES', 'dt': dt_HA})
+                            # 'pcoupl': 'berendsen',
+                            'define': '-DPOSRES',
+                            'dt': dt_HA})
         self.run_md_sim(out_folder=os.path.join(out_folder, "00_equi_HA"),
                         name="equi_HA_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
@@ -5511,8 +5515,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         logger.info('DDG = {:.2f} +/- {:.2f} Kcal/mol-1'.format(
             ener['DG']/4.184, ener['std']/4.184))
         logger.info('Log P = {:.2f} +/- {:.2f}'.format(
-            ener['DG'] * -2.303 * 8.31446261815324 * 300 / 4184,
-            ener['std'] * -2.303 * 8.31446261815324 * 300 / 4184))
+            ener['DG'] * -2.303 * 8.31446261815324 * temperature / 4184,
+            ener['std'] * -2.303 * 8.31446261815324 * temperature / 4184))
 
         return ener
 
