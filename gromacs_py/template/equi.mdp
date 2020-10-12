@@ -29,7 +29,7 @@
     tcoupl                  = v-rescale
     tc-grps                 = Protein 	non-Protein
     tau_t                   = 0.1 		0.1
-    ref_t                   = 310 		310
+    ref_t                   = 300 		300
 
 ; PRESSURE COUPLING FLAGS
     pcoupl                  = parrinello-Rahman

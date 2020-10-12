@@ -25,7 +25,7 @@
     tcoupl                  = v-rescale
     tc-grps                 = system
     tau_t                   = 0.1 		
-    ref_t                   = 310 		
+    ref_t                   = 300 		
 
 ; PRESSURE COUPLING FLAGS
     Pcoupl                  = no
