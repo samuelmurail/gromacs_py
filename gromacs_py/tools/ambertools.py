@@ -160,10 +160,10 @@ pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
         logger.error('Could not load rdkit \nInstall it using conda:\n'
                      'conda install -c conda-forge rdkit')
         sys.exit(1)
-        
+
     lig_pdb = Chem.MolFromPDBFile(pdb_in, removeHs=True)
     lig_smile = Chem.MolFromSmiles(smile)
-    
+
     # Assign bond order on pdb using smile informations
     newMol = Chem.AssignBondOrdersFromTemplate(lig_smile, lig_pdb)
 
@@ -172,7 +172,7 @@ pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
 
     # Need to define how to match atoms form pdb to smile
     match_atom = newMol_h.GetSubstructMatch(lig_smile)
-    cmap = {match_atom[i]:lig_pdb.GetConformer().\
+    cmap = {match_atom[i]: lig_pdb.GetConformer().
             GetAtomPosition(match_atom[i]) for i in range(len(match_atom))}
 
     # Hydrogens coordinates need to be computed
@@ -181,7 +181,7 @@ pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
 
     # Align new coordinates to old one
     align.AlignMol(newMol_h, newMol,
-                   atomMap = [ [i, i] for i in range(len(match_atom))])
+                   atomMap=[[i, i] for i in range(len(match_atom))])
     # Save coordinates
     Chem.MolToPDBFile(newMol_h, pdb_out)
 
@@ -435,7 +435,7 @@ def make_amber_top_mol(pdb_in, res_name, charge, charge_model="bcc",
 
 
 def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
-                       atom_type="gaff", remove_h=True):
+                             atom_type="gaff", remove_h=True):
 
     full_coor = pdb_manip.Coor(pdb_in)
     # Select coor:
@@ -443,7 +443,8 @@ def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
 
     # Change first residue to 1, as it is the res from rdkit output
     res_list = mol_coor.get_attribute_selection(attribute='res_num')
-    index_list = mol_coor.get_index_selection(selec_dict={'res_num': [res_list[0]]})
+    index_list = mol_coor.get_index_selection(
+        selec_dict={'res_num': [res_list[0]]})
     mol_coor.change_index_pdb_field(index_list, change_dict={'res_num': 1})
 
     # Remove hydrogens:
@@ -462,7 +463,6 @@ def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
                                 smile,
                                 res_name+'_h.pdb',
                                 check_file_out=True)
-
 
     # Get only one molecule
     mol_h_coor = pdb_manip.Coor(res_name+'_h.pdb')
