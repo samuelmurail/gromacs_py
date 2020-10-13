@@ -163,6 +163,11 @@ class TopSys:
         self.name = ""
         self.folder = os_command.get_directory(top_in)
         self.include_itp = False
+        # Intermolecular restraints (only for Free ener):
+        self.inter_interact = False
+        self.inter_bond_list = []
+        self.inter_angl_list = []
+        self.inter_dihe_list = []
 
         self.read_file(top_in)
         if self.include_itp:
@@ -173,6 +178,9 @@ class TopSys:
 
         field = None
         ifdef = False
+        bond_list = []
+        angle_list = []
+        dihed_list = []
 
         with open(top_in) as topfile:
             for line in topfile:
@@ -253,6 +261,20 @@ class TopSys:
                         line_list = line.strip().split()
                         self.mol_comp.append({'name': line_list[0],
                                               'num': line_list[1]})
+                    # Following command concern
+                    # intermolecular interactions
+                    elif field == 'intermolecular_interactions':
+                        self.inter_interact = True
+                    elif field == 'bonds':
+                        bond_list.append(line.strip().split())
+                    elif field == 'angles':
+                        angle_list.append(line.strip().split())
+                    elif field == 'dihedrals':
+                        dihed_list.append(line.strip().split())
+        if self.inter_interact:
+            self.add_intermolecular_restr(bond_list=bond_list,
+                                          angle_list=angle_list,
+                                          dihed_list=dihed_list)
 
     def display(self):
         if self.forcefield:
@@ -290,6 +312,40 @@ class TopSys:
         for mol in self.mol_comp:
             filout.write(mol['name'] + " \t" + mol['num'] + "\n")
         filout.write("\n")
+        # INTER
+        if self.inter_interact:
+            filout.write("[ intermolecular_interactions ]\n")
+            if self.inter_bond_list:
+                filout.write("\n[ bonds ]\n;  ; ai    aj    type   "
+                             " bA    kA    bB    kB\n")
+                for param in self.inter_bond_list:
+                    filout.write(
+                        "{:>6}{:>6}{:>6}{:>13}{:>13}{:>13}{:>13}\n".format(
+                            param['ai'], param['aj'], param['type'],
+                            param['bA'], param['kA'],
+                            param['bB'], param['kB']))
+            if self.inter_angl_list:
+                filout.write("\n[ angles ]\n;  ; ; ai    aj    ak  "
+                             "  type    thA    kA    thB    kB\n")
+                for param in self.inter_angl_list:
+                    filout.write("{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}{:>13}"
+                                 "{:>13}\n".format(
+                                    param['ai'], param['aj'],
+                                    param['ak'], param['type'],
+                                    param['thA'], param['kA'],
+                                    param['thB'], param['kB']))
+            if self.inter_dihe_list:
+                filout.write("\n[ dihedrals ]\n;  ; ai    aj    ak    al"
+                             "    type    phiA    kA    phiB    kB\n")
+                for param in self.inter_dihe_list:
+                    filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}"
+                                 "{:>13}{:>13}\n".format(
+                                    param['ai'], param['aj'],
+                                    param['ak'], param['al'],
+                                    param['type'],
+                                    param['thA'], param['kA'],
+                                    param['thB'], param['kB']))
+
         filout.close()
         self.copy_dependancies(os_command.get_directory(top_out))
 
@@ -496,6 +552,32 @@ class TopSys:
                                 atom_dict['ptype'],
                                 atom_dict['sigma'],
                                 atom_dict['epsilon']))
+
+    def add_intermolecular_restr(self, bond_list=[],
+                                 angle_list=[], dihed_list=[]):
+        """ Add inter molecular restraints in topologie file
+        """
+
+        self.inter_interact = True
+        for bond in bond_list:
+            ai, aj, funct, rA, kA, rB, kB = bond
+            self.inter_bond_list.append({'ai': ai, 'aj': aj,
+                                         'type': funct,
+                                         'rA': rA, 'ka': kA,
+                                         'rB': rB, 'kB': kB})
+        for angle in angle_list:
+            ai, aj, ak, funct, thA, kA, thB, kB = angle
+            self.inter_angl_list.append({'ai': ai, 'aj': aj,
+                                         'ak': ak, 'type': funct,
+                                         'thA': thA, 'ka': kA,
+                                         'thB': thB, 'kB': kB})
+        for dihed in dihed_list:
+            ai, aj, ak, al, funct, thA, kA, thB, kB = dihed
+            self.inter_dihe_list.append({'ai': ai, 'aj': aj,
+                                         'ak': ak, 'al': al,
+                                         'type': funct,
+                                         'thA': thA, 'ka': kA,
+                                         'thB': thB, 'kB': kB})
 
     def change_mol_num(self, mol_name, mol_num):
         """ Update molecule number.
@@ -773,8 +855,8 @@ class Itp:
         filout.close()
 
     def display(self):
-        logger.info('-ITP file: {}'.format(self.name))
-        logger.info("-molecules defined in the itp file:")
+        logger.info('- ITP file: {}'.format(self.name))
+        logger.info("- molecules defined in the itp file:")
         for top_mol in self.top_mol_list:
             logger.info("* {}".format(top_mol.name))
 
@@ -1424,15 +1506,15 @@ vsite='hydrogens') #doctest: +ELLIPSIS
     Succeed to read file 00_1y0m.pqr ,  996 atoms found
     Chain: A  Residue: 0 to 60
     Succeed to save file 01_1y0m_good_his.pdb
-    -Create topologie
+    - Create topologie
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 \
 -ignh -vsite hydrogens
     Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie \
 in a separate file: 1y0m_pdb2gmx.itp
     Protein_chain_A
-    -ITP file: 1y0m_pdb2gmx.itp
-    -molecules defined in the itp file:
+    - ITP file: 1y0m_pdb2gmx.itp
+    - molecules defined in the itp file:
     * Protein_chain_A
     Rewrite topologie: 1y0m_pdb2gmx.top
     >>> ###################################
@@ -1440,17 +1522,17 @@ in a separate file: 1y0m_pdb2gmx.itp
     >>> ###################################
     >>> prot.solvate_add_ions(out_folder=os.path.join(TEST_OUT, 'top_sys'))\
     #doctest: +ELLIPSIS
-    -Create pbc box
+    - Create pbc box
     gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o \
 .../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.1
-    -Solvate the pbc box
+    - Solvate the pbc box
     Copy topologie file and dependancies
     Copy topologie file and dependancies
-    -Create the tpr file genion_1y0m_water_ion.tpr
+    - Create the tpr file genion_1y0m_water_ion.tpr
     gmx grompp -f .../template/mini.mdp -c 1y0m_water.pdb -r \
 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o \
 genion_1y0m_water_ion.tpr -maxwarn 1
-    -Add ions to the system with an ionic concentration of 0.15 M , \
+    - Add ions to the system with an ionic concentration of 0.15 M , \
 sytem charge = 0.0 water num= 4775
     Add ions : NA : 13   CL : 13
     gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o \
@@ -1460,11 +1542,11 @@ sytem charge = 0.0 water num= 4775
     >>> ###################################
     >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=10, \
 constraints='none')
-    -Create the tpr file 1y0m.tpr
+    - Create the tpr file 1y0m.tpr
     gmx grompp -f 1y0m.mdp -c ../top_sys/1y0m_water_ion.gro -r \
 ../top_sys/1y0m_water_ion.gro -p ../top_sys/1y0m_water_ion.top -po \
 out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
-    -Launch the simulation 1y0m.tpr
+    - Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
     >>> ###################################
     >>> ####    Create a D peptide      ###
@@ -1476,35 +1558,35 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
     residue name:X
     residue name:D
     Succeed to save file .../top_D/D.pdb
-    -Create topologie
+    - Create topologie
     gmx pdb2gmx -f ../D.pdb -o D_pdb2gmx.pdb -p D_pdb2gmx.top -i D_posre.itp \
 -water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
     Molecule topologie present in D_pdb2gmx.top , extract the topologie \
 in a separate file: D_pdb2gmx.itp
     Protein_chain_P
-    -ITP file: D_pdb2gmx.itp
-    -molecules defined in the itp file:
+    - ITP file: D_pdb2gmx.itp
+    - molecules defined in the itp file:
     * Protein_chain_P
     Rewrite topologie: D_pdb2gmx.top
-    -Create pbc box
+    - Create pbc box
     gmx editconf -f .../top_D/00_top/D_pdb2gmx.pdb -o \
 .../top_D/00_top/D_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-    -Create the tpr file D.tpr
+    - Create the tpr file D.tpr
     gmx grompp -f D.mdp -c ../00_top/D_pdb2gmx_box.pdb -r \
 ../00_top/D_pdb2gmx_box.pdb -p ../00_top/D_pdb2gmx.top -po out_D.mdp -o \
 D.tpr -maxwarn 1
-    -Launch the simulation D.tpr
+    - Launch the simulation D.tpr
     gmx mdrun -s D.tpr -deffnm D -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
     >>> #######################################################
     >>> ### Insert 4 copy of the peptide in the SH3 system: ###
     >>> #######################################################
     >>> prot.insert_mol_sys(mol_gromacs=pep, mol_num=4, new_name='SH3_D', \
 out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
-    -Copy pbc box using genconf
+    - Copy pbc box using genconf
     Succeed to read file ../top_D/01_mini/D_copy_box.pdb ,  88 atoms found
     Succeed to save file ../top_D/01_mini/D_copy_box.pdb
     AA num: 1
-    -Convert trj/coor
+    - Convert trj/coor
     gmx trjconv -f ../em_SH3/1y0m.gro -o ../em_SH3/1y0m_compact.pdb -s \
 ../em_SH3/1y0m.tpr -ur compact -pbc mol
     Concat files: ['../em_SH3/1y0m_compact.pdb', \
@@ -1546,10 +1628,10 @@ out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
     CHARGE: -4.0
     Should neutralize the system
     Copy topologie file and dependancies
-    -Create the tpr file genion_SH3_D_neutral.tpr
+    - Create the tpr file genion_SH3_D_neutral.tpr
     gmx grompp -f .../template/mini.mdp -c SH3_D.pdb -r SH3_D.pdb -p \
 SH3_D_neutral.top -po out_mini.mdp -o genion_SH3_D_neutral.tpr -maxwarn 1
-    -Add ions to the system with an ionic concentration of 0 M , \
+    - Add ions to the system with an ionic concentration of 0 M , \
 sytem charge = -4.0 water num= 47...
     Add ions : NA : 4   CL : 0
     gmx genion -s genion_SH3_D_neutral.tpr -p SH3_D_neutral.top -o \
@@ -1559,16 +1641,16 @@ SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
     >>> ################################
     >>> prot.em_2_steps(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), \
 no_constr_nsteps=10, constr_nsteps=10)
-    -Create the tpr file Init_em_1y0m.tpr
+    - Create the tpr file Init_em_1y0m.tpr
     gmx grompp -f Init_em_1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro \
 -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp -o Init_em_1y0m.tpr -maxwarn 1
-    -Launch the simulation Init_em_1y0m.tpr
+    - Launch the simulation Init_em_1y0m.tpr
     gmx mdrun -s Init_em_1y0m.tpr -deffnm Init_em_1y0m -nt 0 -ntmpi 0 \
 -nsteps -2 -nocopyright
-    -Create the tpr file 1y0m.tpr
+    - Create the tpr file 1y0m.tpr
     gmx grompp -f 1y0m.mdp -c Init_em_1y0m.gro -r Init_em_1y0m.gro -p \
 SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
-    -Launch the simulation 1y0m.tpr
+    - Launch the simulation 1y0m.tpr
     gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
     >>> ##################################
     >>> ####    Show system history    ###
@@ -1623,22 +1705,21 @@ SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
 "template/equi_vsites.mdp")
     >>> mdp_options = {'nsteps': 100, 'define': '-DPOSRES', 'dt': 0.001}
     >>> prot.run_md_sim(out_folder=os.path.join(TEST_OUT, 'equi_HA_D_SH3'), \
-name="equi_HA_D_SH3",\
-                        mdp_template=equi_template_mdp,\
+name="equi_HA_D_SH3", mdp_template=equi_template_mdp,\
                         mdp_options=mdp_options)
-    -Create the tpr file equi_HA_D_SH3.tpr
+    - Create the tpr file equi_HA_D_SH3.tpr
     gmx grompp -f equi_HA_D_SH3.mdp -c ../top_D_SH3/1y0m.gro -r \
 ../top_D_SH3/1y0m.gro -p ../top_D_SH3/SH3_D_neutral.top -po \
 out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
-    -Launch the simulation equi_HA_D_SH3.tpr
+    - Launch the simulation equi_HA_D_SH3.tpr
     gmx mdrun -s equi_HA_D_SH3.tpr -deffnm equi_HA_D_SH3 -nt 0 -ntmpi 0 \
 -nsteps -2 -nocopyright
     >>> prot.get_simulation_time() #doctest: +ELLIPSIS
-    -Get simulation time from : .../equi_HA_D_SH3/equi_HA_D_SH3.cpt
+    - Get simulation time from : .../equi_HA_D_SH3/equi_HA_D_SH3.cpt
     gmx check -f .../equi_HA_D_SH3/equi_HA_D_SH3.cpt
     0.1
     >>> prot.convert_trj(traj=False) #doctest: +ELLIPSIS
-    -Convert trj/coor
+    - Convert trj/coor
     gmx trjconv -f .../equi_HA_D_SH3/equi_HA_D_SH3.gro -o \
 .../equi_HA_D_SH3/equi_HA_D_SH3_compact.pdb -s \
 .../equi_HA_D_SH3/equi_HA_D_SH3.tpr -ur compact -pbc mol
@@ -1659,10 +1740,24 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
     >>> ### Extract Potential Energy and Temp ###
     >>> #########################################
     >>> ener_pd = prot.get_ener(['Potential', 'Temp'])  #doctest: +ELLIPSIS
-    -Extract energy
-    gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o tmp.xvg
+    - Extract energy
+    gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o tmp_edr.xvg
     >>> ener_pd['Potential'].mean() #doctest: +ELLIPSIS
     -2...
+    >>> rmsd_pd = prot.get_rmsd(['CA', 'Protein'])  #doctest: +ELLIPSIS
+    - Extract RMSD
+    gmx rms -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -o tmp_rmsd.xvg\
+ -fit rot+trans -ng 1 -pbc no
+    >>> rmsd_pd #doctest: +ELLIPSIS
+       Time (ps)  Protein after lsq fit to C-alpha
+    0        0.0                          0.000...
+    >>> rmsf_pd = prot.get_rmsf(['Protein'], res="yes")  #doctest: +ELLIPSIS
+    - Extract RMSF
+    gmx rmsf -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -o tmp_rmsf.xvg\
+ -fit no -res yes
+    >>> rmsf_pd #doctest: +ELLIPSIS
+        Residue    (nm)
+    0       791  ...
 
     .. note::
         An history of all command used could be saved.
@@ -1971,14 +2066,14 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
         >>> #Basic usage :
         >>> prot.add_top(out_folder=TEST_OUT+'/add_top/top_SH3')\
         #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: 1y0m_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: 1y0m_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
         >>> #########################################
@@ -1992,15 +2087,15 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot.add_top(out_folder=TEST_OUT+'/add_top/top_SH3_2/',
         ...     pdb2gmx_option_dict={'ignh': None, 'ter': None},
         ...     input_pdb2gmx="1 \\n 0") #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 \
 -ignh -ter
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: 1y0m_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: 1y0m_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
 
@@ -2012,7 +2107,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             ``GROMACS_MOD_DIRNAME+"/template/"``, or change the current code.
         """
 
-        logger.info("-Create topologie")
+        logger.info("- Create topologie")
 
         # Get absolute path:
         if self.coor_file is None:
@@ -2148,7 +2243,7 @@ ff='amber99sb-ildn', include_mol={'DAP':\
         acpype... -i DAP_h_unique.pdb -b DAP -c bcc -a gaff -o gmx -n 0
         DAP
         Succeed to save file 01_1D30_good_his.pdb
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f 01_1D30_good_his.pdb -o 1D30_pdb2gmx.pdb -p \
 1D30_pdb2gmx.top -i 1D30_posre.itp -water tip3p -ff amber99sb-ildn \
 -ignh -vsite none
@@ -2158,50 +2253,50 @@ ff='amber99sb-ildn', include_mol={'DAP':\
         Succeed to save concat file:  1D30_pdb2gmx_mol.pdb
         >>> dna_lig.em(out_folder=TEST_OUT + '/prepare_top/em_dna', \
 nsteps=10, create_box_flag=True, maxwarn=1) #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f .../top_dna/1D30_pdb2gmx_mol.pdb -o \
 .../top_dna/1D30_pdb2gmx_mol_box.pdb -bt dodecahedron -d 1.0
-        -Create the tpr file 1D30.tpr
+        - Create the tpr file 1D30.tpr
         gmx grompp -f 1D30.mdp -c .../top_dna/1D30_pdb2gmx_mol_box.pdb -r \
 .../top_dna/1D30_pdb2gmx_mol_box.pdb -p .../top_dna/1D30_pdb2gmx_mol.top -po \
 out_1D30.mdp -o 1D30.tpr -maxwarn 1
-        -Launch the simulation 1D30.tpr
+        - Launch the simulation 1D30.tpr
         gmx mdrun -s 1D30.tpr -deffnm 1D30 -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
         >>> lig = dna_lig.extract_mol_sys(out_folder=TEST_OUT+\
 '/prepare_top/top_DAP/', res_name='DAP') #doctest: +ELLIPSIS
-        -Convert trj/coor
+        - Convert trj/coor
         gmx trjconv -f ...1D30.gro -o ...1D30_compact.pdb -s ...1D30.tpr \
 -ur compact -pbc mol
         Succeed to read file ...1D30_compact.pdb ,  794 atoms found
         Succeed to save file ...DAP_only.pdb
         Forcefield include :
          amber99sb-ildn
-        -ITP file: DAP_GMX_atomtypes
-        -molecules defined in the itp file:
-        -ITP file: tip3p
-        -molecules defined in the itp file:
+        - ITP file: DAP_GMX_atomtypes
+        - molecules defined in the itp file:
+        - ITP file: tip3p
+        - molecules defined in the itp file:
         * SOL
-        -ITP file: DAP_GMX
-        -molecules defined in the itp file:
+        - ITP file: DAP_GMX
+        - molecules defined in the itp file:
         * DAP
         Mol List:
            * 1 DAP
         Mol Name:
          Protein
         >>> lig.create_box() #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f ...DAP_only.pdb -o ...DAP_only_box.pdb -bt \
 dodecahedron -d 1.0
         >>> lig.solvate_box(out_folder=TEST_OUT + '/prepare_top/water_lig_top')
-        -Solvate the pbc box
+        - Solvate the pbc box
         Copy topologie file and dependancies
         >>> lig.em(out_folder=TEST_OUT + '/prepare_top/em_water_DAP', \
 nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
-        -Create the tpr file DAP.tpr
+        - Create the tpr file DAP.tpr
         gmx grompp -f DAP.mdp -c ...DAP_water.pdb -r ...DAP_water.pdb -p \
 ...DAP_water.top -po out_DAP.mdp -o DAP.tpr -maxwarn 1
-        -Launch the simulation DAP.tpr
+        - Launch the simulation DAP.tpr
         gmx mdrun -s DAP.tpr -deffnm DAP -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
         >>> # As the system is small use only 1 proc
         >>> lig.nt = 1
@@ -2212,21 +2307,21 @@ npt_time=.01, prod_time=.01) #doctest: +ELLIPSIS
         Coulomb lambda :0.00 0.50 1.00 1.00 1.00...
         Vdw lambda     :0.00 0.00 0.00 0.50 1.00...
         bond_lambdas   :1.00 1.00 1.00 1.00 1.00...
-        -Create the tpr file em_DAP_vdwq_00.tpr
+        - Create the tpr file em_DAP_vdwq_00.tpr
         gmx grompp -f em_DAP_vdwq_00.mdp -c ...DAP.gro -r ...DAP.gro -p \
 ...DAP_water.top -po out_em_DAP_vdwq_00.mdp -o em_DAP_vdwq_00.tpr -maxwarn 1
-        -Launch the simulation em_DAP_vdwq_00.tpr
+        - Launch the simulation em_DAP_vdwq_00.tpr
         gmx mdrun -s em_DAP_vdwq_00.tpr -deffnm em_DAP_vdwq_00 -nt 1 -ntmpi 0 \
 -nsteps -2 -nocopyright
         ...
-        -Create the tpr file prod_DAP_vdwq_04.tpr
+        - Create the tpr file prod_DAP_vdwq_04.tpr
         gmx grompp -f prod_DAP_vdwq_04.mdp -c ...npt_DAP_vdwq_04.gro -r \
 ...npt_DAP_vdwq_04.gro -p ....top -po out_prod_DAP_vdwq_04.mdp -o \
 prod_DAP_vdwq_04.tpr -maxwarn 1
-        -Launch the simulation prod_DAP_vdwq_04.tpr
+        - Launch the simulation prod_DAP_vdwq_04.tpr
         gmx mdrun -s prod_DAP_vdwq_04.tpr -deffnm prod_DAP_vdwq_04 -nt 1 \
 -ntmpi 0 -nsteps -2 -nocopyright
-        -Extract bar energy
+        - Extract bar energy
         gmx bar -f ...prod_DAP_vdwq_00.xvg ...prod_DAP_vdwq_04.xvg \
 -o bar.xvg -oi barint.xvg \
 -oh histogram.xvg -b 0 -e -1
@@ -2529,15 +2624,15 @@ prod_DAP_vdwq_04.tpr -maxwarn 1
         >>> #Basic usage :
         >>> cyclic_pep.cyclic_peptide_top(out_folder=os.path.join(str(\
 TEST_OUT),'cyclic/top')) #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f ...test_files/5vav.pdb -o no_cyclic_5vav_pdb2gmx.pdb \
 -p no_cyclic_5vav_pdb2gmx.top -i no_cyclic_5vav_posre.itp -water tip3p -ff \
 charmm36-jul2017 -ignh -ter -vsite none
         Molecule topologie present in no_cyclic_5vav_pdb2gmx.top , \
 extract the topologie in a separate file: no_cyclic_5vav_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: no_cyclic_5vav_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: no_cyclic_5vav_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_pdb2gmx.top
         Read rtp file : ...charmm36-jul2017.ff/merged.rtp
@@ -2560,14 +2655,14 @@ extract the topologie in a separate file: no_cyclic_5vav_pdb2gmx.itp
         >>> cyclic_top.display() #doctest: +ELLIPSIS
         Forcefield include :
          charmm36-jul2017
-        -ITP file: 5vav_pdb2gmx
-        -molecules defined in the itp file:
+        - ITP file: 5vav_pdb2gmx
+        - molecules defined in the itp file:
         * Protein_chain_A
-        -ITP file: tip3p
-        -molecules defined in the itp file:
+        - ITP file: tip3p
+        - molecules defined in the itp file:
         * SOL
-        -ITP file: ions
-        -molecules defined in the itp file:
+        - ITP file: ions
+        - molecules defined in the itp file:
         * OH
         * LI
         * NA
@@ -2583,14 +2678,14 @@ extract the topologie in a separate file: no_cyclic_5vav_pdb2gmx.itp
          CYC-MC12
         >>> cyclic_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=10, \
 create_box_flag=True) #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f .../cyclic/top/5vav_pdb2gmx.pdb -o \
 .../cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        -Create the tpr file 5vav.tpr
+        - Create the tpr file 5vav.tpr
         gmx grompp -f 5vav.mdp -c ../top/5vav_pdb2gmx_box.pdb -r \
 ../top/5vav_pdb2gmx_box.pdb -p ../top/5vav_pdb2gmx.top -po out_5vav.mdp \
 -o 5vav.tpr -maxwarn 1
-        -Launch the simulation 5vav.tpr
+        - Launch the simulation 5vav.tpr
         gmx mdrun -s 5vav.tpr -deffnm 5vav -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
         >>> cyclic_amber_pep = GmxSys(name='5vav_amber', \
@@ -2598,7 +2693,7 @@ coor_file=TEST_PATH+'/5vav.pdb')
         >>> cyclic_amber_pep.cyclic_peptide_top(out_folder=\
 os.path.join(str(TEST_OUT),'cyclic/top'),ff='amber99sb-ildn')\
         #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f .../test_files/5vav.pdb -o \
 no_cyclic_5vav_amber_pdb2gmx.pdb -p no_cyclic_5vav_amber_pdb2gmx.top \
 -i no_cyclic_5vav_amber_posre.itp -water tip3p -ff amber99sb-ildn -ignh \
@@ -2606,8 +2701,8 @@ no_cyclic_5vav_amber_pdb2gmx.pdb -p no_cyclic_5vav_amber_pdb2gmx.top \
         Molecule topologie present in no_cyclic_5vav_amber_pdb2gmx.top , \
 extract the topologie in a separate file: no_cyclic_5vav_amber_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: no_cyclic_5vav_amber_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: no_cyclic_5vav_amber_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: no_cyclic_5vav_amber_pdb2gmx.top
         Read rtp file : ...amber99sb-ildn.ff/aminoacids.rtp
@@ -2624,14 +2719,14 @@ extract the topologie in a separate file: no_cyclic_5vav_amber_pdb2gmx.itp
         0.0
         >>> cyclic_amber_pep.em(out_folder=TEST_OUT+'/cyclic/em/', \
 nsteps=10, create_box_flag=True) #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f ...cyclic/top/5vav_amber_pdb2gmx.pdb -o \
 ...cyclic/top/5vav_amber_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        -Create the tpr file 5vav_amber.tpr
+        - Create the tpr file 5vav_amber.tpr
         gmx grompp -f 5vav_amber.mdp -c ../top/5vav_amber_pdb2gmx_box.pdb \
 -r ../top/5vav_amber_pdb2gmx_box.pdb -p ../top/5vav_amber_pdb2gmx.top -po \
 out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
-        -Launch the simulation 5vav_amber.tpr
+        - Launch the simulation 5vav_amber.tpr
         gmx mdrun -s 5vav_amber.tpr -deffnm 5vav_amber -nt 0 -ntmpi 0 \
 -nsteps -2 -nocopyright
 
@@ -3018,15 +3113,15 @@ TEST_OUT),'1dn3/top')) #doctest: +ELLIPSIS
         Succeed to read file 00_1dn3_cys.pqr ,  231 atoms found
         Chain: A  Residue: 0 to 14
         Succeed to save file 01_1dn3_cys_good_his.pdb
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f 01_1dn3_cys_good_his.pdb -o 1dn3_cys_pdb2gmx.pdb \
 -p 1dn3_cys_pdb2gmx.top -i 1dn3_cys_posre.itp -water tip3p -ff \
 charmm36-jul2017 -ignh -vsite none
         Molecule topologie present in 1dn3_cys_pdb2gmx.top , extract the \
 topologie in a separate file: 1dn3_cys_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: 1dn3_cys_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: 1dn3_cys_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1dn3_cys_pdb2gmx.top
         >>> no_ss_pep.add_disulfide_bonds(res_list=[[9, 12]], \
@@ -3040,19 +3135,19 @@ out_folder=os.path.join(str(TEST_OUT),'1dn3/top_ss')) #doctest: +ELLIPSIS
         Protein_chain_A
         >>> no_ss_pep.em(out_folder=TEST_OUT+'/1dn3/em_ss/', \
 nsteps=10, create_box_flag=True) #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f ...1dn3/top_ss/1dn3_cys_ss_bond.pdb -o \
 .../1dn3/top_ss/1dn3_cys_ss_bond_box.pdb -bt dodecahedron -d 1.0
-        -Create the tpr file 1dn3_cys.tpr
+        - Create the tpr file 1dn3_cys.tpr
         gmx grompp -f 1dn3_cys.mdp -c ../top_ss/1dn3_cys_ss_bond_box.pdb -r \
 ../top_ss/1dn3_cys_ss_bond_box.pdb -p ../top_ss/1dn3_cys_ss_bond.top -po \
 out_1dn3_cys.mdp -o 1dn3_cys.tpr -maxwarn 1
-        -Launch the simulation 1dn3_cys.tpr
+        - Launch the simulation 1dn3_cys.tpr
         gmx mdrun -s 1dn3_cys.tpr -deffnm 1dn3_cys -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
         >>> # Need to convert the gro to pdb:
         >>> no_ss_pep.convert_trj(traj=False) #doctest: +ELLIPSIS
-        -Convert trj/coor
+        - Convert trj/coor
         gmx trjconv -f .../em_ss/1dn3_cys.gro -o \
 .../em_ss/1dn3_cys_compact.pdb -s .../em_ss/1dn3_cys.tpr -ur compact -pbc mol
         >>> # Measure s-s bond length:
@@ -3284,18 +3379,18 @@ cystein_s_index[0]], ss_coor.atom_dict[cystein_s_index[1]])
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/create_box/top_SH3/')\
         #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: 1y0m_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: 1y0m_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
         >>> prot.create_box() #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f .../create_box/top_SH3/1y0m_pdb2gmx.pdb -o \
 .../create_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
 
@@ -3306,7 +3401,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             directory as input file, the "_box.pdb" will be added to ``name``.
         """
 
-        logger.info("-Create pbc box")
+        logger.info("- Create pbc box")
 
         # If name is not define use the object coor name and add _box.pdb
         if name is None:
@@ -3383,34 +3478,34 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/convert_trj/top_SH3/')\
         #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: 1y0m_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: 1y0m_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
         >>> prot.create_box() #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f .../convert_trj/top_SH3/1y0m_pdb2gmx.pdb -o \
 .../convert_trj/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         >>> prot.solvate_box(out_folder=TEST_OUT+'/convert_trj/top_SH3_water/')
-        -Solvate the pbc box
+        - Solvate the pbc box
         Copy topologie file and dependancies
         >>> prot.em(out_folder=TEST_OUT+'/convert_trj/em_SH3_water/', \
 nsteps=10, constraints="none")
-        -Create the tpr file 1y0m.tpr
+        - Create the tpr file 1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water/1y0m_water.pdb -r \
 ../top_SH3_water/1y0m_water.pdb -p ../top_SH3_water/1y0m_water.top -po \
 out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
-        -Launch the simulation 1y0m.tpr
+        - Launch the simulation 1y0m.tpr
         gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
         >>> prot.convert_trj(traj=False) #doctest: +ELLIPSIS
-        -Convert trj/coor
+        - Convert trj/coor
         gmx trjconv -f .../convert_trj/em_SH3_water/1y0m.gro -o \
 .../convert_trj/em_SH3_water/1y0m_compact.pdb -s \
 .../convert_trj/em_SH3_water/1y0m.tpr -ur compact -pbc mol
@@ -3423,7 +3518,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
             or "_compact.xtc" will be added to ``name``.
         """
 
-        logger.info("-Convert trj/coor")
+        logger.info("- Convert trj/coor")
         if traj:
             coor_in = self.xtc
             if name is None:
@@ -3512,22 +3607,22 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/copy_box/top_SH3/')\
         #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: 1y0m_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: 1y0m_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
         >>> prot.create_box() #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f .../copy_box/top_SH3/1y0m_pdb2gmx.pdb -o \
 .../copy_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         >>> prot.copy_box(nbox=[4,1,1])
-        -Copy pbc box using genconf
+        - Copy pbc box using genconf
 
         .. note::
             If ``name`` is not defined, the command will create a new pdb
@@ -3537,7 +3632,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             ``name``.
         """
 
-        logger.info("-Copy pbc box using genconf")
+        logger.info("- Copy pbc box using genconf")
         # If name is not define use the object coor name and add _box.pdb
         if name is None:
             copy_coor = self.coor_file[:-4] + "_copy_box.pdb"
@@ -3604,22 +3699,22 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/solv_box/top_SH3/')\
         #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: 1y0m_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: 1y0m_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
         >>> prot.create_box() #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f .../solv_box/top_SH3/1y0m_pdb2gmx.pdb -o \
 .../solv_box/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         >>> prot.solvate_box(out_folder=TEST_OUT+'/solv_box/top_SH3_water/')
-        -Solvate the pbc box
+        - Solvate the pbc box
         Copy topologie file and dependancies
 
         .. note::
@@ -3627,7 +3722,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             and .top file name after the object name and adding "_water".
         """
 
-        logger.info("-Solvate the pbc box")
+        logger.info("- Solvate the pbc box")
 
         # Create the out dir:
         start_dir = os.path.abspath(".")
@@ -3721,31 +3816,31 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/add_ions/top_SH3/')\
         #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
 topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: 1y0m_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: 1y0m_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
         >>> prot.create_box() #doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f .../add_ions/top_SH3/1y0m_pdb2gmx.pdb -o \
 .../add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
         >>> prot.solvate_box(out_folder=TEST_OUT+'/add_ions/top_SH3_water/')
-        -Solvate the pbc box
+        - Solvate the pbc box
         Copy topologie file and dependancies
         >>> prot.add_ions(out_folder=TEST_OUT+'/add_ions/top_SH3_water_ions/')\
         #doctest: +ELLIPSIS
         Copy topologie file and dependancies
-        -Create the tpr file genion_1y0m_ion.tpr
+        - Create the tpr file genion_1y0m_ion.tpr
         gmx grompp -f .../template/mini.mdp -c \
 ../top_SH3_water/1y0m_water.pdb -r ../top_SH3_water/1y0m_water.pdb \
 -p 1y0m_ion.top -po out_mini.mdp -o genion_1y0m_ion.tpr -maxwarn 1
-        -Add ions to the system with an ionic concentration of 0.15 M , \
+        - Add ions to the system with an ionic concentration of 0.15 M , \
 sytem charge = 0.0 water \
 num= 56...
         Add ions : NA : 15   CL : 15
@@ -3754,11 +3849,11 @@ num= 56...
 -nname CL
         >>> prot.em(out_folder=TEST_OUT+'/add_ions/em_SH3_water_ions/', \
 nsteps=10, constraints="none")
-        -Create the tpr file 1y0m.tpr
+        - Create the tpr file 1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water_ions/1y0m_ion.gro -r \
 ../top_SH3_water_ions/1y0m_ion.gro -p ../top_SH3_water_ions/1y0m_ion.top \
 -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
-        -Launch the simulation 1y0m.tpr
+        - Launch the simulation 1y0m.tpr
         gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
 
@@ -3810,7 +3905,7 @@ nsteps=10, constraints="none")
         top = TopSys(self.top_file)
         sys_charge = top.charge()
         water_num = top.mol_num("SOL")
-        logger.info("-Add ions to the system with an ionic concentration of {}"
+        logger.info("- Add ions to the system with an ionic concentration of {}"
                     " M , sytem charge = {} water num= {}".format(
                         ion_C, sys_charge, water_num))
 
@@ -3874,42 +3969,42 @@ nsteps=10, constraints="none")
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
         >>> prot.add_top(out_folder=TEST_OUT+'/solvate_add_ions/top_SH3/')\
         #doctest: +ELLIPSIS
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f .../test_files/1y0m.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017
         Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie\
  in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
-        -ITP file: 1y0m_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: 1y0m_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_A
         Rewrite topologie: 1y0m_pdb2gmx.top
         >>> prot.solvate_add_ions(out_folder=TEST_OUT+'/solvate_add_ions/\
 top_SH3_water_ions/')#doctest: +ELLIPSIS
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f .../solvate_add_ions/top_SH3/1y0m_pdb2gmx.pdb \
 -o .../solvate_add_ions/top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron \
 -d 1.1
-        -Solvate the pbc box
+        - Solvate the pbc box
         Copy topologie file and dependancies
         Copy topologie file and dependancies
-        -Create the tpr file genion_1y0m_water_ion.tpr
+        - Create the tpr file genion_1y0m_water_ion.tpr
         gmx grompp -f .../template/mini.mdp -c 1y0m_water.pdb -r \
 1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o \
 genion_1y0m_water_ion.tpr -maxwarn 1
-        -Add ions to the system with an ionic concentration of 0.15 M , \
+        - Add ions to the system with an ionic concentration of 0.15 M , \
 sytem charge = 0.0 water num= 62...
         Add ions : NA : 17   CL : 17
         gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o \
 1y0m_water_ion.gro -np 17 -pname NA -nn 17 -nname CL
         >>> prot.em(out_folder=TEST_OUT+'/solvate_add_ions/em_SH3_water_ions/'\
 , nsteps=10, constraints = "none")
-        -Create the tpr file 1y0m.tpr
+        - Create the tpr file 1y0m.tpr
         gmx grompp -f 1y0m.mdp -c ../top_SH3_water_ions/1y0m_water_ion.gro \
 -r ../top_SH3_water_ions/1y0m_water_ion.gro -p \
 ../top_SH3_water_ions/1y0m_water_ion.top -po out_1y0m.mdp -o 1y0m.tpr \
 -maxwarn 1
-        -Launch the simulation 1y0m.tpr
+        - Launch the simulation 1y0m.tpr
         gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
 
@@ -3981,31 +4076,31 @@ str(TEST_OUT), 'peptide'), em_nsteps=10, equi_nsteps=10, vsite='hydrogens')\
         residue name:A
         residue name:M
         Succeed to save file .../peptide/SAM.pdb
-        -Create topologie
+        - Create topologie
         gmx pdb2gmx -f ../SAM.pdb -o SAM_pdb2gmx.pdb -p SAM_pdb2gmx.top -i \
 SAM_posre.itp -water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
         Molecule topologie present in SAM_pdb2gmx.top , extract the \
 topologie in a separate file: SAM_pdb2gmx.itp
         Protein_chain_P
-        -ITP file: SAM_pdb2gmx.itp
-        -molecules defined in the itp file:
+        - ITP file: SAM_pdb2gmx.itp
+        - molecules defined in the itp file:
         * Protein_chain_P
         Rewrite topologie: SAM_pdb2gmx.top
-        -Create pbc box
+        - Create pbc box
         gmx editconf -f .../peptide/00_top/SAM_pdb2gmx.pdb -o \
 .../peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        -Create the tpr file SAM_pep.tpr
+        - Create the tpr file SAM_pep.tpr
         gmx grompp -f SAM_pep.mdp -c ../00_top/SAM_pdb2gmx_box.pdb -r \
 ../00_top/SAM_pdb2gmx_box.pdb -p ../00_top/SAM_pdb2gmx.top -po \
 out_SAM_pep.mdp -o SAM_pep.tpr -maxwarn 1
-        -Launch the simulation SAM_pep.tpr
+        - Launch the simulation SAM_pep.tpr
         gmx mdrun -s SAM_pep.tpr -deffnm SAM_pep -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
-        -Create the tpr file equi_vacuum_SAM.tpr
+        - Create the tpr file equi_vacuum_SAM.tpr
         gmx grompp -f equi_vacuum_SAM.mdp -c ../01_mini/SAM_pep.gro -r \
 ../01_mini/SAM_pep.gro -p ../00_top/SAM_pdb2gmx.top -po \
 out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
-        -Launch the simulation equi_vacuum_SAM.tpr
+        - Launch the simulation equi_vacuum_SAM.tpr
         gmx mdrun -s equi_vacuum_SAM.tpr -deffnm equi_vacuum_SAM -nt 0 \
 -ntmpi 0 -nsteps -2 -nocopyright
 
@@ -4581,7 +4676,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         if folder_out != "":
             ndx_out = os.path.join(folder_out, ndx_out)
 
-        logger.info("-Create the ndx file {}".format(ndx_out))
+        logger.info("- Create the ndx file {}".format(ndx_out))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(ndx_out):
@@ -4649,7 +4744,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         if folder_out != "":
             tpr_out = os.path.join(folder_out, tpr_out)
 
-        logger.info("-Create the tpr file {}".format(tpr_out))
+        logger.info("- Create the tpr file {}".format(tpr_out))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(tpr_out):
@@ -4745,7 +4840,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         # nsteps = -2 , will use the mdp file option
 
-        logger.info("-Launch the simulation {}".format(self.tpr))
+        logger.info("- Launch the simulation {}".format(self.tpr))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(self.sim_name + ".gro"):
@@ -4923,6 +5018,15 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             file.
         :type create_box_flagt: bool, optional, default=False
 
+        :param maxwarn: Maximum number of warnings when using ``gmx grompp``
+        :type maxwarn: int, default=0
+
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
+
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
 
@@ -4986,6 +5090,15 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :param create_box_flag: flag to create or not a box to the input coor
             file.
         :type create_box_flag: bool, optional, default=False
+
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
+
+        :param maxwarn: Maximum number of warnings when using ``gmx grompp``
+        :type maxwarn: int, default=0
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5058,10 +5171,19 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type nsteps_CA_LOW: int, default=400000
 
         :param dt_HA: integration time step for HA equilibration
-        :type dt_HA: float, default=0.002
+        :type dt_HA: float, default=0.001
 
         :param dt: integration time step for CA and CA_LOW equilibration
-        :type dt: float, default=0.005
+        :type dt: float, default=0.002
+
+        :param maxwarn: Maximum number of warnings when using ``gmx grompp``
+        :type maxwarn: int, default=0
+
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5179,10 +5301,19 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type nsteps_CA_LOW: int, default=400000
 
         :param dt_HA: integration time step for HA equilibration
-        :type dt_HA: float, default=0.002
+        :type dt_HA: float, default=0.001
 
         :param dt: integration time step for CA and CA_LOW equilibration
-        :type dt: float, default=0.005
+        :type dt: float, default=0.002
+
+        :param maxwarn: Maximum number of warnings when using ``gmx grompp``
+        :type maxwarn: int, default=0
+
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5263,7 +5394,16 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :type nsteps: int, default=400000
 
         :param dt: number of minimisation steps
-        :type dt: float, default=0.005
+        :type dt: float, default=0.002
+
+        :param maxwarn: Maximum number of warnings when using ``gmx grompp``
+        :type maxwarn: int, default=0
+
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5299,8 +5439,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                         mdp_options=mdp_options, name="prod_" + name,
                         monitor_tool=monitor_tool, maxwarn=maxwarn)
 
-    def extend_equi_prod(self, tpr_file=None, nsteps=200000, dt=0.005,
-                         monitor_tool=monitor.PROGRESS_BAR):
+    def extend_sim(self, tpr_file=None, nsteps=200000,
+                   monitor_tool=monitor.PROGRESS_BAR):
         """Extend a simulation run.
 
         :param tpr_file: path of the tpr file
@@ -5309,8 +5449,11 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :param nsteps: number of steps
         :type nsteps: int, default=200000
 
-        :param dt: integration time step use previously
-        :type dt: float, default=0.005
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
 
         **Object requirement(s):**
 
@@ -5342,13 +5485,14 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         # Get simulation time :
         sim_time = self.get_simulation_time()
+        dt = self.get_mdp_dict()['dt']
         nsteps_to_run = int(nsteps - sim_time / dt)
         if nsteps_to_run <= 0:
             logger.info("Simulation {} has already run"
                         " {} ps, extending simulation is useless.".format(
                             self.tpr[:-4], sim_time))
             return
-        logger.info("-Extend simulation for {} steps".format(nsteps_to_run))
+        logger.info("- Extend simulation for {} steps".format(nsteps_to_run))
 
         self.sim_name = self.tpr.split("/")[-1][:-4]
         out_folder = os_command.get_directory(self.tpr)
@@ -5364,12 +5508,184 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         os.chdir(start_dir)
 
+    def compute_intermol_restr(self, rec_index_list, lig_index_list, k=41.84):
+        """Compute the intermolecula restraints base on the
+        self.coor file.
+
+        :param rec_index_list: List of the receptor atom index
+        :type rec_index_list: list
+
+        :param lig_index_list: List of the ligand atom index
+        :type lig_index_list: list
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+
+        **Object field(s) changed:**
+
+            * self.top_file
+
+        Give three atoms for each receptor and ligand index list:
+        R0, R1 R2 and L0 L1 L2
+        Will define:
+        - 1 bond:
+            - R0-L0
+        - 2 angles:
+            - R0-L0-L1
+            - R1-R0-L0
+        - 2 dihedral angles:
+            - R0-L0-L1-L2
+            - R2-R1-R0-L0
+
+        """
+        bond_type = 1
+        angle_type = 1
+        dihed_type = 1
+
+        # Get distance and angles
+        coor = pdb_manip.Coor(self.coor_file)
+
+        # R0-L0
+        dist = pdb_manip.Coor.atom_dist(coor[rec_index_list[0]],
+                                        coor[lig_index_list[0]]) / 10.0
+        bond_list = [[rec_index_list[0],
+                      lig_index_list[0],
+                      bond_type,
+                      round(dist, 3),
+                      k*100,
+                      round(dist, 3),
+                      k*100]]
+        # R0-L0-L1
+        angle_1 = pdb_manip.Coor.atom_angle(coor[rec_index_list[0]],
+                                            coor[lig_index_list[0]],
+                                            coor[lig_index_list[1]])
+        # R1-R0-L0
+        angle_2 = pdb_manip.Coor.atom_angle(coor[rec_index_list[1]],
+                                            coor[rec_index_list[0]],
+                                            coor[lig_index_list[0]])
+        angle_list = [[rec_index_list[0],
+                       lig_index_list[0],
+                       lig_index_list[1],
+                       angle_type,
+                       round(angle_1, 3),
+                       k,
+                       round(angle_1, 3),
+                       k]]
+        angle_list += [[rec_index_list[1],
+                        rec_index_list[0],
+                        lig_index_list[0],
+                        angle_type,
+                        round(angle_2, 3),
+                        k,
+                        round(angle_2, 3),
+                        k]]
+
+        # R0-L0-L1-L2
+        dihed_1 = pdb_manip.Coor.atom_dihed_angle(coor[rec_index_list[0]],
+                                                  coor[lig_index_list[0]],
+                                                  coor[lig_index_list[1]],
+                                                  coor[lig_index_list[2]])
+        # R2-R1-R0-L0
+        dihed_2 = pdb_manip.Coor.atom_dihed_angle(coor[rec_index_list[2]],
+                                                  coor[rec_index_list[1]],
+                                                  coor[rec_index_list[0]],
+                                                  coor[lig_index_list[0]])
+        dihed_list = [[rec_index_list[0],
+                       lig_index_list[0],
+                       lig_index_list[1],
+                       lig_index_list[2],
+                       dihed_type,
+                       round(dihed_1, 3),
+                       k,
+                       round(dihed_1, 3),
+                       k]]
+        dihed_list += [[rec_index_list[2],
+                        rec_index_list[1],
+                        rec_index_list[0],
+                        lig_index_list[0],
+                        dihed_type,
+                        round(dihed_2, 3),
+                        k,
+                        round(dihed_2, 3),
+                        k]]
+
+        top = TopSys(self.top_file)
+
+        top.add_intermolecular_restr(bond_list=bond_list,
+                                     angle_list=angle_list,
+                                     dihed_list=dihed_list)
+        top.write_file(self.top_file)
+
     def free_ener(self, out_folder, mol_name, lambda_elec_num, lambda_vdw_num,
                   lambda_bond_num=0,
                   em_steps=5000, nvt_time=10, npt_time=10, prod_time=100,
                   dt=0.002, name=None, temperature=300.0, maxwarn=1,
                   monitor_tool=monitor.PROGRESS_BAR):
-        """ Compute free energy using ...
+        """Compute free energy to transfer a molecule from the
+        system to vacum.
+
+        :param out_folder: path of the output folder
+        :type out_folder: str
+
+        :param mol_name: Name of the molecule
+        :type mol_name: str
+
+        :param lambda_elec_num: Number of lambda windows for Coulomb
+        :type lambda_elec_num: int
+
+        :param lambda_vdw_num: Number of lambda windows for Lennard Jones
+        :type lambda_vdw_num: int
+
+        :param lambda_bond_num: Number of lambda windows for restraints
+        :type lambda_bond_num: int, default=0
+
+        :param em_steps: number of minimisation steps
+        :type em_steps: int, default=5000
+
+        :param nvt_time: Time (ps) of NVT equilibration
+        :type nvt_time: int, default=10 ps
+
+        :param npt_time:  Time (ps) of NPT equilibration
+        :type npt_time: int, default=10 ps
+
+        :param prod_time: Time (ps) of production run
+        :type prod_time: float, default=100 ps
+
+        :param dt: integration time step
+        :type dt: float, default=0.002
+
+        :param name: name of the simulation to run
+        :type name: str, default=None
+
+        :param temperature: Temperature K
+        :type temperature: float, default=300.0
+
+        :param maxwarn: Maximum number of warnings when using ``gmx grompp``
+        :type maxwarn: int, default=0
+
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+            * self.nt
+            * self.ntmpi
+            * self.gpu_id
+
+        **Object field(s) changed:**
+
+            * self.tpr
+            * self.sim_name
+            * self.coor_file
+            * self.xtc
+
         """
 
         if name is None:
@@ -5381,15 +5697,15 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             from tqdm import tqdm
 
         bond_lambdas = "".join([
-            '{:.2f} '.format(i/(lambda_bond_num)) for i in
+            '{:.2f} '.format(i / (lambda_bond_num)) for i in
             range(lambda_bond_num)]) + "1.00 " * (lambda_vdw_num +
                                                   lambda_elec_num + 1)
         coul_lambdas = "0.00 " * lambda_bond_num + "".join([
-            '{:.2f} '.format(i/(lambda_elec_num)) for i in
+            '{:.2f} '.format(i / (lambda_elec_num)) for i in
             range(lambda_elec_num)]) + "1.00 " * (lambda_vdw_num + 1)
         vdw_lambdas = "0.00 " * (lambda_elec_num + lambda_bond_num) + "".join([
-            '{:.2f} '.format(i/(lambda_vdw_num)) for i in range(
-                lambda_vdw_num+1)])
+            '{:.2f} '.format(i / (lambda_vdw_num)) for i in range(
+                lambda_vdw_num + 1)])
 
         logger.info('Coulomb lambda :' + coul_lambdas + "\n" +
                     'Vdw lambda     :' + vdw_lambdas + "\n" +
@@ -5548,6 +5864,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :param dt: integration time step for BB equilibration
         :type dt: float, default=0.002
 
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
+
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
 
@@ -5609,6 +5931,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :param dt: integration time step for BB equilibration
         :type dt: float, default=0.002
 
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
+
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
 
@@ -5668,6 +5996,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         :param dt: integration time step for BB equilibration
         :type dt: float, default=0.002
+
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5787,7 +6121,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         """
 
         cpt_file = self.tpr[:-4] + ".cpt"
-        logger.info("-Get simulation time from : {}".format(cpt_file))
+        logger.info("- Get simulation time from : {}".format(cpt_file))
 
         # Check if output files exist:
         if not os.path.isfile(cpt_file):
@@ -5812,12 +6146,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         logger.error("Last Frame not found in gmx check output")
         raise ValueError()
 
-    def get_ener(self, selection_list, output_xvg='tmp.xvg',
+    def get_ener(self, selection_list, output_xvg='tmp_edr.xvg',
                  check_file_out=True, keep_ener_file=False):
         """Get energy of a system using ``gmx energy``.
         """
 
-        logger.info("-Extract energy")
+        logger.info("- Extract energy")
         # print('\n'.join(selection_list))
 
         # Check if output files exist:
@@ -5839,6 +6173,74 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         return(ener_pd)
 
+    def get_rmsd(self, selection_list, output_xvg='tmp_rmsd.xvg',
+                 fit="rot+trans", group_num=1, pbc="no",
+                 check_file_out=True, keep_ener_file=False):
+        """Get RMSD of a system using ``gmx rms``.
+        """
+
+        logger.info("- Extract RMSD")
+
+        # Check if output files exist:
+        if check_file_out and os.path.isfile(output_xvg):
+            logger.info("get_ener not launched {} already exist".format(
+                output_xvg))
+        else:
+            cmd_list = [GMX_BIN, "rms",
+                        "-s", self.tpr,
+                        "-f", self.xtc,
+                        "-o", output_xvg,
+                        "-fit", fit,
+                        "-ng", str(group_num),
+                        "-pbc", pbc]
+            if self.ndx is not None:
+                cmd_list += ['-n', self.ndx]
+            cmd_rmsd = os_command.Command(cmd_list)
+
+            cmd_rmsd.display()
+            cmd_rmsd.run(com_input='\n'.join(selection_list))
+
+        ener_pd = monitor.read_xvg(output_xvg)
+
+        if not keep_ener_file:
+            os_command.delete_file(output_xvg)
+
+        return(ener_pd)
+
+    def get_rmsf(self, selection_list, output_xvg='tmp_rmsf.xvg',
+                 fit="no", res="no",
+                 check_file_out=True, keep_ener_file=False):
+        """Get RMSF of a system using ``gmx rmsf``.
+        """
+
+        logger.info("- Extract RMSF")
+
+        # Check if output files exist:
+        if check_file_out and os.path.isfile(output_xvg):
+            logger.info("get_ener not launched {} already exist".format(
+                output_xvg))
+        else:
+            cmd_list = [GMX_BIN, "rmsf",
+                        "-s", self.tpr,
+                        "-f", self.xtc,
+                        "-o", output_xvg,
+                        "-fit", fit,
+                        "-res", res]
+            if self.ndx is not None:
+                cmd_list += ['-n', self.ndx]
+
+            cmd_rmsd = os_command.Command(cmd_list)
+
+            cmd_rmsd.display()
+            cmd_rmsd.run(com_input='\n'.join(selection_list))
+
+        ener_pd = monitor.read_xvg(output_xvg)
+
+        if not keep_ener_file:
+            os_command.delete_file(output_xvg)
+
+        return(ener_pd)
+
     @staticmethod
     def get_bar(xvg_file_list, bar_xvg='bar.xvg',
                 barint_xvg='barint.xvg', hist_xvg='histogram.xvg',
@@ -5849,7 +6251,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         I don't know how to compute std like in gmx bar.
         """
 
-        logger.info("-Extract bar energy")
+        logger.info("- Extract bar energy")
 
         cmd_convert = os_command.Command([GMX_BIN, "bar",
                                           "-f", *xvg_file_list,
