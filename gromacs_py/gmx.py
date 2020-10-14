@@ -316,16 +316,16 @@ class TopSys:
         if self.inter_interact:
             filout.write("[ intermolecular_interactions ]\n")
             if self.inter_bond_list:
-                filout.write("\n[ bonds ]\n;  ; ai    aj    type   "
+                filout.write("\n[ bonds ]\n;  ai    aj    type   "
                              " bA    kA    bB    kB\n")
                 for param in self.inter_bond_list:
                     filout.write(
                         "{:>6}{:>6}{:>6}{:>13}{:>13}{:>13}{:>13}\n".format(
                             param['ai'], param['aj'], param['type'],
-                            param['bA'], param['kA'],
-                            param['bB'], param['kB']))
+                            param['rA'], param['kA'],
+                            param['rB'], param['kB']))
             if self.inter_angl_list:
-                filout.write("\n[ angles ]\n;  ; ; ai    aj    ak  "
+                filout.write("\n[ angles ]\n;  ai    aj    ak  "
                              "  type    thA    kA    thB    kB\n")
                 for param in self.inter_angl_list:
                     filout.write("{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}{:>13}"
@@ -335,7 +335,7 @@ class TopSys:
                                     param['thA'], param['kA'],
                                     param['thB'], param['kB']))
             if self.inter_dihe_list:
-                filout.write("\n[ dihedrals ]\n;  ; ai    aj    ak    al"
+                filout.write("\n[ dihedrals ]\n;  ai    aj    ak    al"
                              "    type    phiA    kA    phiB    kB\n")
                 for param in self.inter_dihe_list:
                     filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}"
@@ -563,20 +563,20 @@ class TopSys:
             ai, aj, funct, rA, kA, rB, kB = bond
             self.inter_bond_list.append({'ai': ai, 'aj': aj,
                                          'type': funct,
-                                         'rA': rA, 'ka': kA,
+                                         'rA': rA, 'kA': kA,
                                          'rB': rB, 'kB': kB})
         for angle in angle_list:
             ai, aj, ak, funct, thA, kA, thB, kB = angle
             self.inter_angl_list.append({'ai': ai, 'aj': aj,
                                          'ak': ak, 'type': funct,
-                                         'thA': thA, 'ka': kA,
+                                         'thA': thA, 'kA': kA,
                                          'thB': thB, 'kB': kB})
         for dihed in dihed_list:
             ai, aj, ak, al, funct, thA, kA, thB, kB = dihed
             self.inter_dihe_list.append({'ai': ai, 'aj': aj,
                                          'ak': ak, 'al': al,
                                          'type': funct,
-                                         'thA': thA, 'ka': kA,
+                                         'thA': thA, 'kA': kA,
                                          'thB': thB, 'kB': kB})
 
     def change_mol_num(self, mol_name, mol_num):
@@ -1744,19 +1744,21 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
     gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o tmp_edr.xvg
     >>> ener_pd['Potential'].mean() #doctest: +ELLIPSIS
     -2...
-    >>> rmsd_pd = prot.get_rmsd(['CA', 'Protein'])  #doctest: +ELLIPSIS
+    >>> rmsd_pd = prot.get_rmsd(['C-alpha', 'Protein'])  #doctest: +ELLIPSIS
     - Extract RMSD
-    gmx rms -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -o tmp_rmsd.xvg\
- -fit rot+trans -ng 1 -pbc no
+    - Create the ndx file ...equi_HA_D_SH3.ndx
+    gmx make_ndx -f ...equi_HA_D_SH3_compact.pdb -o ...equi_HA_D_SH3.ndx
+    gmx rms -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...equi_HA_D_SH3.ndx\
+ -o tmp_rmsd.xvg -fit rot+trans -ng 1 -pbc no
     >>> rmsd_pd #doctest: +ELLIPSIS
-       Time (ps)  Protein after lsq fit to C-alpha
-    0        0.0                          0.000...
+       time   Protein
+    0   0.0... 0.000...
     >>> rmsf_pd = prot.get_rmsf(['Protein'], res="yes")  #doctest: +ELLIPSIS
     - Extract RMSF
-    gmx rmsf -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -o tmp_rmsf.xvg\
- -fit no -res yes
+    gmx rmsf -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...equi_HA_D_SH3.ndx\
+ -o tmp_rmsf.xvg -fit no -res yes
     >>> rmsf_pd #doctest: +ELLIPSIS
-        Residue    (nm)
+        Residue    RMSF
     0       791  ...
 
     .. note::
@@ -4671,7 +4673,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         if ndx_name is not None:
             ndx_out = ndx_name + ".ndx"
         else:
-            ndx_out = self.name + ".ndx"
+            ndx_out = self.tpr[:-4] + ".ndx"
 
         if folder_out != "":
             ndx_out = os.path.join(folder_out, ndx_out)
@@ -4699,6 +4701,44 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         cmd_ndx.run(com_input=ndx_cmd_input, display=False)
 
         self.ndx = ndx_out
+
+        # Clean index and remove multiple entry for the same
+        # groups:
+        with open(self.ndx, 'r') as ndx_file:
+            line_list = ndx_file.readlines()
+
+        group_list = []
+        with open(self.ndx, 'w') as ndx_file:
+            for line in line_list:
+                if line.startswith('['):
+                    group = line.strip()[1:-1].strip()
+                    if group in group_list:
+                        save_group = False
+                    else:
+                        save_group = True
+                        group_list.append(group)
+                if save_group:
+                    ndx_file.write(line)
+
+    def get_index_dict(self):
+        """ Read and `.ndx` file and return and dictionnary
+        with keys being the group name, nad value the index.
+        """
+
+        # Add ndx file if absent:
+        if self.ndx is None:
+            self.add_ndx('q\n')
+
+        index_dict = {}
+        index = 0
+        with open(self.ndx, 'r') as ndx_file:
+            line_list = ndx_file.readlines()
+            for line in line_list:
+                if line.startswith('['):
+                    group = line.strip()[1:-1].strip()
+                    index_dict[group] = index
+                    index += 1
+        return(index_dict)
 
     def add_tpr(self, name, r=None, po=None, folder_out="",
                 check_file_out=True, **grompp_options):
@@ -5508,7 +5548,14 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         os.chdir(start_dir)
 
-    def compute_intermol_restr(self, rec_index_list, lig_index_list, k=41.84):
+    def compute_intermol_from_traj(self, lig_name, rec_group='Protein', k=41.84):
+        """ Compute intermolecular restraint from the last GmxSys trajectory.
+        """
+
+        self.get_rmsf(lig_name).plot('Atom')
+
+
+    def add_intermol_restr_index(self, rec_index_list, lig_index_list, k=41.84):
         """Compute the intermolecula restraints base on the
         self.coor file.
 
@@ -5545,11 +5592,14 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         dihed_type = 1
 
         # Get distance and angles
+        if not self.coor_file.endswith('.pdb'):
+            self.convert_trj(traj=False)
+
         coor = pdb_manip.Coor(self.coor_file)
 
         # R0-L0
-        dist = pdb_manip.Coor.atom_dist(coor[rec_index_list[0]],
-                                        coor[lig_index_list[0]]) / 10.0
+        dist = pdb_manip.Coor.atom_dist(coor.atom_dict[rec_index_list[0]],
+                                        coor.atom_dict[lig_index_list[0]]) / 10.0
         bond_list = [[rec_index_list[0],
                       lig_index_list[0],
                       bond_type,
@@ -5558,65 +5608,58 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                       round(dist, 3),
                       k*100]]
         # R0-L0-L1
-        angle_1 = pdb_manip.Coor.atom_angle(coor[rec_index_list[0]],
-                                            coor[lig_index_list[0]],
-                                            coor[lig_index_list[1]])
+        angle_1 = pdb_manip.Coor.atom_angle(coor.atom_dict[rec_index_list[0]],
+                                            coor.atom_dict[lig_index_list[0]],
+                                            coor.atom_dict[lig_index_list[1]])
         # R1-R0-L0
-        angle_2 = pdb_manip.Coor.atom_angle(coor[rec_index_list[1]],
-                                            coor[rec_index_list[0]],
-                                            coor[lig_index_list[0]])
+        angle_2 = pdb_manip.Coor.atom_angle(coor.atom_dict[rec_index_list[1]],
+                                            coor.atom_dict[rec_index_list[0]],
+                                            coor.atom_dict[lig_index_list[0]])
         angle_list = [[rec_index_list[0],
                        lig_index_list[0],
                        lig_index_list[1],
                        angle_type,
-                       round(angle_1, 3),
-                       k,
-                       round(angle_1, 3),
-                       k]]
+                       round(angle_1, 3), k,
+                       round(angle_1, 3), k]]
         angle_list += [[rec_index_list[1],
                         rec_index_list[0],
                         lig_index_list[0],
                         angle_type,
-                        round(angle_2, 3),
-                        k,
-                        round(angle_2, 3),
-                        k]]
+                        round(angle_2, 3), k,
+                        round(angle_2, 3), k]]
 
         # R0-L0-L1-L2
-        dihed_1 = pdb_manip.Coor.atom_dihed_angle(coor[rec_index_list[0]],
-                                                  coor[lig_index_list[0]],
-                                                  coor[lig_index_list[1]],
-                                                  coor[lig_index_list[2]])
+        dihed_1 = pdb_manip.Coor.atom_dihed_angle(coor.atom_dict[rec_index_list[0]],
+                                                  coor.atom_dict[lig_index_list[0]],
+                                                  coor.atom_dict[lig_index_list[1]],
+                                                  coor.atom_dict[lig_index_list[2]])
         # R2-R1-R0-L0
-        dihed_2 = pdb_manip.Coor.atom_dihed_angle(coor[rec_index_list[2]],
-                                                  coor[rec_index_list[1]],
-                                                  coor[rec_index_list[0]],
-                                                  coor[lig_index_list[0]])
+        dihed_2 = pdb_manip.Coor.atom_dihed_angle(coor.atom_dict[rec_index_list[2]],
+                                                  coor.atom_dict[rec_index_list[1]],
+                                                  coor.atom_dict[rec_index_list[0]],
+                                                  coor.atom_dict[lig_index_list[0]])
         dihed_list = [[rec_index_list[0],
                        lig_index_list[0],
                        lig_index_list[1],
                        lig_index_list[2],
                        dihed_type,
-                       round(dihed_1, 3),
-                       k,
-                       round(dihed_1, 3),
-                       k]]
+                       round(dihed_1, 3), k,
+                       round(dihed_1, 3), k]]
         dihed_list += [[rec_index_list[2],
                         rec_index_list[1],
                         rec_index_list[0],
                         lig_index_list[0],
                         dihed_type,
-                        round(dihed_2, 3),
-                        k,
-                        round(dihed_2, 3),
-                        k]]
+                        round(dihed_2, 3), k,
+                        round(dihed_2, 3), k]]
 
         top = TopSys(self.top_file)
 
         top.add_intermolecular_restr(bond_list=bond_list,
                                      angle_list=angle_list,
                                      dihed_list=dihed_list)
-        top.write_file(self.top_file)
+        top.write_file(self.top_file[:-4]+'_rest.top')
+        self.top_file = self.top_file[:-4]+'_rest.top'
 
     def free_ener(self, out_folder, mol_name, lambda_elec_num, lambda_vdw_num,
                   lambda_bond_num=0,
@@ -6146,13 +6189,32 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         logger.error("Last Frame not found in gmx check output")
         raise ValueError()
 
+    def convert_selection_to_index(self, selection_list):
+        """ Convert selection list with selection name eg.
+        "System" to the index number eg. "0".
+        """
+
+        sele_dict = self.get_index_dict()
+
+        sele_index_list = []
+        for sele in selection_list:
+            if sele in sele_dict:
+                sele_index_list.append(str(sele_dict[sele]))
+            else:
+                try:
+                    int(sele)
+                except ValueError:
+                    logger.warning('Selection {} could not be found'
+                                   ' in the index file {}'.format(
+                                        sele, self.ndx))
+        return(sele_index_list)
+
     def get_ener(self, selection_list, output_xvg='tmp_edr.xvg',
                  check_file_out=True, keep_ener_file=False):
         """Get energy of a system using ``gmx energy``.
         """
 
         logger.info("- Extract energy")
-        # print('\n'.join(selection_list))
 
         # Check if output files exist:
         if check_file_out and os.path.isfile(output_xvg):
@@ -6173,35 +6235,35 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         return(ener_pd)
 
-    def get_rmsd(self, selection_list, output_xvg='tmp_rmsd.xvg',
-                 fit="rot+trans", group_num=1, pbc="no",
-                 check_file_out=True, keep_ener_file=False):
+    def get_rmsd(self, selection_list=['C-alpha', 'Protein'],
+                 output_xvg='tmp_rmsd.xvg',
+                 fit="rot+trans", pbc="no",
+                 keep_ener_file=False):
         """Get RMSD of a system using ``gmx rms``.
         """
 
         logger.info("- Extract RMSD")
 
-        # Check if output files exist:
-        if check_file_out and os.path.isfile(output_xvg):
-            logger.info("get_ener not launched {} already exist".format(
-                output_xvg))
-        else:
-            cmd_list = [GMX_BIN, "rms",
-                        "-s", self.tpr,
-                        "-f", self.xtc,
-                        "-o", output_xvg,
-                        "-fit", fit,
-                        "-ng", str(group_num),
-                        "-pbc", pbc]
-            if self.ndx is not None:
-                cmd_list += ['-n', self.ndx]
-            cmd_rmsd = os_command.Command(cmd_list)
+        # Convert selection name to index:
+        sele_index_list = self.convert_selection_to_index(selection_list)
+        group_num = len(sele_index_list) - 1
 
-            cmd_rmsd.display()
-            cmd_rmsd.run(com_input='\n'.join(selection_list))
+        cmd_list = [GMX_BIN, "rms",
+                    "-s", self.tpr,
+                    "-f", self.xtc,
+                    "-n", self.ndx,
+                    "-o", output_xvg,
+                    "-fit", fit,
+                    "-ng", str(group_num),
+                    "-pbc", pbc]
+
+        cmd_rmsd = os_command.Command(cmd_list)
+
+        cmd_rmsd.display()
+        cmd_rmsd.run(com_input='\n'.join(sele_index_list))
 
         ener_pd = monitor.read_xvg(output_xvg)
-
+        ener_pd.columns = ['time'] + selection_list[1:]
         if not keep_ener_file:
             os_command.delete_file(output_xvg)
 
@@ -6209,32 +6271,31 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
     def get_rmsf(self, selection_list, output_xvg='tmp_rmsf.xvg',
                  fit="no", res="no",
-                 check_file_out=True, keep_ener_file=False):
+                 keep_ener_file=False):
         """Get RMSF of a system using ``gmx rmsf``.
         """
 
         logger.info("- Extract RMSF")
 
-        # Check if output files exist:
-        if check_file_out and os.path.isfile(output_xvg):
-            logger.info("get_ener not launched {} already exist".format(
-                output_xvg))
-        else:
-            cmd_list = [GMX_BIN, "rmsf",
-                        "-s", self.tpr,
-                        "-f", self.xtc,
-                        "-o", output_xvg,
-                        "-fit", fit,
-                        "-res", res]
-            if self.ndx is not None:
-                cmd_list += ['-n', self.ndx]
+        # Convert selection name to index:
+        sele_index_list = self.convert_selection_to_index(selection_list)
 
-            cmd_rmsd = os_command.Command(cmd_list)
+        cmd_list = [GMX_BIN, "rmsf",
+                    "-s", self.tpr,
+                    "-f", self.xtc,
+                    "-n", self.ndx,
+                    "-o", output_xvg,
+                    "-fit", fit,
+                    "-res", res]
 
-            cmd_rmsd.display()
-            cmd_rmsd.run(com_input='\n'.join(selection_list))
+        cmd_rmsd = os_command.Command(cmd_list)
+
+        cmd_rmsd.display()
+        cmd_rmsd.run(com_input='\n'.join(sele_index_list))
 
         ener_pd = monitor.read_xvg(output_xvg)
+        ener_pd.rename(columns={'(nm)': 'RMSF'},
+                       inplace=True)
 
         if not keep_ener_file:
             os_command.delete_file(output_xvg)
