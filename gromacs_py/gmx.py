@@ -9,6 +9,7 @@ import os
 import copy
 import logging
 import sys
+import math
 
 from shutil import copy as shutil_copy
 
@@ -122,6 +123,9 @@ HA_NAME += ['O5\'', 'C5\'', 'C4\'', 'O4\'', 'C1\'', 'N1', 'C6',
             'C2\'', 'O3\'', 'P', 'O1P', 'O2P', 'N9', 'C8', 'N7',
             'O6', 'N2', 'C7', 'N6', 'O4']
 
+# Boltzmann Constant
+KB = 8.31446261815324
+
 
 class TopSys:
     """Topologie base on gromacs .top :
@@ -231,6 +235,11 @@ class TopSys:
                     # Remove space and [ ]
                     field = line.strip()[1:-1].strip()
                     # print(field)
+                    # As intermolecular_inter field is empty
+                    # (filled with bonds, angles, ...)
+                    # It has to be checked now:
+                    if field == 'intermolecular_interactions':
+                        self.inter_interact = True
                     continue
                 # Check in the field :
                 elif (not ifdef and not line[0].startswith(";") and
@@ -263,8 +272,6 @@ class TopSys:
                                               'num': line_list[1]})
                     # Following command concern
                     # intermolecular interactions
-                    elif field == 'intermolecular_interactions':
-                        self.inter_interact = True
                     elif field == 'bonds':
                         bond_list.append(line.strip().split())
                     elif field == 'angles':
@@ -1748,15 +1755,15 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
     - Extract RMSD
     - Create the ndx file ...equi_HA_D_SH3.ndx
     gmx make_ndx -f ...equi_HA_D_SH3_compact.pdb -o ...equi_HA_D_SH3.ndx
-    gmx rms -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...equi_HA_D_SH3.ndx\
- -o tmp_rmsd.xvg -fit rot+trans -ng 1 -pbc no
+    gmx rms -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...\
+equi_HA_D_SH3.ndx -o tmp_rmsd.xvg -fit rot+trans -ng 1 -pbc no
     >>> rmsd_pd #doctest: +ELLIPSIS
        time   Protein
     0   0.0... 0.000...
     >>> rmsf_pd = prot.get_rmsf(['Protein'], res="yes")  #doctest: +ELLIPSIS
     - Extract RMSF
-    gmx rmsf -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...equi_HA_D_SH3.ndx\
- -o tmp_rmsf.xvg -fit no -res yes
+    gmx rmsf -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...\
+equi_HA_D_SH3.ndx -o tmp_rmsf.xvg -fit no -res yes
     >>> rmsf_pd #doctest: +ELLIPSIS
         Residue    RMSF
     0       791  ...
@@ -2238,6 +2245,7 @@ ff='amber99sb-ildn', include_mol={'DAP':\
         Succeed to read file 00_1D30.pqr ,  758 atoms found
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to save file DAP.pdb
+        Succeed to read file DAP.pdb ,  21 atoms found
         Succeed to read file DAP_h.pdb ,  36 atoms found
         Succeed to save file DAP_h.pdb
         Succeed to read file DAP_h.pdb ,  36 atoms found
@@ -2300,39 +2308,6 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
 ...DAP_water.top -po out_DAP.mdp -o DAP.tpr -maxwarn 1
         - Launch the simulation DAP.tpr
         gmx mdrun -s DAP.tpr -deffnm DAP -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-        >>> # As the system is small use only 1 proc
-        >>> lig.nt = 1
-        >>> ener = lig.free_ener(out_folder=TEST_OUT + \
-'/prepare_top/free_ener_DAP', mol_name='DAP', lambda_elec_num=2, \
-lambda_vdw_num=2, em_steps=10, nvt_time=.01, \
-npt_time=.01, prod_time=.01) #doctest: +ELLIPSIS
-        Coulomb lambda :0.00 0.50 1.00 1.00 1.00...
-        Vdw lambda     :0.00 0.00 0.00 0.50 1.00...
-        bond_lambdas   :1.00 1.00 1.00 1.00 1.00...
-        - Create the tpr file em_DAP_vdwq_00.tpr
-        gmx grompp -f em_DAP_vdwq_00.mdp -c ...DAP.gro -r ...DAP.gro -p \
-...DAP_water.top -po out_em_DAP_vdwq_00.mdp -o em_DAP_vdwq_00.tpr -maxwarn 1
-        - Launch the simulation em_DAP_vdwq_00.tpr
-        gmx mdrun -s em_DAP_vdwq_00.tpr -deffnm em_DAP_vdwq_00 -nt 1 -ntmpi 0 \
--nsteps -2 -nocopyright
-        ...
-        - Create the tpr file prod_DAP_vdwq_04.tpr
-        gmx grompp -f prod_DAP_vdwq_04.mdp -c ...npt_DAP_vdwq_04.gro -r \
-...npt_DAP_vdwq_04.gro -p ....top -po out_prod_DAP_vdwq_04.mdp -o \
-prod_DAP_vdwq_04.tpr -maxwarn 1
-        - Launch the simulation prod_DAP_vdwq_04.tpr
-        gmx mdrun -s prod_DAP_vdwq_04.tpr -deffnm prod_DAP_vdwq_04 -nt 1 \
--ntmpi 0 -nsteps -2 -nocopyright
-        - Extract bar energy
-        gmx bar -f ...prod_DAP_vdwq_00.xvg ...prod_DAP_vdwq_04.xvg \
--o bar.xvg -oi barint.xvg \
--oh histogram.xvg -b 0 -e -1
-        DDG = -... +/- ... KJ/mol-1
-        DDG = -... +/- ... Kcal/mol-1
-        Log P = ... +/- ...
-        >>> (ener['DG'] > -260.0) and (ener['DG'] < -100.0)
-        True
-
 
         .. note::
             No options are allowed (forcefield, water model, termini capping)
@@ -2524,9 +2499,11 @@ prod_DAP_vdwq_04.tpr -maxwarn 1
                                     resname))
 
         # Create empty topologie:
-        open('{}.top'.format(name), 'a').close()
+        # Need to use write instead of append
+        # In case the file aldready exists
+        open('{}.top'.format(name), 'w').close()
         # Create empty coordinates:
-        open('{}.pdb'.format(name), 'a').close()
+        open('{}.pdb'.format(name), 'w').close()
 
         self.coor_file = '{}.pdb'.format(name)
         self.top_file = '{}.top'.format(name)
@@ -2569,12 +2546,6 @@ prod_DAP_vdwq_04.tpr -maxwarn 1
                             mol_num=mol['num'])
             # Add atomtypes itp:
             sys_top.add_atomtypes(mol_itp[0])
-
-            # fullname = (mol_itp[0].split("/")[-1])
-            # include = fullname.split(".")[0]
-            # path = os_command.full_path_and_check(mol_itp[0])
-            # atomtype_itp = Itp(name=include, fullname=fullname, path=path)
-            # sys_top.itp_list = [atomtype_itp] + sys_top.itp_list
 
         if mol_sys_list:
             # Add coordinates:
@@ -3907,8 +3878,8 @@ nsteps=10, constraints="none")
         top = TopSys(self.top_file)
         sys_charge = top.charge()
         water_num = top.mol_num("SOL")
-        logger.info("- Add ions to the system with an ionic concentration of {}"
-                    " M , sytem charge = {} water num= {}".format(
+        logger.info("- Add ions to the system with an ionic concentration"
+                    " of {} M , sytem charge = {} water num= {}".format(
                         ion_C, sys_charge, water_num))
 
         cation_num = round(ion_C / 55.5 * water_num)
@@ -5548,337 +5519,6 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         os.chdir(start_dir)
 
-    def compute_intermol_from_traj(self, lig_name, rec_group='Protein', k=41.84):
-        """ Compute intermolecular restraint from the last GmxSys trajectory.
-        """
-
-        self.get_rmsf(lig_name).plot('Atom')
-
-
-    def add_intermol_restr_index(self, rec_index_list, lig_index_list, k=41.84):
-        """Compute the intermolecula restraints base on the
-        self.coor file.
-
-        :param rec_index_list: List of the receptor atom index
-        :type rec_index_list: list
-
-        :param lig_index_list: List of the ligand atom index
-        :type lig_index_list: list
-
-        **Object requirement(s):**
-
-            * self.coor_file
-            * self.top_file
-
-        **Object field(s) changed:**
-
-            * self.top_file
-
-        Give three atoms for each receptor and ligand index list:
-        R0, R1 R2 and L0 L1 L2
-        Will define:
-        - 1 bond:
-            - R0-L0
-        - 2 angles:
-            - R0-L0-L1
-            - R1-R0-L0
-        - 2 dihedral angles:
-            - R0-L0-L1-L2
-            - R2-R1-R0-L0
-
-        """
-        bond_type = 1
-        angle_type = 1
-        dihed_type = 1
-
-        # Get distance and angles
-        if not self.coor_file.endswith('.pdb'):
-            self.convert_trj(traj=False)
-
-        coor = pdb_manip.Coor(self.coor_file)
-
-        # R0-L0
-        dist = pdb_manip.Coor.atom_dist(coor.atom_dict[rec_index_list[0]],
-                                        coor.atom_dict[lig_index_list[0]]) / 10.0
-        bond_list = [[rec_index_list[0],
-                      lig_index_list[0],
-                      bond_type,
-                      round(dist, 3),
-                      k*100,
-                      round(dist, 3),
-                      k*100]]
-        # R0-L0-L1
-        angle_1 = pdb_manip.Coor.atom_angle(coor.atom_dict[rec_index_list[0]],
-                                            coor.atom_dict[lig_index_list[0]],
-                                            coor.atom_dict[lig_index_list[1]])
-        # R1-R0-L0
-        angle_2 = pdb_manip.Coor.atom_angle(coor.atom_dict[rec_index_list[1]],
-                                            coor.atom_dict[rec_index_list[0]],
-                                            coor.atom_dict[lig_index_list[0]])
-        angle_list = [[rec_index_list[0],
-                       lig_index_list[0],
-                       lig_index_list[1],
-                       angle_type,
-                       round(angle_1, 3), k,
-                       round(angle_1, 3), k]]
-        angle_list += [[rec_index_list[1],
-                        rec_index_list[0],
-                        lig_index_list[0],
-                        angle_type,
-                        round(angle_2, 3), k,
-                        round(angle_2, 3), k]]
-
-        # R0-L0-L1-L2
-        dihed_1 = pdb_manip.Coor.atom_dihed_angle(coor.atom_dict[rec_index_list[0]],
-                                                  coor.atom_dict[lig_index_list[0]],
-                                                  coor.atom_dict[lig_index_list[1]],
-                                                  coor.atom_dict[lig_index_list[2]])
-        # R2-R1-R0-L0
-        dihed_2 = pdb_manip.Coor.atom_dihed_angle(coor.atom_dict[rec_index_list[2]],
-                                                  coor.atom_dict[rec_index_list[1]],
-                                                  coor.atom_dict[rec_index_list[0]],
-                                                  coor.atom_dict[lig_index_list[0]])
-        dihed_list = [[rec_index_list[0],
-                       lig_index_list[0],
-                       lig_index_list[1],
-                       lig_index_list[2],
-                       dihed_type,
-                       round(dihed_1, 3), k,
-                       round(dihed_1, 3), k]]
-        dihed_list += [[rec_index_list[2],
-                        rec_index_list[1],
-                        rec_index_list[0],
-                        lig_index_list[0],
-                        dihed_type,
-                        round(dihed_2, 3), k,
-                        round(dihed_2, 3), k]]
-
-        top = TopSys(self.top_file)
-
-        top.add_intermolecular_restr(bond_list=bond_list,
-                                     angle_list=angle_list,
-                                     dihed_list=dihed_list)
-        top.write_file(self.top_file[:-4]+'_rest.top')
-        self.top_file = self.top_file[:-4]+'_rest.top'
-
-    def free_ener(self, out_folder, mol_name, lambda_elec_num, lambda_vdw_num,
-                  lambda_bond_num=0,
-                  em_steps=5000, nvt_time=10, npt_time=10, prod_time=100,
-                  dt=0.002, name=None, temperature=300.0, maxwarn=1,
-                  monitor_tool=monitor.PROGRESS_BAR):
-        """Compute free energy to transfer a molecule from the
-        system to vacum.
-
-        :param out_folder: path of the output folder
-        :type out_folder: str
-
-        :param mol_name: Name of the molecule
-        :type mol_name: str
-
-        :param lambda_elec_num: Number of lambda windows for Coulomb
-        :type lambda_elec_num: int
-
-        :param lambda_vdw_num: Number of lambda windows for Lennard Jones
-        :type lambda_vdw_num: int
-
-        :param lambda_bond_num: Number of lambda windows for restraints
-        :type lambda_bond_num: int, default=0
-
-        :param em_steps: number of minimisation steps
-        :type em_steps: int, default=5000
-
-        :param nvt_time: Time (ps) of NVT equilibration
-        :type nvt_time: int, default=10 ps
-
-        :param npt_time:  Time (ps) of NPT equilibration
-        :type npt_time: int, default=10 ps
-
-        :param prod_time: Time (ps) of production run
-        :type prod_time: float, default=100 ps
-
-        :param dt: integration time step
-        :type dt: float, default=0.002
-
-        :param name: name of the simulation to run
-        :type name: str, default=None
-
-        :param temperature: Temperature K
-        :type temperature: float, default=300.0
-
-        :param maxwarn: Maximum number of warnings when using ``gmx grompp``
-        :type maxwarn: int, default=0
-
-        :param monitor: option to monitor a simulation, if not none monitor
-            should contains two values: ``function`` the function to be ran
-            while simulation is running and ``input`` parameters for the
-            function
-        :type rerun: dict, default=None
-
-        **Object requirement(s):**
-
-            * self.coor_file
-            * self.top_file
-            * self.nt
-            * self.ntmpi
-            * self.gpu_id
-
-        **Object field(s) changed:**
-
-            * self.tpr
-            * self.sim_name
-            * self.coor_file
-            * self.xtc
-
-        """
-
-        if name is None:
-            name = self.name
-
-        if monitor.isnotebook():
-            from tqdm.notebook import tqdm
-        else:
-            from tqdm import tqdm
-
-        bond_lambdas = "".join([
-            '{:.2f} '.format(i / (lambda_bond_num)) for i in
-            range(lambda_bond_num)]) + "1.00 " * (lambda_vdw_num +
-                                                  lambda_elec_num + 1)
-        coul_lambdas = "0.00 " * lambda_bond_num + "".join([
-            '{:.2f} '.format(i / (lambda_elec_num)) for i in
-            range(lambda_elec_num)]) + "1.00 " * (lambda_vdw_num + 1)
-        vdw_lambdas = "0.00 " * (lambda_elec_num + lambda_bond_num) + "".join([
-            '{:.2f} '.format(i / (lambda_vdw_num)) for i in range(
-                lambda_vdw_num + 1)])
-
-        logger.info('Coulomb lambda :' + coul_lambdas + "\n" +
-                    'Vdw lambda     :' + vdw_lambdas + "\n" +
-                    'bond_lambdas   :' + bond_lambdas)
-
-        free_ener_option_md = {'integrator': 'sd',
-                               'dt': dt,
-                               'constraints': 'all-bonds',
-                               'nstcalcenergy': 50,
-                               'tc_grps': 'System',
-                               'tau_t': 0.1,
-                               'ref_t': temperature,
-                               'vdwtype': 'cut_off',
-                               'vdw_modifier': 'force_switch',
-                               'rvdw_switch': 1.0,
-                               'rvdw': 1.1,
-                               'coulombtype': 'pme',
-                               'rcoulomb': 1.1,
-                               'free_energy': 'yes',
-                               'init_lambda-state': 0,
-                               'delta_lambda': 0,
-                               'coul_lambdas': coul_lambdas,
-                               'vdw_lambdas': vdw_lambdas,
-                               'bonded_lambdas': bond_lambdas,
-                               'sc_alpha': 0.5,
-                               'sc_power': 1,
-                               'sc_sigma': 0.3,
-                               'couple_moltype': mol_name,
-                               'couple_lambda0': 'vdw-q',
-                               'couple_lambda1': 'none',
-                               'couple_intramol': 'no',
-                               'nstdhdl': 50,
-                               'separate_dhdl_file': 'yes'}
-
-        free_ener_option_em = copy.deepcopy(free_ener_option_md)
-        # Remove useless options for EM
-        del(free_ener_option_em['integrator'],
-            free_ener_option_em['dt'],
-            free_ener_option_em['tc_grps'],
-            free_ener_option_em['tau_t'],
-            free_ener_option_em['ref_t'])
-
-        mini_template_mdp = os.path.join(
-            GROMACS_MOD_DIRNAME, "template/mini.mdp")
-        equi_template_mdp = os.path.join(
-            GROMACS_MOD_DIRNAME, "template/equi.mdp")
-
-        nvt_steps = int(nvt_time / dt)
-        npt_steps = int(npt_time / dt)
-        prod_steps = int(prod_time / dt)
-
-        start_sys = copy.deepcopy(self)
-        mol_sys = copy.deepcopy(start_sys)
-
-        xvg_file_list = []
-
-        tot_step = (lambda_bond_num + lambda_elec_num + lambda_vdw_num + 1) * (
-            em_steps + nvt_steps + npt_steps + prod_steps)
-        pbar = tqdm(total=tot_step)
-
-        for i in range(lambda_bond_num + lambda_elec_num + lambda_vdw_num + 1):
-
-            sys_name = '{}_vdwq_{:02d}'.format(name, i)
-
-            free_ener_option = copy.deepcopy(free_ener_option_em)
-            free_ener_option.update({'init_lambda-state': i,
-                                     'nsteps': em_steps})
-
-            # Mini 5000 steps
-            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '00_em'),
-                               name='em_'+sys_name,
-                               mdp_template=mini_template_mdp,
-                               mdp_options=free_ener_option, maxwarn=maxwarn,
-                               monitor_tool=monitor_tool)
-            pbar.update(em_steps)
-
-            # MD
-            free_ener_option = copy.deepcopy(free_ener_option_md)
-            free_ener_option.update({'init_lambda-state': i})
-
-            # NVT 10ps
-            free_ener_option.update({'nsteps': nvt_steps,
-                                     'pcoupl': 'no'})
-            mol_sys.run_md_sim(out_folder=os.path.join(out_folder,
-                                                       '01_equi_nvt'),
-                               name='nvt_'+sys_name,
-                               mdp_template=equi_template_mdp,
-                               mdp_options=free_ener_option, maxwarn=maxwarn,
-                               monitor_tool=monitor_tool)
-            pbar.update(nvt_steps)
-
-            # NPT 10ps
-            free_ener_option.update({'nsteps': npt_steps,
-                                     'pcoupl': 'parrinello-Rahman'})
-            mol_sys.run_md_sim(out_folder=os.path.join(out_folder,
-                                                       '02_equi_npt'),
-                               name='npt_'+sys_name,
-                               mdp_template=equi_template_mdp,
-                               mdp_options=free_ener_option, maxwarn=maxwarn,
-                               monitor_tool=monitor_tool)
-            pbar.update(npt_steps)
-
-            # Prod 100ps
-            free_ener_option.update({'nsteps': prod_steps})
-            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '03_prod'),
-                               name='prod_'+sys_name,
-                               mdp_template=equi_template_mdp,
-                               mdp_options=free_ener_option, maxwarn=maxwarn,
-                               monitor_tool=monitor_tool)
-            pbar.update(prod_steps)
-
-            xvg_file_list.append(os.path.join(out_folder, '03_prod/',
-                                              'prod_' + sys_name + '.xvg'))
-            mol_sys = copy.deepcopy(start_sys)
-
-        ener = GmxSys.get_bar(xvg_file_list, bar_xvg='bar.xvg',
-                              barint_xvg='barint.xvg',
-                              hist_xvg='histogram.xvg',
-                              check_file_out=True)
-
-        logger.info('DDG = {:.2f} +/- {:.2f} KJ/mol-1'.format(
-            ener['DG'], ener['std']))
-        logger.info('DDG = {:.2f} +/- {:.2f} Kcal/mol-1'.format(
-            ener['DG']/4.184, ener['std']/4.184))
-        logger.info('Log P = {:.2f} +/- {:.2f}'.format(
-            ener['DG'] * -2.303 * 8.31446261815324 * temperature / 4184,
-            ener['std'] * -2.303 * 8.31446261815324 * temperature / 4184))
-
-        return ener
-
     def em_CG(self, out_folder, name=None, nsteps=500000,
               maxwarn=0,
               monitor_tool=monitor.PROGRESS_BAR,
@@ -6189,6 +5829,611 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         logger.error("Last Frame not found in gmx check output")
         raise ValueError()
 
+    ##########################################################
+    # #########   FREE ENERGY RELATED FUNCTIONS   ############
+    ##########################################################
+
+    def compute_add_intermol_from_traj(self, lig_name, ref_coor,
+                                       rec_group='Protein', k=41.84):
+        """ Compute intermolecular restraint from the last GmxSys trajectory.
+        """
+
+        # Get a coor object:
+        # Get distance and angles
+        if not ref_coor.endswith('.pdb'):
+            ref_sys = GmxSys(name='ref', coor_file=ref_coor)
+            ref_sys.tpr = ref_coor
+            ref_sys.convert_trj(traj=False, pbc='none')
+            ref_coor_pdb = ref_sys.coor_file
+        else:
+            ref_coor_pdb = ref_coor
+        coor = pdb_manip.Coor(ref_coor_pdb)
+
+        # Center and align traj:
+        self.convert_trj(
+            select=rec_group + '\n System', center='yes')
+        self.convert_trj(
+            select=rec_group + '\n System', fit='rot+trans', pbc='none')
+
+        # Get RMSF for ligand:
+        lig_rmsf = self.get_rmsf([lig_name])
+        # Sort df by RMSF
+        lig_rmsf = lig_rmsf.sort_values(by=['RMSF'])
+        # Get the stablest atom which is not Hydrogen
+        for i, row in lig_rmsf.iterrows():
+            atom = coor.atom_dict[int(row['Atom'])]
+            if not atom['name'].startswith('H'):
+                lig_atom_list = [int(row['Atom'])]
+                break
+        # Get connected atoms:
+        lig_coor = coor.select_part_dict({'res_name': [lig_name]})
+        atom_coor = pdb_manip.Coor()
+
+        # Add 2 close atom consecutively
+        for _ in range(2):
+            atom_coor.atom_dict = {0: coor.atom_dict[lig_atom_list[-1]]}
+            close_lig_atoms = lig_coor.get_index_dist_between(
+                atom_coor, cutoff_min=1.0, cutoff_max=2.0)
+            for i in close_lig_atoms:
+                atom = coor.atom_dict[i]
+                if not atom['name'].startswith('H') and i not in lig_atom_list:
+                    lig_atom_list.append(i)
+                    break
+
+        # Atom index need to be +1 to be in gromacs numbering
+        lig_atom_list = [index + 1 for index in lig_atom_list]
+        logger.debug(f'Ligand atom indexes : {lig_atom_list}')
+
+        # Get protein RMSF
+        prot_rmsf = self.get_rmsf([rec_group])
+
+        # Get backbone protein atom around the ligand:
+        backbone = coor.select_part_dict({'name': ['N', 'C', 'O', 'CA']})
+        # Create coor for the 3 ligand atoms
+        atom_coor.atom_dict = {
+            i: coor.atom_dict[lig_atom_list[i]] for i in range(3)}
+        around_atom = backbone.get_index_dist_between(
+            atom_coor, cutoff_min=1.0, cutoff_max=6.0)
+        # Extract RMSF of contact atoms
+        around_lig_df = prot_rmsf[prot_rmsf.Atom.isin(around_atom)]
+        around_lig_df = around_lig_df.sort_values(by=['RMSF'])
+        # Get residue of stablest atom:
+        uniq_res = coor.atom_dict[
+            around_lig_df.reset_index().loc[0, 'Atom']]['uniq_resid']
+        rec_atom_list = coor.get_index_selection(
+            {'uniq_resid': [uniq_res], 'name': ['C']})
+        rec_atom_list += coor.get_index_selection(
+            {'uniq_resid': [uniq_res], 'name': ['CA']})
+        rec_atom_list += coor.get_index_selection(
+            {'uniq_resid': [uniq_res], 'name': ['N']})
+
+        # Atom index need to be +1 to be in gromacs numbering
+        rec_atom_list = [index + 1 for index in rec_atom_list]
+        logger.debug(f'Receptor atom indexes : {rec_atom_list}')
+        # Add C, CA, N
+
+        return self.add_intermol_restr_index(rec_atom_list, lig_atom_list,
+                                             ref_coor_pdb, k=k)
+
+    def add_intermol_restr_index(self, rec_index_list, lig_index_list,
+                                 ref_coor, k=41.84, temp=300):
+        """Compute the intermolecula restraints base on the
+        self.coor file.
+
+        :param rec_index_list: List of the receptor atom index
+        :type rec_index_list: list
+
+        :param lig_index_list: List of the ligand atom index
+        :type lig_index_list: list
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+
+        **Object field(s) changed:**
+
+            * self.top_file
+
+        Give three atoms for each receptor and ligand index list:
+        R0, R1 R2 and L0 L1 L2
+        Will define:
+        - 1 bond:
+            - R0-L0
+        - 2 angles:
+            - R0-L0-L1
+            - R1-R0-L0
+        - 2 dihedral angles:
+            - R0-L0-L1-L2
+            - R2-R1-R0-L0
+
+        """
+        bond_type = 6
+        angle_type = 1
+        dihed_type = 2
+
+        # Get distance and angles
+
+        if not ref_coor.endswith('.pdb'):
+            ref_sys = GmxSys(name='ref', coor_file=ref_coor)
+            ref_sys.tpr = ref_coor
+            ref_sys.convert_trj(traj=False, pbc='none')
+            coor = pdb_manip.Coor(ref_sys.coor_file)
+        else:
+            coor = pdb_manip.Coor(ref_coor)
+
+        # R0-L0 (nm)
+        # bond_df = self.get_dist([[rec_index_list[0], lig_index_list[0]]])
+        # dist = bond_df.loc[1,:].mean() / 10 # Convert to nm
+
+        # Index from gromacs starts at 1 and in pdb_manip at 0
+        dist = pdb_manip.Coor.atom_dist(
+            coor.atom_dict[rec_index_list[0] - 1],
+            coor.atom_dict[lig_index_list[0] - 1]) / 10.0
+        bond_list = [[rec_index_list[0],
+                      lig_index_list[0],
+                      bond_type,
+                      round(dist, 3),
+                      0,
+                      round(dist, 3),
+                      k * 100]]
+        # angle_df = self.get_angle(
+        #     [[rec_index_list[0], lig_index_list[0], lig_index_list[1]],
+        #      [rec_index_list[1], rec_index_list[0], lig_index_list[0]]])
+        # angle_1 = angle_df.loc[1,:].mean()
+        # angle_2 = angle_df.loc[2,:].mean()
+
+        # R0-L0-L1
+        angle_1 = pdb_manip.Coor.atom_angle(
+            coor.atom_dict[rec_index_list[0] - 1],
+            coor.atom_dict[lig_index_list[0] - 1],
+            coor.atom_dict[lig_index_list[1] - 1])
+        # R1-R0-L0
+        angle_2 = pdb_manip.Coor.atom_angle(
+            coor.atom_dict[rec_index_list[1] - 1],
+            coor.atom_dict[rec_index_list[0] - 1],
+            coor.atom_dict[lig_index_list[0] - 1])
+        angle_list = [[rec_index_list[0],
+                       lig_index_list[0],
+                       lig_index_list[1],
+                       angle_type,
+                       round(angle_1, 3), 0,
+                       round(angle_1, 3), k]]
+        angle_list += [[rec_index_list[1],
+                        rec_index_list[0],
+                        lig_index_list[0],
+                        angle_type,
+                        round(angle_2, 3), 0,
+                        round(angle_2, 3), k]]
+
+        # dihed_df = self.get_angle([[rec_index_list[0],
+        #                             lig_index_list[0],
+        #                             lig_index_list[1],
+        #                             lig_index_list[2]],
+        #                            [rec_index_list[2],
+        #                             rec_index_list[1],
+        #                             rec_index_list[0],
+        #                             lig_index_list[0]],
+        #                            [rec_index_list[1],
+        #                             rec_index_list[0],
+        #                             lig_index_list[0],
+        #                             lig_index_list[1]]])
+        # dihed_1 = dihed_df.loc[1,:].mean()
+        # dihed_2 = dihed_df.loc[2,:].mean()
+        # dihed_3 = dihed_df.loc[3,:].mean()
+        # R0-L0-L1-L2
+        dihed_1 = pdb_manip.Coor.atom_dihed_angle(
+            coor.atom_dict[rec_index_list[0] - 1],
+            coor.atom_dict[lig_index_list[0] - 1],
+            coor.atom_dict[lig_index_list[1] - 1],
+            coor.atom_dict[lig_index_list[2] - 1])
+        # R2
+        dihed_2 = pdb_manip.Coor.atom_dihed_angle(
+            coor.atom_dict[rec_index_list[2] - 1],
+            coor.atom_dict[rec_index_list[1] - 1],
+            coor.atom_dict[rec_index_list[0] - 1],
+            coor.atom_dict[lig_index_list[0] - 1])
+        # R1-R0-L0-L1
+        dihed_3 = pdb_manip.Coor.atom_dihed_angle(
+            coor.atom_dict[rec_index_list[1] - 1],
+            coor.atom_dict[rec_index_list[0] - 1],
+            coor.atom_dict[lig_index_list[0] - 1],
+            coor.atom_dict[lig_index_list[1] - 1])
+        dihed_list = [[rec_index_list[0],
+                       lig_index_list[0],
+                       lig_index_list[1],
+                       lig_index_list[2],
+                       dihed_type,
+                       round(dihed_1, 3), 0,
+                       round(dihed_1, 3), k]]
+        dihed_list += [[rec_index_list[2],
+                        rec_index_list[1],
+                        rec_index_list[0],
+                        lig_index_list[0],
+                        dihed_type,
+                        round(dihed_2, 3), 0,
+                        round(dihed_2, 3), k]]
+
+        dihed_list += [[rec_index_list[1],
+                        rec_index_list[0],
+                        lig_index_list[0],
+                        lig_index_list[1],
+                        dihed_type,
+                        round(dihed_3, 3), 0,
+                        round(dihed_3, 3), k]]
+
+        top = TopSys(self.top_file)
+
+        top.add_intermolecular_restr(bond_list=bond_list,
+                                     angle_list=angle_list,
+                                     dihed_list=dihed_list)
+
+        top.write_file(self.top_file[:-4] + '_rest.top')
+        self.top_file = self.top_file[:-4] + '_rest.top'
+
+        # Compute DG restr in water:
+        V0 = 1660 * 1e-3  # nm³
+        GK = KB * 1e-3 / 4.184  # Gas constant kcal/mol/K
+        # K need to converted to Kcal (currently in KJ)
+        k_bond = 1e2 * k / 4.184  # k*1e2 kcal/(nm*mol)
+        k_angle = k / 4.184
+
+        numerator = 8 * math.pi**2 * V0 * (k_bond * k_angle**5)**0.5
+        denominator_1 = (dist**2 * math.sin(math.radians(angle_1))
+                         * math.sin(math.radians(angle_2)))
+        denominator_2 = (2 * math.pi * GK * temp)**3
+
+        dg_rest_water = GK * temp * math.log(
+            numerator / (denominator_1 * denominator_2))
+
+        return(dg_rest_water)
+
+    def free_ener(self, out_folder, mol_name, lambda_elec_list,
+                  lambda_vdw_list, lambda_restr_list=[], mbar=False,
+                  em_steps=5000, nvt_time=10, npt_time=10, prod_time=100,
+                  dt=0.002, name=None, temp=300.0,
+                  temp_groups='Protein non-Protein', maxwarn=1,
+                  monitor_tool=monitor.PROGRESS_BAR):
+        """Compute free energy to transfer a molecule from the
+        system to vacum.
+
+        :param out_folder: path of the output folder
+        :type out_folder: str
+
+        :param mol_name: Name of the molecule
+        :type mol_name: str
+
+        :param lambda_elec_list: List lambda points for Coulomb
+        :type lambda_elec_list: list
+
+        :param lambda_vdw_list: List lambda points for Lennard Jones
+        :type lambda_vdw_list: list
+
+        :param lambda_bond_list: List lambda points for restraints
+        :type lambda_bond_list: list, default=[]
+
+        :param mbar: MBAR flag
+        :type mbar: bool, default=False
+
+        :param em_steps: number of minimisation steps
+        :type em_steps: int, default=5000
+
+        :param nvt_time: Time (ps) of NVT equilibration
+        :type nvt_time: int, default=10 ps
+
+        :param npt_time:  Time (ps) of NPT equilibration
+        :type npt_time: int, default=10 ps
+
+        :param prod_time: Time (ps) of production run
+        :type prod_time: float, default=100 ps
+
+        :param dt: integration time step
+        :type dt: float, default=0.002
+
+        :param name: name of the simulation to run
+        :type name: str, default=None
+
+        :param temp: Temperature K
+        :type temp: float, default=300.0
+
+        :param temp_groups: Group(s) for temperature coupling
+        :type temp_groups: str, default='Protein non-Protein'
+
+        :param maxwarn: Maximum number of warnings when using ``gmx grompp``
+        :type maxwarn: int, default=0
+
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+            * self.nt
+            * self.ntmpi
+            * self.gpu_id
+
+        **Object field(s) changed:**
+
+            * self.tpr
+            * self.sim_name
+            * self.coor_file
+            * self.xtc
+
+        """
+
+        if name is None:
+            name = self.name
+
+        if monitor.isnotebook():
+            from tqdm.notebook import tqdm
+        else:
+            from tqdm import tqdm
+
+        # Remove lambda=0 for vdw and elec
+        # If previous restr lambdas are computed
+        if len(lambda_restr_list) > 0:
+            lambda_elec_list = list(lambda_elec_list)
+            lambda_elec_list.remove(0.0)
+        if len(lambda_restr_list) + len(lambda_elec_list) > 0:
+            lambda_vdw_list = list(lambda_vdw_list)
+            lambda_vdw_list.remove(0.0)
+
+        lambda_restr_num = len(lambda_restr_list)
+        lambda_elec_num = len(lambda_elec_list)
+        lambda_vdw_num = len(lambda_vdw_list)
+
+        restr_lambdas = "".join([
+            '{:.2f} '.format(i) for i in lambda_restr_list]) +\
+            "1.00 " * (lambda_vdw_num + lambda_elec_num)
+        coul_lambdas = "0.00 " * lambda_restr_num + "".join([
+            '{:.2f} '.format(i) for i in lambda_elec_list]) +\
+            "1.00 " * (lambda_vdw_num)
+        vdw_lambdas = "0.00 " * (lambda_elec_num + lambda_restr_num) +\
+            "".join(['{:.2f} '.format(i) for i in lambda_vdw_list])
+
+        logger.info('Coulomb lambda :' + coul_lambdas + "\n"
+                    + 'Vdw lambda     :' + vdw_lambdas + "\n"
+                    + 'restr_lambdas   :' + restr_lambdas)
+
+        free_ener_option_md = {'integrator': 'sd',
+                               'dt': dt,
+                               'constraints': 'all-bonds',
+                               'nstcalcenergy': 50,
+                               'tcoupl': '',
+                               'tc_grps': temp_groups,
+                               # https://events.prace-ri.eu/event/674/attachments/618/896/MD_FreeEnergyTutorial.pdf
+                               # Suggest to usr tau_t = 1.0 to avoid
+                               # over-damping the dynamics of water
+                               'tau_t': " ".join(['{}'.format(1.0)
+                                                  for _ in range(
+                                                    len(temp_groups.split()))
+                                                  ]),
+                               'ref_t': " ".join(['{}'.format(temp)
+                                                  for _ in range(
+                                                    len(temp_groups.split()))
+                                                  ]),
+                               'vdwtype': 'cut_off',
+                               'vdw_modifier': 'force_switch',
+                               'rvdw_switch': 1.0,
+                               'rvdw': 1.1,
+                               'coulombtype': 'pme',
+                               'rcoulomb': 1.1,
+                               'free_energy': 'yes',
+                               'init_lambda-state': 0,
+                               'calc-lambda-neighbors': 1,
+                               'delta_lambda': 0,
+                               'coul_lambdas': coul_lambdas,
+                               'vdw_lambdas': vdw_lambdas,
+                               'bonded_lambdas': restr_lambdas,
+                               'sc_alpha': 0.5,
+                               'sc_power': 1,
+                               'sc_sigma': 0.3,
+                               'couple_moltype': mol_name,
+                               'couple_lambda0': 'vdw-q',
+                               'couple_lambda1': 'none',
+                               'couple_intramol': 'no',
+                               'nstdhdl': 50,
+                               'separate_dhdl_file': 'yes'}
+
+        free_ener_option_em = copy.deepcopy(free_ener_option_md)
+        # Remove useless options for EM
+        del(free_ener_option_em['integrator'],
+            free_ener_option_em['dt'],
+            free_ener_option_em['tc_grps'],
+            free_ener_option_em['tau_t'],
+            free_ener_option_em['ref_t'])
+
+        mini_template_mdp = os.path.join(
+            GROMACS_MOD_DIRNAME, "template/mini.mdp")
+        equi_template_mdp = os.path.join(
+            GROMACS_MOD_DIRNAME, "template/equi.mdp")
+
+        nvt_steps = int(nvt_time / dt)
+        npt_steps = int(npt_time / dt)
+        prod_steps = int(prod_time / dt)
+
+        start_sys = copy.deepcopy(self)
+        mol_sys = copy.deepcopy(start_sys)
+
+        xvg_file_list = []
+
+        tot_step = (lambda_restr_num + lambda_elec_num + lambda_vdw_num) * (
+            em_steps + nvt_steps + npt_steps + prod_steps)
+        pbar = tqdm(total=tot_step)
+
+        for i in range(lambda_restr_num + lambda_elec_num + lambda_vdw_num):
+
+            logger.info('Compute lambda {} / {}'.format(
+                i, lambda_restr_num + lambda_elec_num + lambda_vdw_num))
+
+            sys_name = '{}_vdwq_{:02d}'.format(name, i)
+
+            free_ener_option = copy.deepcopy(free_ener_option_em)
+            free_ener_option.update({'init_lambda-state': i,
+                                     'nsteps': em_steps})
+
+            # Mini 5000 steps
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '00_em'),
+                               name='em_' + sys_name,
+                               mdp_template=mini_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn,
+                               monitor_tool=monitor_tool)
+            pbar.update(em_steps)
+
+            # MD
+            free_ener_option = copy.deepcopy(free_ener_option_md)
+            free_ener_option.update({'init_lambda-state': i})
+
+            # NVT 10ps
+            free_ener_option.update({'nsteps': nvt_steps,
+                                     'pcoupl': 'no'})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder,
+                                                       '01_equi_nvt'),
+                               name='nvt_' + sys_name,
+                               mdp_template=equi_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn,
+                               monitor_tool=monitor_tool)
+            pbar.update(nvt_steps)
+
+            # NPT 10ps
+            free_ener_option.update({'nsteps': npt_steps,
+                                     'pcoupl': 'parrinello-Rahman'})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder,
+                                                       '02_equi_npt'),
+                               name='npt_' + sys_name,
+                               mdp_template=equi_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn,
+                               monitor_tool=monitor_tool)
+            pbar.update(npt_steps)
+
+            # Prod 100ps
+            if mbar:
+                free_ener_option.update({'calc-lambda-neighbors': -1})
+            free_ener_option.update({'nsteps': prod_steps})
+            mol_sys.run_md_sim(out_folder=os.path.join(out_folder, '03_prod'),
+                               name='prod_' + sys_name,
+                               mdp_template=equi_template_mdp,
+                               mdp_options=free_ener_option, maxwarn=maxwarn,
+                               monitor_tool=monitor_tool)
+            pbar.update(prod_steps)
+
+            xvg_file_list.append(os.path.join(out_folder, '03_prod/',
+                                              'prod_' + sys_name + '.xvg'))
+            mol_sys = copy.deepcopy(start_sys)
+
+        # I guess it should be better to return xvg_file_list
+        ener = GmxSys.get_bar(xvg_file_list, bar_xvg='bar.xvg',
+                              barint_xvg='barint.xvg',
+                              hist_xvg='histogram.xvg',
+                              check_file_out=True)
+        ener['file_list'] = xvg_file_list
+        ener['temp'] = temp
+        ener['lambda_elec'] = lambda_elec_list
+        ener['lambda_vdw'] = lambda_vdw_list
+        ener['lambda_restr'] = lambda_restr_list
+
+        GmxSys.show_free_ener(ener)
+        return ener
+
+    @staticmethod
+    def show_free_ener(ener, unit='kcal'):
+        """ Show free energy calculation output
+
+        NEED TO FIX STD !!
+        """
+
+        if unit == 'kcal':
+            conv_fac = 0.593
+            unit_name = 'kcal/mol'
+        elif unit == 'kJ':
+            conv_fac = 4.184 * 0.593
+            unit_name = 'kJ/mol'
+        elif unit == 'kT':
+            conv_fac = 1
+            unit_name = 'KT'
+        elif unit == 'logP':
+            conv_fac = -1.365679 * KB * ener['temp'] / 1000
+            unit_name = 'logP'
+
+        tot_ener = ener['table']['DG (kT)'].sum() * conv_fac
+        tot_ener_std = sum(ener['table']['+/-']**2)**0.5 * conv_fac
+
+        logger.info('DDG Tot   = {:.2f} +/- {:.2f} {}'.format(
+            tot_ener, tot_ener_std, unit_name))
+        # logger.info('DDG = {:.2f} +/- {:.2f} KJ/mol-1'.format(
+        #    ener['DG'], ener['std']))
+        # logger.info('Log P = {:.2f} +/- {:.2f}'.format(
+        #    ener['DG'] * -2.303 * KB * temp / 4184,
+        #    ener['std'] * -2.303 * KB * temp / 4184))
+        lambda_bond_num = len(ener['lambda_restr'])
+        lambda_elec_num = len(ener['lambda_elec'])
+
+        bond_contrib = ener['table']['DG (kT)'][
+            :lambda_bond_num].sum() * conv_fac
+        bond_contrib_std = sum(
+            ener['table']['+/-'][:lambda_bond_num]**2
+            )**0.5 * conv_fac
+        coulomb_contrib = ener['table']['DG (kT)'][
+            lambda_bond_num:lambda_bond_num + lambda_elec_num].sum() * conv_fac
+        coulomb_contrib_std = sum(
+            ener['table']['+/-'][
+                lambda_bond_num:lambda_bond_num + lambda_elec_num]**2
+            )**0.5 * conv_fac
+        vdw_contrib = ener['table']['DG (kT)'][
+            lambda_bond_num + lambda_elec_num:].sum() * conv_fac
+        vdw_contrib_std = sum(
+            ener['table']['+/-'][lambda_bond_num + lambda_elec_num:]**2
+            )**0.5 * conv_fac
+
+        logger.info('DDG Restr = {:.2f} +/- {:.2f} {}'.format(
+            bond_contrib, bond_contrib_std, unit_name))
+        logger.info('DDG Coul  = {:.2f} +/- {:.2f} {}'.format(
+            coulomb_contrib, coulomb_contrib_std, unit_name))
+        logger.info('DDG LJ    = {:.2f} +/- {:.2f} {}'.format(
+            vdw_contrib, vdw_contrib_std, unit_name))
+
+    @staticmethod
+    def symmetry_correction(smile, temp=300):
+        r""" Compute symmetry correction
+        $\Delta_{sym} = −k T ln(\sigma) $
+
+        return value in kcal/mol
+
+        """
+
+        try:
+            from rdkit import Chem
+            # from rdkit.Chem import rdmolfiles
+        except ImportError:
+            logger.warning('WARNING !!!! \n'
+                           'Could not load rdkit \nInstall it using conda:\n'
+                           'conda install -c conda-forge rdkit\n'
+                           'Symmetry correction set to 0\n')
+            return(0.0)
+
+        x = Chem.MolFromSmiles(smile)
+        # z = list(rdmolfiles.CanonicalRankAtoms(x, breakTies=False))
+        matches = x.GetSubstructMatches(x, uniquify=False)
+        sigma = len(matches)
+        logger.warning('WARNING !!!! \n'
+                       'symmetry_correction() is quite experimental\n'
+                       'seems to work for small molecules, use it with'
+                       ' caution\n')
+        logger.info(f'For molecule {smile} Symmetry number'
+                    f' sigma is set to {sigma}')
+
+        GK = - KB * 1e-3 / 4.184  # Gas constant kcal/mol/K
+
+        return GK * temp * math.log(sigma)
+
+    ##########################################################
+    # ###########   ANALYSIS RELATED FUNCTIONS   #############
+    ##########################################################
+
     def convert_selection_to_index(self, selection_list):
         """ Convert selection list with selection name eg.
         "System" to the index number eg. "0".
@@ -6338,11 +6583,89 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             os_command.delete_file(barint_xvg)
             os_command.delete_file(hist_xvg)
 
-        return {'DG': -total, 'std': std, 'table': ener_pd}
+        return {'DG': total, 'std': std, 'table': ener_pd}
 
-    ##########################################################
-    # ###########   ANALYSIS RELATED FUNCTIONS   #############
-    ##########################################################
+    def get_dist(self, distance_list, output_xvg='tmp_dist.xvg',
+                 keep_ener_file=False):
+        """Get distances as a function of time
+        for a trajectory using ``gmx distance``.
+        """
+
+        logger.info("- Extract distance")
+
+        # Write index with all distances pairs:
+        with open('tmp.ndx', 'w') as file_out:
+            for i, dist in enumerate(distance_list):
+                file_out.write('[ dist_{} ]\n'.format(i))
+                file_out.write('{} {}\n'.format(dist[0], dist[1]))
+
+        cmd_convert = os_command.Command([GMX_BIN, "distance",
+                                          "-n", 'tmp.ndx',
+                                          "-f", self.xtc,
+                                          "-s", self.tpr,
+                                          "-oall", output_xvg])
+
+        cmd_convert.display()
+        # cmd_convert.run(com_input='\n'.join(selection_list))
+        cmd_convert.run(com_input='\n'.join(
+            [str(i) for i in range(len(distance_list))]))
+
+        ener_pd = monitor.read_xvg(output_xvg)
+        # ener_pd = ener_pd.reset_index()
+        ener_pd.columns = [ener_pd.columns[0]] +\
+            ['dist_{}_{}'.format(dist[0], dist[1]) for dist in distance_list]
+
+        if not keep_ener_file:
+            os_command.delete_file(output_xvg)
+
+        return(ener_pd)
+
+    def get_angle(self, angle_list, output_xvg='tmp_angle.xvg',
+                  keep_ener_file=False, improper=False):
+        """Get angle of a traj using ``gmx angle``.
+        """
+
+        # logger.info("- Extract angle")
+        if improper:
+            angle_type = 'improper'
+        elif len(angle_list[0]) == 3:
+            angle_type = 'angle'
+        elif len(angle_list[0]) == 4:
+            angle_type = 'dihedral'
+        else:
+            print('Error')
+
+        # Write index with all angle triplets/quadruplets:
+        label_list = []
+        with open('tmp.ndx', 'w') as file_out:
+            file_out.write('[ angles ]\n')
+            for i, angle in enumerate(angle_list):
+                angle_str = ''
+                for j in angle:
+                    angle_str += '{} '.format(j)
+                file_out.write('{}\n'.format(angle_str))
+                label_list.append('angle_' + angle_str[:-1].replace(" ", "_"))
+
+        cmd_convert = os_command.Command([GMX_BIN, "angle",
+                                          "-n", 'tmp.ndx',
+                                          "-f", self.xtc,
+                                          "-ov", output_xvg,
+                                          "-type", angle_type,
+                                          "-all"])
+
+        cmd_convert.display()
+        cmd_convert.run()
+
+        ener_pd = monitor.read_xvg(output_xvg)
+        ener_pd = ener_pd.reset_index()
+        ener_pd.columns = [ener_pd.columns[2], 'Avg'] +\
+            [label for label in label_list]
+        ener_pd = ener_pd.drop(['Avg'], axis=1)
+
+        if not keep_ener_file:
+            os_command.delete_file(output_xvg)
+
+        return(ener_pd)
 
 
 if __name__ == "__main__":

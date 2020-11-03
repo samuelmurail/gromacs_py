@@ -122,7 +122,7 @@ def add_hydrogen(pdb_in, pdb_out, check_file_out=True, **reduce_options):
     return
 
 
-def add_hydrogen_rdkit(pdb_in, smile, pdb_out, check_file_out=True):
+def add_hydrogen_rdkit(pdb_in, smile, pdb_out):
     """Add hydrogen to a pdb file using the ``rdkit`` library:
 
     :param pdb_in: pdb input
@@ -130,10 +130,6 @@ def add_hydrogen_rdkit(pdb_in, smile, pdb_out, check_file_out=True):
 
     :param pdb_out: pdb output
     :type pdb_out: str
-
-    :param check_file_out: flag to check or not if file has already been
-        created. If the file is present then the command break.
-    :type check_file_out: bool, optional, default=True
 
     :Example:
 
@@ -155,7 +151,7 @@ pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
 
     try:
         from rdkit.Chem import AllChem as Chem
-        from rdkit.Chem import rdMolAlign as align
+        # from rdkit.Chem import rdMolAlign as align
     except ImportError:
         logger.error('Could not load rdkit \nInstall it using conda:\n'
                      'conda install -c conda-forge rdkit')
@@ -167,31 +163,43 @@ pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
     # Assign bond order on pdb using smile informations
     newMol = Chem.AssignBondOrdersFromTemplate(lig_smile, lig_pdb)
 
+    # Add hydrogens to lig_smile, using lig_pdb as coordinates constraints
+    # This way is better than adding h to lig_pdb
+    # because acpype experience some issue
+    lig_smile_h = Chem.AddHs(lig_smile)
+    Chem.ConstrainedEmbed(lig_smile_h, newMol)
+    Chem.MolToPDBFile(lig_smile_h, pdb_out)
+
+    # OLD WAY :
     # Add hydrogens
-    newMol_h = Chem.AddHs(newMol)
+    # newMol_h = Chem.AddHs(newMol)
 
-    # Need to define how to match atoms form pdb to smile
-    match_atom = newMol_h.GetSubstructMatch(lig_smile)
-    cmap = {match_atom[i]: lig_pdb.GetConformer().
-            GetAtomPosition(match_atom[i]) for i in range(len(match_atom))}
+    # # Need to define how to match atoms form pdb to smile
+    # match_atom = newMol_h.GetSubstructMatch(lig_smile)
+    # cmap = {match_atom[i]: lig_pdb.GetConformer().
+    #         GetAtomPosition(match_atom[i]) for i in range(len(match_atom))}
 
-    # Hydrogens coordinates need to be computed
-    # While keeping heavy atoms coordinates
-    Chem.EmbedMolecule(newMol_h, coordMap=cmap)
+    # # Hydrogens coordinates need to be computed
+    # # While keeping heavy atoms coordinates
+    # Chem.EmbedMolecule(newMol_h, coordMap=cmap)
 
-    # Align new coordinates to old one
-    align.AlignMol(newMol_h, newMol,
-                   atomMap=[[i, i] for i in range(len(match_atom))])
-    # Save coordinates
-    Chem.MolToPDBFile(newMol_h, pdb_out)
+    # # Align new coordinates to old one
+    # align.AlignMol(newMol_h, newMol,
+    #                atomMap=[[i, i] for i in range(len(match_atom))])
+    #  Save coordinates
+    # Chem.MolToPDBFile(newMol_h, pdb_out)
 
     # Change UNL residue name to original one
+    coor_start = pdb_manip.Coor(pdb_in)
+    res_name_list_start = coor_start.get_attribute_selection(
+        attribute='res_name')
+    if len(res_name_list_start) > 1:
+        res_name_list_start.remove('UNL')
+
     coor = pdb_manip.Coor(pdb_out)
-    res_name_list = coor.get_attribute_selection(attribute='res_name')
-    res_name_list.remove('UNL')
     index_list = coor.get_index_selection(selec_dict={'res_name': ['UNL']})
-    coor.change_index_pdb_field(index_list,
-                                change_dict={'res_name': res_name_list[0]})
+    coor.change_index_pdb_field(index_list, change_dict={
+        'res_name': res_name_list_start[0]})
     coor.write_pdb(pdb_out, check_file_out=False)
 
     # Return charge
@@ -410,27 +418,27 @@ def make_amber_top_mol(pdb_in, res_name, charge, charge_model="bcc",
                 to_del_list.append(atom_num)
         mol_coor.del_atom_index(to_del_list)
 
-    mol_coor.write_pdb(res_name+'.pdb')
+    mol_coor.write_pdb(res_name + '.pdb')
 
     # Add hydrogens:
-    add_hydrogen(res_name+'.pdb', res_name+'_h.pdb')
+    add_hydrogen(res_name + '.pdb', res_name + '_h.pdb')
 
     # Get only one molecule
-    mol_h_coor = pdb_manip.Coor(res_name+'_h.pdb')
+    mol_h_coor = pdb_manip.Coor(res_name + '_h.pdb')
     res_list = mol_h_coor.get_attribute_selection(attribute='uniq_resid')
     mol_uniq_coor = mol_h_coor.select_part_dict(
         selec_dict={'uniq_resid': [res_list[0]]})
     # Save coordinates:
-    mol_uniq_coor.write_pdb(res_name+'_h_unique.pdb')
+    mol_uniq_coor.write_pdb(res_name + '_h_unique.pdb')
 
     # Compute topologie with acpype:
-    gmxsys = acpype(res_name+'_h_unique.pdb', res_name,
+    gmxsys = acpype(res_name + '_h_unique.pdb', res_name,
                     net_charge=charge,
                     charge_model="bcc",
                     atom_type="gaff")
 
     return({'GmxSys': gmxsys,
-            'coor': os_command.full_path_and_check(res_name+'_h.pdb'),
+            'coor': os_command.full_path_and_check(res_name + '_h.pdb'),
             'num': len(res_list)})
 
 
@@ -451,18 +459,17 @@ def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
     if remove_h:
         to_del_list = []
         for atom_num, atom in mol_coor.atom_dict.items():
-            if atom['name'][0] == 'H':
+            if atom['name'].startswith('H'):
                 to_del_list.append(atom_num)
         mol_coor.del_atom_index(to_del_list)
 
-    mol_coor.write_pdb(res_name+'.pdb')
+    mol_coor.write_pdb(res_name+'.pdb', check_file_out=False)
 
     # Add hydrogens:
     # add_hydrogen(res_name+'.pdb', res_name+'_h.pdb')
     charge = add_hydrogen_rdkit(res_name+'.pdb',
                                 smile,
-                                res_name+'_h.pdb',
-                                check_file_out=True)
+                                res_name+'_h.pdb')
 
     # Get only one molecule
     mol_h_coor = pdb_manip.Coor(res_name+'_h.pdb')
@@ -470,7 +477,7 @@ def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
     mol_uniq_coor = mol_h_coor.select_part_dict(
         selec_dict={'uniq_resid': [res_list[0]]})
     # Save coordinates:
-    mol_uniq_coor.write_pdb(res_name+'_h_unique.pdb')
+    mol_uniq_coor.write_pdb(res_name+'_h_unique.pdb', check_file_out=False)
 
     # Compute topologie with acpype:
     gmxsys = acpype(res_name+'_h_unique.pdb', res_name,

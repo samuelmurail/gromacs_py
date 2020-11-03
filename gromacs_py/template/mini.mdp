@@ -80,3 +80,4 @@
     couple_intramol         = no
     nstdhdl                 = 50
     separate_dhdl_file      = yes
+    calc_lambda_neighbors   =
