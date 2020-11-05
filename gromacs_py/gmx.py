@@ -1818,6 +1818,7 @@ equi_HA_D_SH3.ndx -o tmp_rmsf.xvg -fit no -res yes
         self._xtc = None
         self._edr = None
         self._log = None
+        self._xvg = None
 
         # mdrun default run values:
         self.nt = 0
@@ -1871,6 +1872,12 @@ equi_HA_D_SH3.ndx -o tmp_rmsf.xvg -fit no -res yes
         return None
 
     @property
+    def xvg(self):
+        if self._xvg is not None:
+            return os.path.relpath(self._xvg)
+        return None
+
+    @property
     def ndx(self):
         if self._ndx is not None:
             return os.path.relpath(self._ndx)
@@ -1913,6 +1920,10 @@ equi_HA_D_SH3.ndx -o tmp_rmsf.xvg -fit no -res yes
     def log(self, log):
         self._log = os_command.full_path_and_check(log)
 
+    @xvg.setter
+    def xvg(self, xvg):
+        self._xvg = os_command.full_path_and_check(xvg)
+
     @ndx.setter
     def ndx(self, ndx):
         self._ndx = os_command.full_path_and_check(ndx)
@@ -1935,10 +1946,11 @@ equi_HA_D_SH3.ndx -o tmp_rmsf.xvg -fit no -res yes
                      '_xtc': 8,
                      '_edr': 9,
                      '_log': 10,
-                     'nt': 11,
-                     'ntmpi': 12,
-                     'gpu_id': 13,
-                     'sys_history': 14}
+                     '_xvg': 11,
+                     'nt': 12,
+                     'ntmpi': 13,
+                     'gpu_id': 14,
+                     'sys_history': 15}
 
         attr_list = [attr for attr in vars(self) if not attr.startswith('__')]
         for attr in sorted(attr_list, key=numbermap.__getitem__):
@@ -4131,7 +4143,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                          'dt': 0.001,
                                          'tc_grps': 'System',
                                          'tau_t': 0.1,
-                                         'ref_t': 310,
+                                         'ref_t': 300,
                                          'pcoupl': 'no'})
 
     def insert_mol_sys(self, mol_gromacs, mol_num, new_name,
@@ -4864,6 +4876,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                 self.xtc = self.sim_name + ".trr"
             self.edr = self.sim_name + ".edr"
             self.log = self.sim_name + ".log"
+            if os_command.check_file_exist(self.sim_name + ".xvg"):
+                self.xvg = self.sim_name + ".xvg"
             return
 
         if rerun and check_file_out and os.path.isfile(
@@ -4909,28 +4923,39 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         if monitor_tool is None:
             cmd_run.run()
         else:
-            if nsteps == -2:
-                sim_mdp_dict = self.get_mdp_dict()
-                nsteps = int(sim_mdp_dict['nsteps'])
             monitor_files = {'xtc': self.sim_name + ".xtc",
                              'edr': self.sim_name + ".edr",
                              'log': self.sim_name + ".log",
                              'nsteps': nsteps}
+            sim_mdp_dict = self.get_mdp_dict()
+            if nsteps == -2:
+                monitor_files['nsteps'] = int(sim_mdp_dict['nsteps'])
+            # Check if it is an extend simulation:
+            # And need to update the log file to XXX.part0XXX
+            elif os.path.isfile(self.sim_name + ".cpt"):
+                monitor_files['nsteps'] += self.get_simulation_time() / float(sim_mdp_dict['dt'])
+                for sim_num in range(2, 9999):
+                    if not os.path.isfile(f"{self.sim_name}.part{sim_num:04d}.edr"):
+                        break
+                monitor_files['xtc'] = f"{self.sim_name}.part{sim_num:04d}.xtc"
+                monitor_files['edr'] = f"{self.sim_name}.part{sim_num:04d}.edr"
+                monitor_files['log'] = f"{self.sim_name}.part{sim_num:04d}.log"
+
             monitor_tool.update(monitor_files)
             cmd_run.run_background(monitor_tool)
 
         # If it's not a rerun, assign all output to the object variables
         # xtc, edr, log
+        self.edr = self.sim_name + ".edr"
         if not rerun:
             self.coor_file = self.sim_name + ".gro"
             if os_command.check_file_exist(self.sim_name + ".xtc"):
                 self.xtc = self.sim_name + ".xtc"
             else:
                 self.xtc = self.sim_name + ".trr"
-            self.edr = self.sim_name + ".edr"
             self.log = self.sim_name + ".log"
-        else:
-            self.edr = self.sim_name + ".edr"
+            if os_command.check_file_exist(self.sim_name + ".xvg"):
+                self.xvg = self.sim_name + ".xvg"
 
     def run_md_sim(self, out_folder, name, mdp_template, mdp_options,
                    pdb_restr=None, maxwarn=0,
@@ -4963,7 +4988,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         **Object requirement(s):**
 
@@ -5036,7 +5061,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5106,7 +5131,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         :param maxwarn: Maximum number of warnings when using ``gmx grompp``
         :type maxwarn: int, default=0
@@ -5194,7 +5219,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5324,7 +5349,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5414,7 +5439,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5464,7 +5489,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         **Object requirement(s):**
 
@@ -5496,7 +5521,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         # Get simulation time :
         sim_time = self.get_simulation_time()
-        dt = self.get_mdp_dict()['dt']
+        dt = float(self.get_mdp_dict()['dt'])
         nsteps_to_run = int(nsteps - sim_time / dt)
         if nsteps_to_run <= 0:
             logger.info("Simulation {} has already run"
@@ -5551,7 +5576,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5618,7 +5643,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5684,7 +5709,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5749,38 +5774,42 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         self.log = '{}.part{:04d}.log'.format(self.sim_name, last_index)
         self.coor_file = '{}.part{:04d}.gro'.format(self.sim_name, last_index)
         self.xtc = '{}.part{:04d}.xtc'.format(self.sim_name, last_index)
+        if os_command.check_file_exist(
+                '{}.part{:04d}.xvg'.format(self.sim_name, last_index)):
+            self.xvg = '{}.part{:04d}.xvg'.format(self.sim_name, last_index)
 
     def get_all_output(self):
-        """In a case of a simulation restart, outputs edr, log, gro and xtc
-        files are called for example as  ``self.sim_name+".partXXXX.edr"``
+        """In a case of a simulation restart, outputs edr, log, gro, xvg and
+        xtc files are called for example as  ``self.sim_name+".partXXXX.edr"``
         where XXXX is the iteration number of restart (eg. first restart:
         XXXX=0002).
 
-        This function return a dictionnary of all edr, log, coor_file and
-        xtc list.
+        This function return a dictionnary of all edr, log, coor_file, xvg
+        and xtc list.
 
         **Object requirement(s):**
 
             * self.sim_name
 
-        :return: return dict containing edr, log, xtc and coor_file file list
+        :return: return dict containing edr, log, xtc, xvg and coor_file file list
         :rtype: dict
 
         """
 
         import glob
         # Get all edr files name :
-        edr_file_list = glob.glob(self.sim_name + '*.edr')
+        edr_file_list = glob.glob(self.edr[:-4] + '*.edr')
 
         index_list = [file[:-4] for file in edr_file_list]
 
-        output_dict = {'edr': [], 'log': [], 'gro': [], 'xtc': []}
+        output_dict = {'edr': [], 'log': [], 'gro': [], 'xtc': [], 'xvg': []}
 
         for index in index_list:
             output_dict['edr'].append('{}.edr'.format(index))
             output_dict['log'].append('{}.log'.format(index))
             output_dict['gro'].append('{}.gro'.format(index))
             output_dict['xtc'].append('{}.xtc'.format(index))
+            output_dict['xvg'].append('{}.xvg'.format(index))
 
         return(output_dict)
 
@@ -6146,7 +6175,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             should contains two values: ``function`` the function to be ran
             while simulation is running and ``input`` parameters for the
             function
-        :type rerun: dict, default=None
+        :type monitor: dict, default=None
 
         **Object requirement(s):**
 
@@ -6617,6 +6646,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         if not keep_ener_file:
             os_command.delete_file(output_xvg)
+        os_command.delete_file('tmp.ndx')
 
         return(ener_pd)
 
@@ -6646,10 +6676,13 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                 file_out.write('{}\n'.format(angle_str))
                 label_list.append('angle_' + angle_str[:-1].replace(" ", "_"))
 
+        output_distri_xvg = 'tmp_angdist.xvg'
+
         cmd_convert = os_command.Command([GMX_BIN, "angle",
                                           "-n", 'tmp.ndx',
                                           "-f", self.xtc,
                                           "-ov", output_xvg,
+                                          "-od", output_distri_xvg,
                                           "-type", angle_type,
                                           "-all"])
 
@@ -6664,6 +6697,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         if not keep_ener_file:
             os_command.delete_file(output_xvg)
+        os_command.delete_file(output_distri_xvg)
+        os_command.delete_file('tmp.ndx')
 
         return(ener_pd)
 
