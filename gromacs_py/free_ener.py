@@ -69,7 +69,10 @@ KB = 8.31446261815324
 class FreeEner:
 
     def __init__(self, mol_name, out_folder, unit='kcal'):
-        self.mol_name = mol_name
+        self.mol_name = mol_name[:3]
+        if len(mol_name) > 4:
+            logger.warning(f'Molecule name {mol_name} is longer than 3 characters,'
+                           f'name changed to {self.mol_name}')
         self.unit = unit
         self.out_folder = out_folder
         # Lambda
@@ -78,6 +81,7 @@ class FreeEner:
         self.lambda_restr = []
         # Xvg file list
         self.xvg_file_list = []
+        self.lambda_sys_list = []
         self.temp = None
         self.smile = None
 
@@ -150,7 +154,7 @@ class FreeEner:
         return(charge)
 
     def water_box_from_SMILE(self, smile, method_3d='rdkit',
-                             iter_num=5000):
+                             iter_num=5000, box_dist=1.1):
         """ Create water box with a molecule
         """
 
@@ -172,12 +176,53 @@ class FreeEner:
             out_folder=os.path.join(self.out_folder, 'mol_top'),
             ff='amber99sb-ildn', include_mol={self.mol_name: smile})
 
-        self.gmxsys.create_box(name=None, dist=1.1)
+        self.gmxsys.create_box(name=None, dist=box_dist)
         self.gmxsys.solvate_box(
             out_folder=os.path.join(self.out_folder, 'mol_water_top'))
 
+    def octanol_box_from_SMILE(self, smile, method_3d='rdkit',
+                               iter_num=5000, box_dist=1.1):
+        """ Create water box with a molecule
+        """
+
+        self.smile = smile
+
+        os.makedirs(self.out_folder, exist_ok=True)
+
+        # Create 3d structure from SMILE
+        pdb_file = os.path.join(self.out_folder, f'{self.mol_name}.pdb')
+        charge = FreeEner.smile_to_pdb(smile, pdb_file,
+                                       method_3d=method_3d,
+                                       mol_name=self.mol_name,
+                                       iter_num=iter_num)
+        logger.info(f'ligand charge is {charge}')
+
+        # Topologie and system creation
+        self.gmxsys = GmxSys(name=self.mol_name, coor_file=pdb_file)
+        self.gmxsys.prepare_top_ligand(
+            out_folder=os.path.join(self.out_folder, 'mol_top'),
+            ff='amber99sb-ildn', include_mol={self.mol_name: smile})
+
+        self.gmxsys.create_box(name=None, dist=box_dist)
+        self.gmxsys.solvate_box(
+            out_folder=os.path.join(self.out_folder, 'mol_octanol_top'),
+            cs=os.path.join(GROMACS_MOD_DIRNAME,
+                            "template/octanol/prod_OCO.gro"))
+
+        # Add octanol topologie:
+        sys_top = gmx.TopSys(self.gmxsys.top_file)
+        atomtypes_itp = os.path.join(GROMACS_MOD_DIRNAME,
+                                     "template/octanol/OCO_GMX_atomtypes.itp")
+        sys_top.add_atomtypes(atomtypes_itp)
+
+        mol_itp = os.path.join(GROMACS_MOD_DIRNAME,
+                               "template/octanol/OCO_GMX.itp")
+        sys_top.add_mol_itp(mol_itp)
+
+        sys_top.write_file(self.gmxsys.top_file)
+
     def equilibrate_solvent_box(self, em_steps=10000, dt=0.002, prod_time=10,
-                                temp=300):
+                                short_steps=50000, temp=300):
         """ Create water box with a molecule
         """
         # EM
@@ -195,14 +240,14 @@ class FreeEner:
         # Equilibration
         # first short step with very small dt
         self.gmxsys.production(
-            out_folder=os.path.join(self.out_folder, 'mol_water_prod'),
+            out_folder=os.path.join(self.out_folder, 'mol_solv_prod'),
             name='short_equi',
-            nsteps=50000, dt=0.0005,
+            nsteps=short_steps, dt=0.0005,
             maxwarn=1, **mdp_options)
         # second step
         prod_steps = 1000 * prod_time / dt
         self.gmxsys.production(
-            out_folder=os.path.join(self.out_folder, 'mol_water_prod'),
+            out_folder=os.path.join(self.out_folder, 'mol_solv_prod'),
             nsteps=prod_steps,
             dt=dt, maxwarn=1, **mdp_options)
 
@@ -261,6 +306,25 @@ class FreeEner:
                                     nsteps_CA_LOW=1000 * CA_LOW_time / dt,
                                     dt=dt, dt_HA=dt_HA, maxwarn=3,
                                     pdb_restr=self.ref_coor)
+
+    def extend_lambda_prod(self, prod_time):
+        """
+        """
+
+        dt = float(self.lambda_sys_list[0].get_mdp_dict()['dt'])
+        nsteps = prod_time / dt
+        lambda_num = len(self.lambda_restr) + len(self.lambda_coul) + len(self.lambda_vdw)
+        xvg_file_list = []
+
+        for i in range(lambda_num):
+            logger.info(f'Compute lambda {i} / {lambda_num}')
+
+            self.lambda_sys_list[i].extend_sim(nsteps=nsteps)
+            self.lambda_sys_list[i].get_all_output()
+            xvg_file_list += self.lambda_sys_list[i].get_all_output()['xvg']
+
+        self.prod_time = prod_time
+        self.xvg_file_list = xvg_file_list
 
     def run(self, lambda_coul_list, lambda_vdw_list, lambda_restr_list=[],
             mbar=False, dir_name='free_ener_run',
@@ -424,21 +488,22 @@ class FreeEner:
             logger.info('Compute lambda {} / {}'.format(
                 i, lambda_restr_num + lambda_coul_num + lambda_vdw_num))
 
-            xvg_file = FreeEner.compute_lambda_point(self.gmxsys, i,
-                                                     self.mol_name,
-                                                     os.path.join(
-                                                        self.out_folder,
-                                                        dir_name),
-                                                     free_ener_option_md, pbar,
-                                                     mbar=mbar,
-                                                     em_steps=em_steps,
-                                                     nvt_steps=nvt_steps,
-                                                     npt_steps=npt_steps,
-                                                     prod_steps=prod_steps,
-                                                     dt=dt,
-                                                     maxwarn=maxwarn,
-                                                     monitor_tool=monitor_tool)
-            self.xvg_file_list.append(xvg_file)
+            lambda_sys = FreeEner.compute_lambda_point(self.gmxsys, i,
+                                                       self.mol_name,
+                                                       os.path.join(
+                                                          self.out_folder,
+                                                          dir_name),
+                                                       free_ener_option_md, pbar,
+                                                       mbar=mbar,
+                                                       em_steps=em_steps,
+                                                       nvt_steps=nvt_steps,
+                                                       npt_steps=npt_steps,
+                                                       prod_steps=prod_steps,
+                                                       dt=dt,
+                                                       maxwarn=maxwarn,
+                                                       monitor_tool=monitor_tool)
+            self.lambda_sys_list.append(lambda_sys)
+            self.xvg_file_list.append(lambda_sys.xvg)
 
         self.temp = temp
         self.lambda_coul = list(lambda_coul_list)
@@ -524,8 +589,9 @@ class FreeEner:
                            monitor_tool=monitor_tool)
         pbar.update(prod_steps)
 
-        return(os.path.join(out_folder, '03_prod/',
-                            'prod_' + sys_name + '.xvg'))
+        return(mol_sys)
+        # return(mol_sys, os.path.join(out_folder, '03_prod/',
+        #                     'prod_' + sys_name + '.xvg'))
 
     def compute_add_intermol_from_traj(self, ref_coor=None,
                                        rec_group='Protein', k=41.84):
@@ -821,6 +887,7 @@ class FreeEner:
         axs[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         axs[0].set_xlabel('distance ($nm$)')
         axs[0].xaxis.set_label_coords(0.5, -0.1)
+        axs[0].grid()
 
         angle_index_list = []
         for angle in top.inter_angl_list:
@@ -838,6 +905,7 @@ class FreeEner:
         axs[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         axs[1].set_xlabel(r'angle ($^{\circ}$)')
         axs[1].xaxis.set_label_coords(0.5, -0.1)
+        axs[1].grid()
 
         dihe_index_list = []
         for angle in top.inter_dihe_list:
@@ -856,6 +924,7 @@ class FreeEner:
         axs[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         axs[2].set_xlabel(r'dihedral angle ($^{\circ}$)')
         axs[2].xaxis.set_label_coords(0.5, -0.1)
+        axs[2].grid()
 
         if graph_out:
             plt.savefig(graph_out)
@@ -961,36 +1030,53 @@ class FreeEner:
         from alchemlyb.estimators import TI
 
         files = self.xvg_file_list
+        # NEED TO SORTS FILES IN CASE OF RESTARTS
         restr_num = len(self.lambda_restr)
         coul_num = len(self.lambda_coul)
 
         dHdl_tot = pd.concat([extract_dHdl(xvg, T=self.temp) for xvg in files])
+        #return(dHdl_tot)
         dHdl_tot_no_index = dHdl_tot.reset_index()
+        # Remove duplicates due to restarts
+        dHdl_tot_no_index = dHdl_tot_no_index.drop_duplicates(subset=['bonded-lambda', 'coul-lambda', 'vdw-lambda', 'time'], keep='last')
+        # Sort values
+        dHdl_tot_no_index = dHdl_tot_no_index.sort_values(by=['bonded-lambda', 'coul-lambda', 'vdw-lambda', 'time'])
+        # Reset index again:
+        dHdl_tot_no_index = dHdl_tot_no_index.reset_index(drop=True)
+
         ti_tot_list = []
         ti_tot_sd_list = []
         time_list = np.arange(dt, self.prod_time, dt)
         index_colnames = ['time', 'coul-lambda', 'vdw-lambda', 'bonded-lambda']
         self.convergence_data = {'time': time_list}
 
+        sim_num_val = len(dHdl_tot_no_index) / len(self.lambda_coul+self.lambda_vdw+self.lambda_restr)
+
+        #return(dHdl_tot)
+
         if self.lambda_coul:
-            dHdl_coul = pd.concat([extract_dHdl(xvg, T=self.temp)
-                                   for xvg in files[
-                                   restr_num:restr_num + coul_num]])
-            dHdl_coul_no_index = dHdl_coul.reset_index()
+            #dHdl_coul = pd.concat([extract_dHdl(xvg, T=self.temp)
+            #                       for xvg in files[
+            #                       restr_num:restr_num + coul_num]])
+            #dHdl_coul_no_index = dHdl_coul.reset_index()
+            dHdl_coul_no_index = dHdl_tot_no_index[
+                int(sim_num_val*len(self.lambda_restr)):int(sim_num_val*len(self.lambda_coul+self.lambda_restr))]
             ti_coul_list = []
             ti_coul_sd_list = []
 
         if self.lambda_vdw:
-            dHdl_vdw = pd.concat([extract_dHdl(xvg, T=self.temp)
-                                  for xvg in files[restr_num + coul_num:]])
-            dHdl_vdw_no_index = dHdl_vdw.reset_index()
+            #dHdl_vdw = pd.concat([extract_dHdl(xvg, T=self.temp)
+            #                      for xvg in files[restr_num + coul_num:]])
+            #dHdl_vdw_no_index = dHdl_vdw.reset_index()
+            dHdl_vdw_no_index = dHdl_tot_no_index[int(sim_num_val*len(self.lambda_coul+self.lambda_restr)):]
             ti_vdw_list = []
             ti_vdw_sd_list = []
 
         if self.lambda_restr:
-            dHdl_restr = pd.concat(
-                [extract_dHdl(xvg, T=self.temp) for xvg in files[:restr_num]])
-            dHdl_restr_no_index = dHdl_restr.reset_index()
+            #dHdl_restr = pd.concat(
+            #    [extract_dHdl(xvg, T=self.temp) for xvg in files[:restr_num]])
+            #dHdl_restr_no_index = dHdl_restr.reset_index()
+            dHdl_restr_no_index = dHdl_tot_no_index[:int(sim_num_val*len(self.lambda_restr))]
             ti_restr_list = []
             ti_restr_sd_list = []
 
@@ -1000,6 +1086,7 @@ class FreeEner:
                 (dHdl_tot_no_index.time < time) &
                 (dHdl_tot_no_index.time > time - dt)]
             dHdl_local = dHdl_local.set_index(index_colnames)
+            #return(dHdl_local)
             ti = TI().fit(dHdl_local)
             ti_tot_list.append(-self.conv_fac * ti.delta_f_.iloc[0, -1])
             ti_tot_sd_list.append(self.conv_fac * ti.d_delta_f_.iloc[0, -1])
@@ -1138,6 +1225,7 @@ class FreeEner:
                 time_list, ti_vdw_list, ti_vdw_sd_list,
                 label=r'$\Delta G_{vdw}$')
         axs[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        axs[0].grid()
 
         ti_tot_list = self.convergence_data['tot'][0]
         ti_tot_sd_list = self.convergence_data['tot'][1]
@@ -1148,6 +1236,7 @@ class FreeEner:
         axs[1].set_ylabel(r'$\Delta G \; ({})$'.format(self.unit_graph))
         axs[1].yaxis.set_label_coords(-0.1, 1)
         axs[1].set_xlabel(r'$time \; (ps)$')
+        axs[1].grid()
 
         if graph_out:
             plt.savefig(graph_out)
@@ -1187,7 +1276,7 @@ class FreeEner:
                        'seems to work for small molecules, use it with'
                        ' caution\n')
         logger.info(f'For molecule {smile} Symmetry number'
-                    ' sigma is set to {sigma}')
+                    f' sigma is set to {sigma}')
 
         GK = - KB * 1e-3 / 4.184  # Gas constant kcal/mol/K
 
