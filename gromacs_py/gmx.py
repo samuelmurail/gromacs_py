@@ -3416,7 +3416,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
     def convert_trj(self, name=None, ur="compact", pbc="mol", select="System",
                     traj=True, specific_coor_out=None, check_file_out=True,
-                    **cmd_args):
+                    tpr=None, **cmd_args):
         """Convert a trajectory or coordinate file using the commande
         ``gmx trjconv``.
 
@@ -3519,6 +3519,9 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
                 coor_out = os.path.join(os_command.get_directory(
                     self.coor_file), name + "_compact.pdb")
 
+        if tpr is None:
+            tpr = self.tpr
+
         if specific_coor_out is not None:
             coor_out = specific_coor_out
 
@@ -3543,7 +3546,7 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         cmd_convert = os_command.Command([GMX_BIN, "trjconv",
                                           "-f", coor_in,
                                           "-o", coor_out,
-                                          "-s", self.tpr,
+                                          "-s", tpr,
                                           "-ur", ur,
                                           "-pbc", pbc],
                                          **cmd_args)
@@ -5798,7 +5801,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         import glob
         # Get all edr files name :
-        edr_file_list = glob.glob(self.edr[:-4] + '*.edr')
+        edr_file_list = glob.glob(self.tpr[:-4] + '*.edr')
 
         index_list = [file[:-4] for file in edr_file_list]
 
