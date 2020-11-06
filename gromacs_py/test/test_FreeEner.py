@@ -40,7 +40,8 @@ def test_free_bind(tmp_path):
                                  short_steps=500)
     dna_free.compute_add_intermol_from_traj(ref_coor=None, rec_group='DNA')
     dg_rest_water = dna_free.ener_rest_water
-    assert ((6 < dg_rest_water) and (dg_rest_water < 8))
+    print(dg_rest_water)
+    assert ((5.5 < dg_rest_water) and (dg_rest_water < 8.5))
 
 
     dna_free.plot_intermol_restr()
@@ -54,12 +55,18 @@ def test_free_bind(tmp_path):
     dna_free.run(lambda_restr_list=restr_list,
                  lambda_coul_list=coul_list,
                  lambda_vdw_list=vdw_list,
-                 em_steps=50, nvt_time=0.05, npt_time=0.05, prod_time=0.1,
+                 em_steps=50, nvt_time=0.05, npt_time=0.05, prod_time=0.5,
                  temp_groups='System')
-    dna_free.extend_lambda_prod(prod_time=0.05)
+    dna_free.extend_lambda_prod(prod_time=1)
     dg_bind, dg_std_bind = dna_free.get_free_ener()
     print(dg_bind, dg_std_bind)
     assert ((0 < dg_bind) and (dg_bind < 200))
+    dna_free.compute_convergence_alchemlyb(dt=0.2)
+    # print(dna_free.convergence_data)
+    dna_free.plot_convergence_graph(graph_out='alchem.png')
+    dna_free.compute_convergence_gbar(dt=0.2)
+    # print(dna_free.convergence_data)
+    dna_free.plot_convergence_graph(graph_out='=bar.png')
 
 
 @pytest.mark.parametrize("smile, dg", [
