@@ -334,7 +334,7 @@ class FreeEner:
         xvg_file_list = []
 
         for i in range(lambda_num):
-            logger.info(f'Compute lambda {i} / {lambda_num}')
+            logger.info(f'Compute lambda {i+1} / {lambda_num}')
 
             self.lambda_sys_list[i].extend_sim(nsteps=nsteps)
             output = self.lambda_sys_list[i].get_all_output()
@@ -503,7 +503,7 @@ class FreeEner:
         for i in range(lambda_restr_num + lambda_coul_num + lambda_vdw_num):
 
             logger.info('Compute lambda {} / {}'.format(
-                i, lambda_restr_num + lambda_coul_num + lambda_vdw_num))
+                i + 1, lambda_restr_num + lambda_coul_num + lambda_vdw_num))
 
             lambda_sys = FreeEner.compute_lambda_point(self.gmxsys, i,
                                                        self.mol_name,
@@ -1105,7 +1105,7 @@ class FreeEner:
         for time in time_list:
             # Tot
             dHdl_local = dHdl_tot_no_index[
-                (dHdl_tot_no_index.time <= time) &
+                (dHdl_tot_no_index.time < time) &
                 (dHdl_tot_no_index.time >= time - dt)]
             dHdl_local = dHdl_local.set_index(index_colnames)
             #return(dHdl_local)
@@ -1116,7 +1116,7 @@ class FreeEner:
             # Restr
             if self.lambda_restr:
                 dHdl_local = dHdl_restr_no_index[
-                    (dHdl_restr_no_index.time <= time) &
+                    (dHdl_restr_no_index.time < time) &
                     (dHdl_restr_no_index.time >= time - dt)]
                 dHdl_local = dHdl_local.set_index(index_colnames)
                 ti = TI().fit(dHdl_local)
@@ -1128,7 +1128,7 @@ class FreeEner:
             # Coul
             if self.lambda_coul:
                 dHdl_local = dHdl_coul_no_index[
-                    (dHdl_coul_no_index.time <= time) &
+                    (dHdl_coul_no_index.time < time) &
                     (dHdl_coul_no_index.time >= time - dt)]
                 dHdl_local = dHdl_local.set_index(index_colnames)
                 ti = TI().fit(dHdl_local)
@@ -1139,7 +1139,7 @@ class FreeEner:
             # VDW
             if self.lambda_vdw:
                 dHdl_local = dHdl_vdw_no_index[
-                    (dHdl_vdw_no_index.time <= time) &
+                    (dHdl_vdw_no_index.time < time) &
                     (dHdl_vdw_no_index.time >= time - dt)]
                 dHdl_local = dHdl_local.set_index(index_colnames)
                 ti = TI().fit(dHdl_local)
@@ -1272,13 +1272,10 @@ class FreeEner:
 
         return value in kcal/mol
 
+        .. code-block::
 
-        >>> FreeEner.symmetry_correction('c1ccccc1') #doctest: +ELLIPSIS
-        -1.4814...
-        >>> FreeEner.symmetry_correction('c1ccccc1O') #doctest: +ELLIPSIS
-        -0.4132...
-        >>> FreeEner.symmetry_correction('c1cc(O)ccc1O') #doctest: +ELLIPSIS
-        -0.8264...
+            > FreeEner.symmetry_correction('c1ccccc1')
+            -1.4814...
         """
 
         try:
