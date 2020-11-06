@@ -1758,7 +1758,7 @@ out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
     gmx rms -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...\
 equi_HA_D_SH3.ndx -o tmp_rmsd.xvg -fit rot+trans -ng 1 -pbc no
     >>> rmsd_pd #doctest: +ELLIPSIS
-       time   Protein
+       time ...Protein
     0   0.0... 0...
     >>> rmsf_pd = prot.get_rmsf(['Protein'], res="yes")  #doctest: +ELLIPSIS
     - Extract RMSF
