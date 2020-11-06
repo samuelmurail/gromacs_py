@@ -181,7 +181,7 @@ class FreeEner:
             out_folder=os.path.join(self.out_folder, 'mol_water_top'))
 
     def octanol_box_from_SMILE(self, smile, method_3d='rdkit',
-                               iter_num=5000, box_dist=1.1):
+                               iter_num=5000, box_dist=1.3):
         """ Create water box with a molecule
         """
 
@@ -265,7 +265,9 @@ class FreeEner:
 
     def equilibrate_complex(self, em_steps=10000, HA_time=0.25,
                             CA_time=0.5, CA_LOW_time=1.0,
-                            dt=0.002, dt_HA=0.001, temp=300):
+                            dt=0.002, dt_HA=0.001, temp=300,
+                            receptor_grp='Protein',
+                            short_steps=50000):
         """
         """
 
@@ -282,9 +284,10 @@ class FreeEner:
         self.ref_coor = self.gmxsys.coor_file
 
         # Short equilibration with molecule in its own temp group
-        mdp_options = {'nsteps': 20000,
+        mdp_options = {'nsteps': short_steps,
                        'define': '-DPOSRES', 'dt': 0.0005,
-                       'tc-grps': 'Protein {} Water_and_ions'.format(
+                       'tc-grps': '{} {} Water_and_ions'.format(
+                            receptor_grp,
                             self.mol_name),
                        'tau_t': '0.1 0.1 0.1',
                        'ref_t': f'{temp} {temp} {temp}'}
@@ -299,13 +302,27 @@ class FreeEner:
                                mdp_options=mdp_options, maxwarn=3,
                                pdb_restr=self.ref_coor)
 
+        mdp_options = {}
+        if receptor_grp != 'Protein':
+            index_dict = self.gmxsys.get_index_dict()
+            self.gmxsys.add_ndx('{}|{} \nq\n'.format(
+                    index_dict[receptor_grp],
+                    index_dict[self.mol_name]),
+                check_file_out=False)
+
+            mdp_options = {'tc-grps': '{}_{} Water_and_ions'.format(
+                            receptor_grp,
+                            self.mol_name),}
+        print(mdp_options)
+
         self.gmxsys.equi_three_step(out_folder=os.path.join(
                                      self.out_folder, 'sys_equi'),
                                     nsteps_HA=1000 * HA_time / dt_HA,
                                     nsteps_CA=1000 * CA_time / dt,
                                     nsteps_CA_LOW=1000 * CA_LOW_time / dt,
                                     dt=dt, dt_HA=dt_HA, maxwarn=3,
-                                    pdb_restr=self.ref_coor)
+                                    pdb_restr=self.ref_coor,
+                                    **mdp_options)
 
     def extend_lambda_prod(self, prod_time):
         """
@@ -320,8 +337,8 @@ class FreeEner:
             logger.info(f'Compute lambda {i} / {lambda_num}')
 
             self.lambda_sys_list[i].extend_sim(nsteps=nsteps)
-            self.lambda_sys_list[i].get_all_output()
-            xvg_file_list += self.lambda_sys_list[i].get_all_output()['xvg']
+            output = self.lambda_sys_list[i].get_all_output()
+            xvg_file_list += output['xvg']
 
         self.prod_time = prod_time
         self.xvg_file_list = xvg_file_list
@@ -651,7 +668,11 @@ class FreeEner:
         prot_rmsf = self.gmxsys.get_rmsf([rec_group])
 
         # Get backbone protein atom around the ligand:
-        backbone = coor.select_part_dict({'name': ['N', 'C', 'O', 'CA']})
+        if rec_group == 'Protein':
+            bk_atoms_list = ['C', 'CA', 'N', 'O']
+        elif rec_group == 'DNA':
+            bk_atoms_list = ['C4\'', 'C3\'', 'O3\'', 'O5\'', 'P', 'C5\'']
+        backbone = coor.select_part_dict({'name': bk_atoms_list})
         # Create coor for the 3 ligand atoms
         atom_coor.atom_dict = {
             i: coor.atom_dict[lig_atom_list[i]] for i in range(3)}
@@ -664,11 +685,11 @@ class FreeEner:
         uniq_res = coor.atom_dict[
             around_lig_df.reset_index().loc[0, 'Atom']]['uniq_resid']
         rec_atom_list = coor.get_index_selection(
-            {'uniq_resid': [uniq_res], 'name': ['C']})
+            {'uniq_resid': [uniq_res], 'name': [bk_atoms_list[0]]})
         rec_atom_list += coor.get_index_selection(
-            {'uniq_resid': [uniq_res], 'name': ['CA']})
+            {'uniq_resid': [uniq_res], 'name': [bk_atoms_list[1]]})
         rec_atom_list += coor.get_index_selection(
-            {'uniq_resid': [uniq_res], 'name': ['N']})
+            {'uniq_resid': [uniq_res], 'name': [bk_atoms_list[2]]})
 
         # Atom index need to be +1 to be in gromacs numbering
         rec_atom_list = [index + 1 for index in rec_atom_list]
@@ -1020,7 +1041,7 @@ class FreeEner:
         except ImportError:
             self.compute_convergence_gbar(dt=dt)
 
-        self.plot_convergence_graph(graph_out=graph_out)
+        return(self.plot_convergence_graph(graph_out=graph_out))
 
     def compute_convergence_alchemlyb(self, dt=10):
         """
@@ -1043,10 +1064,11 @@ class FreeEner:
         dHdl_tot_no_index = dHdl_tot_no_index.sort_values(by=['bonded-lambda', 'coul-lambda', 'vdw-lambda', 'time'])
         # Reset index again:
         dHdl_tot_no_index = dHdl_tot_no_index.reset_index(drop=True)
+        # return(dHdl_tot_no_index)
 
         ti_tot_list = []
         ti_tot_sd_list = []
-        time_list = np.arange(dt, self.prod_time, dt)
+        time_list = np.arange(dt, self.prod_time + dt, dt)
         index_colnames = ['time', 'coul-lambda', 'vdw-lambda', 'bonded-lambda']
         self.convergence_data = {'time': time_list}
 
@@ -1060,7 +1082,7 @@ class FreeEner:
             #                       restr_num:restr_num + coul_num]])
             #dHdl_coul_no_index = dHdl_coul.reset_index()
             dHdl_coul_no_index = dHdl_tot_no_index[
-                int(sim_num_val*len(self.lambda_restr)):int(sim_num_val*len(self.lambda_coul+self.lambda_restr))]
+                max(0, int(sim_num_val*(len(self.lambda_restr)-1))):int(sim_num_val*len(self.lambda_coul+self.lambda_restr))]
             ti_coul_list = []
             ti_coul_sd_list = []
 
@@ -1068,7 +1090,7 @@ class FreeEner:
             #dHdl_vdw = pd.concat([extract_dHdl(xvg, T=self.temp)
             #                      for xvg in files[restr_num + coul_num:]])
             #dHdl_vdw_no_index = dHdl_vdw.reset_index()
-            dHdl_vdw_no_index = dHdl_tot_no_index[int(sim_num_val*len(self.lambda_coul+self.lambda_restr)):]
+            dHdl_vdw_no_index = dHdl_tot_no_index[int(sim_num_val*(len(self.lambda_coul+self.lambda_restr)-1)):]
             ti_vdw_list = []
             ti_vdw_sd_list = []
 
@@ -1083,8 +1105,8 @@ class FreeEner:
         for time in time_list:
             # Tot
             dHdl_local = dHdl_tot_no_index[
-                (dHdl_tot_no_index.time < time) &
-                (dHdl_tot_no_index.time > time - dt)]
+                (dHdl_tot_no_index.time <= time) &
+                (dHdl_tot_no_index.time >= time - dt)]
             dHdl_local = dHdl_local.set_index(index_colnames)
             #return(dHdl_local)
             ti = TI().fit(dHdl_local)
@@ -1094,8 +1116,8 @@ class FreeEner:
             # Restr
             if self.lambda_restr:
                 dHdl_local = dHdl_restr_no_index[
-                    (dHdl_restr_no_index.time < time) &
-                    (dHdl_restr_no_index.time > time - dt)]
+                    (dHdl_restr_no_index.time <= time) &
+                    (dHdl_restr_no_index.time >= time - dt)]
                 dHdl_local = dHdl_local.set_index(index_colnames)
                 ti = TI().fit(dHdl_local)
                 ti_restr_list.append(
@@ -1106,8 +1128,8 @@ class FreeEner:
             # Coul
             if self.lambda_coul:
                 dHdl_local = dHdl_coul_no_index[
-                    (dHdl_coul_no_index.time < time) &
-                    (dHdl_coul_no_index.time > time - dt)]
+                    (dHdl_coul_no_index.time <= time) &
+                    (dHdl_coul_no_index.time >= time - dt)]
                 dHdl_local = dHdl_local.set_index(index_colnames)
                 ti = TI().fit(dHdl_local)
                 ti_coul_list.append(-self.conv_fac * ti.delta_f_.iloc[0, -1])
@@ -1117,8 +1139,8 @@ class FreeEner:
             # VDW
             if self.lambda_vdw:
                 dHdl_local = dHdl_vdw_no_index[
-                    (dHdl_vdw_no_index.time < time) &
-                    (dHdl_vdw_no_index.time > time - dt)]
+                    (dHdl_vdw_no_index.time <= time) &
+                    (dHdl_vdw_no_index.time >= time - dt)]
                 dHdl_local = dHdl_local.set_index(index_colnames)
                 ti = TI().fit(dHdl_local)
                 ti_vdw_list.append(-self.conv_fac * ti.delta_f_.iloc[0, -1])
@@ -1149,7 +1171,7 @@ class FreeEner:
         restr_list = []
         restr_sd_list = []
 
-        time_list = np.arange(dt, self.prod_time, dt)
+        time_list = np.arange(dt, self.prod_time + dt, dt)
         self.convergence_data = {'time': time_list}
 
         for time in time_list:
@@ -1161,29 +1183,29 @@ class FreeEner:
             tot_sd_list.append(tot_std_contrib)
 
             if self.lambda_restr:
-                restr_contrib = local_table['DG (kT)'][:restr_num].sum()
+                restr_contrib = local_table['DG (kT)'][:restr_num-1].sum()
                 restr_contrib *= self.conv_fac
-                restr_std_contrib = sum(local_table['+/-'][:restr_num]**2)**0.5
+                restr_std_contrib = sum(local_table['+/-'][:restr_num-1]**2)**0.5
                 restr_std_contrib *= self.conv_fac
-                tot_list.append(-restr_contrib)
-                tot_sd_list.append(restr_std_contrib)
+                restr_list.append(-restr_contrib)
+                restr_sd_list.append(restr_std_contrib)
 
             if self.lambda_coul:
                 coul_contrib = local_table['DG (kT)'][
-                    restr_num:restr_num + coul_num].sum()
+                    max(restr_num-1, 0):restr_num + coul_num -1].sum()
                 coul_contrib *= self.conv_fac
                 coul_std_contrib = sum(local_table['+/-'][
-                    restr_num:restr_num + coul_num]**2)**0.5
+                    max(restr_num-1, 0):restr_num + coul_num -1]**2)**0.5
                 coul_std_contrib *= self.conv_fac
                 coul_list.append(-coul_contrib)
                 coul_sd_list.append(coul_std_contrib)
 
             if self.lambda_vdw:
                 vdw_contrib = local_table['DG (kT)'][
-                    restr_num + coul_num:].sum()
+                    restr_num + coul_num -1:].sum()
                 vdw_contrib *= self.conv_fac
                 vdw_std_contrib = sum(
-                    local_table['+/-'][restr_num + coul_num:]**2)**0.5
+                    local_table['+/-'][restr_num + coul_num -1:]**2)**0.5
                 vdw_std_contrib *= self.conv_fac
                 vdw_list.append(-vdw_contrib)
                 vdw_sd_list.append(vdw_std_contrib)
@@ -1240,6 +1262,8 @@ class FreeEner:
 
         if graph_out:
             plt.savefig(graph_out)
+
+        return(fig)
 
     @staticmethod
     def symmetry_correction(smile, temp=300):
