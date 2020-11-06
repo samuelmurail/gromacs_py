@@ -61,9 +61,10 @@ def test_free_bind(tmp_path):
     dg_bind, dg_std_bind = dna_free.get_free_ener()
     print(dg_bind, dg_std_bind)
     assert ((0 < dg_bind) and (dg_bind < 200))
-    dna_free.compute_convergence_alchemlyb(dt=0.2)
+    # Need to think about using alchemlyb as a dependance or not
+    # dna_free.compute_convergence_alchemlyb(dt=0.2)
     # print(dna_free.convergence_data)
-    dna_free.plot_convergence_graph(graph_out='alchem.png')
+    # dna_free.plot_convergence_graph(graph_out='alchem.png')
     dna_free.compute_convergence_gbar(dt=0.2)
     # print(dna_free.convergence_data)
     dna_free.plot_convergence_graph(graph_out='=bar.png')
@@ -83,6 +84,9 @@ def test_solv_water_free(tmp_path):
 
     start_coor = pdb_manip.Coor(mol_free.gmxsys.coor_file)
     assert start_coor.num == 1625
+    # To avoid domain decomposition errors:
+    # Use only one proc
+    mol_free.gmxsys.nt = 1
     mol_free.equilibrate_solvent_box(em_steps=100, dt=0.002, prod_time=0.02,
                                      short_steps=500)
     delta_coul = 0.5
@@ -103,6 +107,7 @@ def test_solv_oct(tmp_path):
 
     start_coor = pdb_manip.Coor(mol_free.gmxsys.coor_file)
     assert start_coor.num == 1502
+    mol_free.gmxsys.nt = 1
     mol_free.equilibrate_solvent_box(em_steps=100, dt=0.002, prod_time=0.02,
                                      short_steps=500)
 
