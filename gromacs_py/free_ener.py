@@ -19,7 +19,7 @@ from pdb_manip_py import pdb_manip
 
 from . import gmx
 from .gmx import TopSys, GmxSys, GROMACS_MOD_DIRNAME
-from .tools import monitor
+from .tools import monitor, ambertools
 
 
 def show_log(pdb_manip_log=True):
@@ -71,8 +71,9 @@ class FreeEner:
     def __init__(self, mol_name, out_folder, unit='kcal'):
         self.mol_name = mol_name[:3]
         if len(mol_name) > 4:
-            logger.warning(f'Molecule name {mol_name} is longer than 3 characters,'
-                           f'name changed to {self.mol_name}')
+            logger.warning(
+                f'Molecule name {mol_name} is longer than 3 characters,'
+                f'name changed to {self.mol_name}')
         self.unit = unit
         self.out_folder = out_folder
         # Lambda
@@ -90,14 +91,21 @@ class FreeEner:
         """ Conversion factor from kT to
         self.unit
         """
-        if self.unit == 'kcal':
+        return(FreeEner.get_conv_fac(self.unit, self.temp))
+
+    @staticmethod
+    def get_conv_fac(unit, temp):
+        """ Conversion factor from kT to
+        self.unit
+        """
+        if unit == 'kcal':
             return(0.593)
-        elif self.unit == 'kJ':
+        elif unit == 'kJ':
             return(4.184 * 0.593)
-        elif self.unit == 'kT':
+        elif unit == 'kT':
             return(1)
-        elif self.unit == 'logP':
-            return(-1.365679 * KB * self.temp / 1000)
+        elif unit == 'logP':
+            return(-1.365679 * KB * temp / 1000)
 
     @property
     def unit_name(self):
@@ -121,41 +129,12 @@ class FreeEner:
         elif self.unit == 'logP':
             return(r'log \; P')
 
-    @staticmethod
-    def smile_to_pdb(smile, pdb_out, mol_name,
-                     method_3d='rdkit', iter_num=5000):
-        """
-        """
-
-        if method_3d == 'openbabel':
-            from openbabel import pybel
-            conf = pybel.readstring("smi", smile)
-            # Get charge
-            charge = conf.charge
-            conf.make3D(forcefield='mmff94', steps=iter_num)
-            conf.write(format='pdb', filename=pdb_out, overwrite=True)
-        elif method_3d == 'rdkit':
-            from rdkit.Chem import AllChem as Chem
-            conf = Chem.MolFromSmiles(smile)
-            conf = Chem.AddHs(conf)
-            charge = Chem.GetFormalCharge(conf)
-            Chem.EmbedMolecule(conf)
-            Chem.MMFFOptimizeMolecule(
-                conf, mmffVariant='MMFF94', maxIters=iter_num)
-            Chem.MolToPDBFile(conf, filename=pdb_out)
-
-        # Change resname of pdb file to `self.mol_name`
-        coor = pdb_manip.Coor(pdb_out)
-        index_list = coor.get_index_selection(selec_dict={'res_name': ['UNL']})
-        coor.change_index_pdb_field(index_list, change_dict={
-            'res_name': mol_name})
-        coor.write_pdb(pdb_out, check_file_out=False)
-
-        return(charge)
-
     def water_box_from_SMILE(self, smile, method_3d='rdkit',
                              iter_num=5000, box_dist=1.1):
         """ Create water box with a molecule
+
+        Default box dist 1.1 nm was taken as minimal distance for
+        CH4 molecule, to let domain decomposition.
         """
 
         self.smile = smile
@@ -164,10 +143,10 @@ class FreeEner:
 
         # Create 3d structure from SMILE
         pdb_file = os.path.join(self.out_folder, f'{self.mol_name}.pdb')
-        charge = FreeEner.smile_to_pdb(smile, pdb_file,
-                                       method_3d=method_3d,
-                                       mol_name=self.mol_name,
-                                       iter_num=iter_num)
+        charge = ambertools.smile_to_pdb(smile, pdb_file,
+                                         method_3d=method_3d,
+                                         mol_name=self.mol_name,
+                                         iter_num=iter_num)
         logger.info(f'ligand charge is {charge}')
 
         # Topologie and system creation
@@ -191,10 +170,10 @@ class FreeEner:
 
         # Create 3d structure from SMILE
         pdb_file = os.path.join(self.out_folder, f'{self.mol_name}.pdb')
-        charge = FreeEner.smile_to_pdb(smile, pdb_file,
-                                       method_3d=method_3d,
-                                       mol_name=self.mol_name,
-                                       iter_num=iter_num)
+        charge = ambertools.smile_to_pdb(smile, pdb_file,
+                                         method_3d=method_3d,
+                                         mol_name=self.mol_name,
+                                         iter_num=iter_num)
         logger.info(f'ligand charge is {charge}')
 
         # Topologie and system creation
@@ -312,7 +291,7 @@ class FreeEner:
 
             mdp_options = {'tc-grps': '{}_{} Water_and_ions'.format(
                             receptor_grp,
-                            self.mol_name),}
+                            self.mol_name)}
         print(mdp_options)
 
         self.gmxsys.equi_three_step(out_folder=os.path.join(
@@ -330,7 +309,8 @@ class FreeEner:
 
         dt = float(self.lambda_sys_list[0].get_mdp_dict()['dt'])
         nsteps = prod_time / dt
-        lambda_num = len(self.lambda_restr) + len(self.lambda_coul) + len(self.lambda_vdw)
+        lambda_num = len(self.lambda_restr) + len(self.lambda_coul) +\
+            len(self.lambda_vdw)
         xvg_file_list = []
 
         for i in range(lambda_num):
@@ -505,20 +485,20 @@ class FreeEner:
             logger.info('Compute lambda {} / {}'.format(
                 i + 1, lambda_restr_num + lambda_coul_num + lambda_vdw_num))
 
-            lambda_sys = FreeEner.compute_lambda_point(self.gmxsys, i,
-                                                       self.mol_name,
-                                                       os.path.join(
-                                                          self.out_folder,
-                                                          dir_name),
-                                                       free_ener_option_md, pbar,
-                                                       mbar=mbar,
-                                                       em_steps=em_steps,
-                                                       nvt_steps=nvt_steps,
-                                                       npt_steps=npt_steps,
-                                                       prod_steps=prod_steps,
-                                                       dt=dt,
-                                                       maxwarn=maxwarn,
-                                                       monitor_tool=monitor_tool)
+            lambda_sys = FreeEner.compute_lambda_point(
+                self.gmxsys, i,
+                self.mol_name,
+                os.path.join(self.out_folder,
+                             dir_name),
+                free_ener_option_md, pbar,
+                mbar=mbar,
+                em_steps=em_steps,
+                nvt_steps=nvt_steps,
+                npt_steps=npt_steps,
+                prod_steps=prod_steps,
+                dt=dt,
+                maxwarn=maxwarn,
+                monitor_tool=monitor_tool)
             self.lambda_sys_list.append(lambda_sys)
             self.xvg_file_list.append(lambda_sys.xvg)
 
@@ -746,10 +726,7 @@ class FreeEner:
         else:
             coor = pdb_manip.Coor(ref_coor)
 
-        # R0-L0 (nm)
-        # bond_df = self.get_dist([[rec_index_list[0], lig_index_list[0]]])
-        # dist = bond_df.loc[1,:].mean() / 10 # Convert to nm
-
+        # R0-L0
         # Index from gromacs starts at 1 and in pdb_manip at 0
         dist = pdb_manip.Coor.atom_dist(
             coor.atom_dict[rec_index_list[0] - 1],
@@ -761,11 +738,6 @@ class FreeEner:
                       0,
                       round(dist, 3),
                       k * 100]]
-        # angle_df = self.get_angle(
-        #     [[rec_index_list[0], lig_index_list[0], lig_index_list[1]],
-        #      [rec_index_list[1], rec_index_list[0], lig_index_list[0]]])
-        # angle_1 = angle_df.loc[1,:].mean()
-        # angle_2 = angle_df.loc[2,:].mean()
 
         # R0-L0-L1
         angle_1 = pdb_manip.Coor.atom_angle(
@@ -790,28 +762,13 @@ class FreeEner:
                         round(angle_2, 3), 0,
                         round(angle_2, 3), k]]
 
-        # dihed_df = self.get_angle([[rec_index_list[0],
-        #                             lig_index_list[0],
-        #                             lig_index_list[1],
-        #                             lig_index_list[2]],
-        #                            [rec_index_list[2],
-        #                             rec_index_list[1],
-        #                             rec_index_list[0],
-        #                             lig_index_list[0]],
-        #                            [rec_index_list[1],
-        #                             rec_index_list[0],
-        #                             lig_index_list[0],
-        #                             lig_index_list[1]]])
-        # dihed_1 = dihed_df.loc[1,:].mean()
-        # dihed_2 = dihed_df.loc[2,:].mean()
-        # dihed_3 = dihed_df.loc[3,:].mean()
         # R0-L0-L1-L2
         dihed_1 = pdb_manip.Coor.atom_dihed_angle(
             coor.atom_dict[rec_index_list[0] - 1],
             coor.atom_dict[lig_index_list[0] - 1],
             coor.atom_dict[lig_index_list[1] - 1],
             coor.atom_dict[lig_index_list[2] - 1])
-        # R2
+        # R2-R1-R0-L0
         dihed_2 = pdb_manip.Coor.atom_dihed_angle(
             coor.atom_dict[rec_index_list[2] - 1],
             coor.atom_dict[rec_index_list[1] - 1],
@@ -982,17 +939,22 @@ class FreeEner:
 
         return ener_pd
 
-    def get_free_ener(self, begin_time=0, end_time=-1):
+    def get_free_ener(self, begin_time=0, end_time=-1, unit=None):
         """ Show free energy calculation output
 
         NEED TO FIX STD !!
         """
+        if unit is None:
+            conv_fac = self.conv_fac
+        else:
+            conv_fac = FreeEner.get_conv_fac(unit, self.temp)
+
         self.table = FreeEner.get_bar(self.xvg_file_list,
                                       begin_time=begin_time,
                                       end_time=end_time)
 
-        tot_ener = self.table['DG (kT)'].sum() * self.conv_fac
-        tot_ener_std = sum(self.table['+/-']**2)**0.5 * self.conv_fac
+        tot_ener = self.table['DG (kT)'].sum() * conv_fac
+        tot_ener_std = sum(self.table['+/-']**2)**0.5 * conv_fac
 
         self.ener = tot_ener
         self.ener_std = tot_ener_std
@@ -1005,9 +967,9 @@ class FreeEner:
 
         if self.lambda_restr:
             bond_contrib = self.table['DG (kT)'][
-                :lambda_bond_num].sum() * self.conv_fac
+                :lambda_bond_num].sum() * conv_fac
             bond_contrib_std = sum(
-                self.table['+/-'][:lambda_bond_num]**2)**0.5 * self.conv_fac
+                self.table['+/-'][:lambda_bond_num]**2)**0.5 * conv_fac
 
             logger.info('DG Restr = {:5.2f} +/- {:.2f} {}'.format(
                 bond_contrib, bond_contrib_std, self.unit_name))
@@ -1015,19 +977,19 @@ class FreeEner:
         if self.lambda_coul:
             coulomb_contrib = self.table['DG (kT)'][
                 lambda_bond_num:lambda_bond_num + lambda_coul_num].sum()
-            coulomb_contrib *= self.conv_fac
+            coulomb_contrib *= conv_fac
             coulomb_contrib_std = sum(self.table['+/-'][
                 lambda_bond_num:lambda_bond_num + lambda_coul_num]**2)**0.5
-            coulomb_contrib_std *= self.conv_fac
+            coulomb_contrib_std *= conv_fac
             logger.info('DG Coul  = {:5.2f} +/- {:.2f} {}'.format(
                 coulomb_contrib, coulomb_contrib_std, self.unit_name))
 
         if self.lambda_vdw:
             vdw_contrib = self.table['DG (kT)'][
-                lambda_bond_num + lambda_coul_num:].sum() * self.conv_fac
+                lambda_bond_num + lambda_coul_num:].sum() * conv_fac
             vdw_contrib_std = sum(
                 self.table['+/-'][lambda_bond_num + lambda_coul_num:]**2
-                )**0.5 * self.conv_fac
+                )**0.5 * conv_fac
             logger.info('DG LJ    = {:5.2f} +/- {:.2f} {}'.format(
                 vdw_contrib, vdw_contrib_std, self.unit_name))
 
@@ -1054,14 +1016,17 @@ class FreeEner:
         # NEED TO SORTS FILES IN CASE OF RESTARTS
         restr_num = len(self.lambda_restr)
         coul_num = len(self.lambda_coul)
+        vdw_num = len(self.lambda_vdw)
 
         dHdl_tot = pd.concat([extract_dHdl(xvg, T=self.temp) for xvg in files])
-        #return(dHdl_tot)
         dHdl_tot_no_index = dHdl_tot.reset_index()
         # Remove duplicates due to restarts
-        dHdl_tot_no_index = dHdl_tot_no_index.drop_duplicates(subset=['bonded-lambda', 'coul-lambda', 'vdw-lambda', 'time'], keep='last')
+        dHdl_tot_no_index = dHdl_tot_no_index.drop_duplicates(
+            subset=['bonded-lambda', 'coul-lambda', 'vdw-lambda', 'time'],
+            keep='last')
         # Sort values
-        dHdl_tot_no_index = dHdl_tot_no_index.sort_values(by=['bonded-lambda', 'coul-lambda', 'vdw-lambda', 'time'])
+        dHdl_tot_no_index = dHdl_tot_no_index.sort_values(
+            by=['bonded-lambda', 'coul-lambda', 'vdw-lambda', 'time'])
         # Reset index again:
         dHdl_tot_no_index = dHdl_tot_no_index.reset_index(drop=True)
         # return(dHdl_tot_no_index)
@@ -1072,33 +1037,24 @@ class FreeEner:
         index_colnames = ['time', 'coul-lambda', 'vdw-lambda', 'bonded-lambda']
         self.convergence_data = {'time': time_list}
 
-        sim_num_val = len(dHdl_tot_no_index) / len(self.lambda_coul+self.lambda_vdw+self.lambda_restr)
-
-        #return(dHdl_tot)
+        sim_num_val = len(dHdl_tot_no_index) / (restr_num + coul_num + vdw_num)
 
         if self.lambda_coul:
-            #dHdl_coul = pd.concat([extract_dHdl(xvg, T=self.temp)
-            #                       for xvg in files[
-            #                       restr_num:restr_num + coul_num]])
-            #dHdl_coul_no_index = dHdl_coul.reset_index()
             dHdl_coul_no_index = dHdl_tot_no_index[
-                max(0, int(sim_num_val*(len(self.lambda_restr)-1))):int(sim_num_val*len(self.lambda_coul+self.lambda_restr))]
+                max(0, int(sim_num_val * (restr_num - 1))):
+                int(sim_num_val * (restr_num + coul_num))]
             ti_coul_list = []
             ti_coul_sd_list = []
 
         if self.lambda_vdw:
-            #dHdl_vdw = pd.concat([extract_dHdl(xvg, T=self.temp)
-            #                      for xvg in files[restr_num + coul_num:]])
-            #dHdl_vdw_no_index = dHdl_vdw.reset_index()
-            dHdl_vdw_no_index = dHdl_tot_no_index[int(sim_num_val*(len(self.lambda_coul+self.lambda_restr)-1)):]
+            dHdl_vdw_no_index = dHdl_tot_no_index[
+                int(sim_num_val * (restr_num + coul_num - 1)):]
             ti_vdw_list = []
             ti_vdw_sd_list = []
 
         if self.lambda_restr:
-            #dHdl_restr = pd.concat(
-            #    [extract_dHdl(xvg, T=self.temp) for xvg in files[:restr_num]])
-            #dHdl_restr_no_index = dHdl_restr.reset_index()
-            dHdl_restr_no_index = dHdl_tot_no_index[:int(sim_num_val*len(self.lambda_restr))]
+            dHdl_restr_no_index = dHdl_tot_no_index[
+                :int(sim_num_val * restr_num)]
             ti_restr_list = []
             ti_restr_sd_list = []
 
@@ -1108,7 +1064,6 @@ class FreeEner:
                 (dHdl_tot_no_index.time < time) &
                 (dHdl_tot_no_index.time >= time - dt)]
             dHdl_local = dHdl_local.set_index(index_colnames)
-            #return(dHdl_local)
             ti = TI().fit(dHdl_local)
             ti_tot_list.append(-self.conv_fac * ti.delta_f_.iloc[0, -1])
             ti_tot_sd_list.append(self.conv_fac * ti.d_delta_f_.iloc[0, -1])
@@ -1183,29 +1138,30 @@ class FreeEner:
             tot_sd_list.append(tot_std_contrib)
 
             if self.lambda_restr:
-                restr_contrib = local_table['DG (kT)'][:restr_num-1].sum()
+                restr_contrib = local_table['DG (kT)'][:restr_num - 1].sum()
                 restr_contrib *= self.conv_fac
-                restr_std_contrib = sum(local_table['+/-'][:restr_num-1]**2)**0.5
+                restr_std_contrib = sum(
+                    local_table['+/-'][:restr_num - 1]**2)**0.5
                 restr_std_contrib *= self.conv_fac
                 restr_list.append(-restr_contrib)
                 restr_sd_list.append(restr_std_contrib)
 
             if self.lambda_coul:
                 coul_contrib = local_table['DG (kT)'][
-                    max(restr_num-1, 0):restr_num + coul_num -1].sum()
+                    max(restr_num - 1, 0):restr_num + coul_num - 1].sum()
                 coul_contrib *= self.conv_fac
                 coul_std_contrib = sum(local_table['+/-'][
-                    max(restr_num-1, 0):restr_num + coul_num -1]**2)**0.5
+                    max(restr_num - 1, 0):restr_num + coul_num - 1]**2)**0.5
                 coul_std_contrib *= self.conv_fac
                 coul_list.append(-coul_contrib)
                 coul_sd_list.append(coul_std_contrib)
 
             if self.lambda_vdw:
                 vdw_contrib = local_table['DG (kT)'][
-                    restr_num + coul_num -1:].sum()
+                    restr_num + coul_num - 1:].sum()
                 vdw_contrib *= self.conv_fac
                 vdw_std_contrib = sum(
-                    local_table['+/-'][restr_num + coul_num -1:]**2)**0.5
+                    local_table['+/-'][restr_num + coul_num - 1:]**2)**0.5
                 vdw_std_contrib *= self.conv_fac
                 vdw_list.append(-vdw_contrib)
                 vdw_sd_list.append(vdw_std_contrib)
