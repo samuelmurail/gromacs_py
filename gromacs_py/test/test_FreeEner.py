@@ -11,7 +11,7 @@ import numpy as np
 from gromacs_py.free_ener import FreeEner
 from pdb_manip_py import pdb_manip
 
-from .datafiles import *
+from .datafiles import PDB_1D30
 
 # Autorship information
 __author__ = "Samuel Murail"
@@ -23,14 +23,11 @@ __email__ = "samuel.murail@u-paris.fr"
 __status__ = "Production"
 
 
-
 def test_free_bind(tmp_path):
     dna_free = FreeEner('DAP', f'{tmp_path}/1D30_solv')
-    dna_free.prepare_complex_pdb(PDB_1D30, 'NC(=N)c1ccc(cc1)c2[nH]c3cc(ccc3c2)C(N)=N')
-    
-    dna_free.gmxsys.convert_trj(traj=False,
-                                tpr=dna_free.gmxsys.coor_file,
-                                pbc='none')
+    dna_free.prepare_complex_pdb(
+        PDB_1D30, 'NC(=N)c1ccc(cc1)c2[nH]c3cc(ccc3c2)C(N)=N')
+
     start_coor = pdb_manip.Coor(dna_free.gmxsys.coor_file)
     assert start_coor.num == 20973
     dna_free.equilibrate_complex(em_steps=100, HA_time=0.001,
@@ -42,7 +39,6 @@ def test_free_bind(tmp_path):
     dg_rest_water = dna_free.ener_rest_water
     print(dg_rest_water)
     assert ((5.5 < dg_rest_water) and (dg_rest_water < 9.5))
-
 
     dna_free.plot_intermol_restr()
 
@@ -76,6 +72,7 @@ def test_free_bind(tmp_path):
 def test_is_palindrome(smile, dg):
     assert FreeEner.symmetry_correction(smile) == pytest.approx(dg, rel=1e-3)
 
+
 def test_solv_water_free(tmp_path):
     mol_free = FreeEner('DEN', f'{tmp_path}/indene_water_solv')
     mol_free.water_box_from_SMILE('C1C=Cc2ccccc12')
@@ -99,6 +96,7 @@ def test_solv_water_free(tmp_path):
     print(dg_solv, dg_std_solv)
     assert ((10 < dg_solv) and (dg_solv < 30))
 
+
 def test_solv_oct(tmp_path):
     mol_free = FreeEner('DEN', f'{tmp_path}/indene_oct_solv')
     mol_free.octanol_box_from_SMILE('C1C=Cc2ccccc12')
@@ -108,4 +106,3 @@ def test_solv_oct(tmp_path):
     mol_free.gmxsys.nt = 1
     mol_free.equilibrate_solvent_box(em_steps=100, dt=0.002, prod_time=0.02,
                                      short_steps=500)
-

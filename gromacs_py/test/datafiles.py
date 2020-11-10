@@ -10,9 +10,6 @@ Use it as:
 from gromacs_py.test.datafiles import *
 ```
 """
-__all__ = [
-    "PDB_1D30",
-    ]
 
 import os
 
@@ -29,4 +26,4 @@ PYTEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_FILE_PATH = os.path.join(PYTEST_DIR, "../test_files/")
 
 PDB_1D30 = os.path.join(TEST_FILE_PATH, '1D30.pdb')
-
+PDB_1Y0M = os.path.join(TEST_FILE_PATH, '1y0m.pdb')
