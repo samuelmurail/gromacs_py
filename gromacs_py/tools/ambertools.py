@@ -70,6 +70,44 @@ def show_debug(pdb_manip_log=True):
     logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
+def smile_to_pdb(smile, pdb_out, mol_name,
+                 method_3d='rdkit', iter_num=5000):
+    """
+    """
+
+    if method_3d == 'openbabel':
+
+        from openbabel import pybel
+
+        conf = pybel.readstring("smi", smile)
+        # Get charge
+        charge = conf.charge
+        conf.make3D(forcefield='mmff94', steps=iter_num)
+        conf.write(format='pdb', filename=pdb_out, overwrite=True)
+
+    elif method_3d == 'rdkit':
+
+        from rdkit.Chem import AllChem as Chem
+
+        conf = Chem.MolFromSmiles(smile)
+        conf = Chem.AddHs(conf)
+        # Get charge
+        charge = Chem.GetFormalCharge(conf)
+        Chem.EmbedMolecule(conf)
+        Chem.MMFFOptimizeMolecule(
+            conf, mmffVariant='MMFF94', maxIters=iter_num)
+        Chem.MolToPDBFile(conf, filename=pdb_out)
+
+    # Change resname of pdb file to `self.mol_name`
+    coor = pdb_manip.Coor(pdb_out)
+    index_list = coor.get_index_selection(selec_dict={'res_name': ['UNL']})
+    coor.change_index_pdb_field(index_list, change_dict={
+        'res_name': mol_name})
+    coor.write_pdb(pdb_out, check_file_out=False)
+
+    return(charge)
+
+
 def add_hydrogen(pdb_in, pdb_out, check_file_out=True, **reduce_options):
     """Add hydrogen to a pdb file using the ``reduce`` software:
 
