@@ -1494,285 +1494,285 @@ class GmxSys:
     :param sys_history: List of previous GmxSys() states
     :type sys_history: list of GmxSys()
 
-    :Example:
+    .. code-block:: python
 
-    >>> show_log()
-    >>> TEST_OUT = str(getfixture('tmpdir'))
-    >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
-    >>> ###################################
-    >>> ####   Create the topologie:   ###
-    >>> ###################################
-    >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
-vsite='hydrogens') #doctest: +ELLIPSIS
-    Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
-    Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
-    Succeed to save file tmp_pdb2pqr.pdb
-    pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
---with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
-    Succeed to read file 00_1y0m.pqr ,  996 atoms found
-    Chain: A  Residue: 0 to 60
-    Succeed to save file 01_1y0m_good_his.pdb
-    - Create topologie
-    gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
-1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 \
--ignh -vsite hydrogens
-    Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie \
-in a separate file: 1y0m_pdb2gmx.itp
-    Protein_chain_A
-    - ITP file: 1y0m_pdb2gmx.itp
-    - molecules defined in the itp file:
-    * Protein_chain_A
-    Rewrite topologie: 1y0m_pdb2gmx.top
-    >>> ###################################
-    >>> ####    Add water and ions:     ###
-    >>> ###################################
-    >>> prot.solvate_add_ions(out_folder=os.path.join(TEST_OUT, 'top_sys'))\
-    #doctest: +ELLIPSIS
-    - Create pbc box
-    gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o \
-.../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.1
-    - Solvate the pbc box
-    Copy topologie file and dependancies
-    Copy topologie file and dependancies
-    - Create the tpr file genion_1y0m_water_ion.tpr
-    gmx grompp -f .../template/mini.mdp -c 1y0m_water.pdb -r \
-1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o \
-genion_1y0m_water_ion.tpr -maxwarn 1
-    - Add ions to the system with an ionic concentration of 0.15 M , \
-sytem charge = 0.0 water num= 4775
-    Add ions : NA : 13   CL : 13
-    gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o \
-1y0m_water_ion.gro -np 13 -pname NA -nn 13 -nname CL
-    >>> ###################################
-    >>> ####    Minimize the system     ###
-    >>> ###################################
-    >>> prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=10, \
-constraints='none')
-    - Create the tpr file 1y0m.tpr
-    gmx grompp -f 1y0m.mdp -c ../top_sys/1y0m_water_ion.gro -r \
-../top_sys/1y0m_water_ion.gro -p ../top_sys/1y0m_water_ion.top -po \
-out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
-    - Launch the simulation 1y0m.tpr
-    gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-    >>> ###################################
-    >>> ####    Create a D peptide      ###
-    >>> ###################################
-    >>> pep = GmxSys(name='D')
-    >>> pep.create_peptide(sequence='D', out_folder=os.path.join(TEST_OUT, \
-'top_D'), em_nsteps=10, equi_nsteps=0, vsite='hydrogens') #doctest: +ELLIPSIS
-    -Make peptide: D
-    residue name:X
-    residue name:D
-    Succeed to save file .../top_D/D.pdb
-    - Create topologie
-    gmx pdb2gmx -f ../D.pdb -o D_pdb2gmx.pdb -p D_pdb2gmx.top -i D_posre.itp \
--water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
-    Molecule topologie present in D_pdb2gmx.top , extract the topologie \
-in a separate file: D_pdb2gmx.itp
-    Protein_chain_P
-    - ITP file: D_pdb2gmx.itp
-    - molecules defined in the itp file:
-    * Protein_chain_P
-    Rewrite topologie: D_pdb2gmx.top
-    - Create pbc box
-    gmx editconf -f .../top_D/00_top/D_pdb2gmx.pdb -o \
-.../top_D/00_top/D_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-    - Create the tpr file D.tpr
-    gmx grompp -f D.mdp -c ../00_top/D_pdb2gmx_box.pdb -r \
-../00_top/D_pdb2gmx_box.pdb -p ../00_top/D_pdb2gmx.top -po out_D.mdp -o \
-D.tpr -maxwarn 1
-    - Launch the simulation D.tpr
-    gmx mdrun -s D.tpr -deffnm D -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-    >>> #######################################################
-    >>> ### Insert 4 copy of the peptide in the SH3 system: ###
-    >>> #######################################################
-    >>> prot.insert_mol_sys(mol_gromacs=pep, mol_num=4, new_name='SH3_D', \
-out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
-    - Convert trj/coor
-    gmx trjconv -f ...D.gro -o ...D_compact.pdb -s ...D.gro -ur compact \
--pbc none
-    Succeed to read file ...D_compact.pdb ,  22 atoms found
-    - Copy pbc box using genconf
-    Succeed to read file ...D_compact_copy_box.pdb ,  88 atoms found
-    Succeed to save file ...D_compact_copy_box.pdb
-    Res num: 8
-    - Convert trj/coor
-    gmx trjconv -f ../em_SH3/1y0m.gro -o ../em_SH3/1y0m_compact.pdb -s \
-../em_SH3/1y0m.tpr -ur compact -pbc mol
-    Concat files: ['../em_SH3/1y0m_compact.pdb', \
-'../top_D/01_mini/D_compact_copy_box.pdb']
-    Succeed to save concat file:  SH3_D_pre_mix.pdb
-    Succeed to read file SH3_D_pre_mix.pdb ,  15425 atoms found
-    Insert mol in system
-    Residue list = [4836, 4837, 4838, 4839, 4840, 4841, 4842, 4843]
-    Insert 4 mol of 2 residues each
-    insert mol   1, water mol   ..., time=0...
-    Warning atom 1MCH mass could not be founded
-    Warning atom 2MCH mass could not be founded
-    Warning atom 1HH3 mass could not be founded
-    Warning atom 2HH3 mass could not be founded
-    Warning atom 3HH3 mass could not be founded
-    insert mol   2, water mol   ..., time=0...
-    Warning atom 1MCH mass could not be founded
-    Warning atom 2MCH mass could not be founded
-    Warning atom 1HH3 mass could not be founded
-    Warning atom 2HH3 mass could not be founded
-    Warning atom 3HH3 mass could not be founded
-    insert mol   3, water mol   ..., time=0...
-    Warning atom 1MCH mass could not be founded
-    Warning atom 2MCH mass could not be founded
-    Warning atom 1HH3 mass could not be founded
-    Warning atom 2HH3 mass could not be founded
-    Warning atom 3HH3 mass could not be founded
-    insert mol   4, water mol   ..., time=0...
-    Warning atom 1MCH mass could not be founded
-    Warning atom 2MCH mass could not be founded
-    Warning atom 1HH3 mass could not be founded
-    Warning atom 2HH3 mass could not be founded
-    Warning atom 3HH3 mass could not be founded
-    Delete ... overlapping water atoms
-    Succeed to save file SH3_D.pdb
-    Ligand
-    Add 4 mol ...D_pdb2gmx.itp
-    Succeed to read file SH3_D.pdb ,  15... atoms found
-    Water num: 47...
-    [{'name': 'Protein_chain_A', 'num': '1'}, {'name': 'SOL', ...\
-{'name': 'Ligand', 'num': '4'}]
-    CHARGE: -4.0
-    Should neutralize the system
-    Copy topologie file and dependancies
-    - Create the tpr file genion_SH3_D_neutral.tpr
-    gmx grompp -f .../template/mini.mdp -c SH3_D.pdb -r SH3_D.pdb -p \
-SH3_D_neutral.top -po out_mini.mdp -o genion_SH3_D_neutral.tpr -maxwarn 1
-    - Add ions to the system with an ionic concentration of 0 M , \
-sytem charge = -4.0 water num= 47...
-    Add ions : NA : 4   CL : 0
-    gmx genion -s genion_SH3_D_neutral.tpr -p SH3_D_neutral.top -o \
-SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
-    >>> ################################
-    >>> ####   Minimize the system   ###
-    >>> ################################
-    >>> prot.em_2_steps(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), \
-no_constr_nsteps=10, constr_nsteps=10)
-    - Create the tpr file Init_em_1y0m.tpr
-    gmx grompp -f Init_em_1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro \
--p SH3_D_neutral.top -po out_Init_em_1y0m.mdp -o Init_em_1y0m.tpr -maxwarn 1
-    - Launch the simulation Init_em_1y0m.tpr
-    gmx mdrun -s Init_em_1y0m.tpr -deffnm Init_em_1y0m -nt 0 -ntmpi 0 \
--nsteps -2 -nocopyright
-    - Create the tpr file 1y0m.tpr
-    gmx grompp -f 1y0m.mdp -c Init_em_1y0m.gro -r Init_em_1y0m.gro -p \
-SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
-    - Launch the simulation 1y0m.tpr
-    gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
-    >>> ##################################
-    >>> ####    Show system history    ###
-    >>> ##################################
-    >>> prot.display_history() #doctest: +ELLIPSIS
-    State -3:
-    <BLANKLINE>
-    name         : 1y0m
-    sim_name     : genion_1y0m_water_ion
-    coor_file    : .../top_sys/1y0m_water_ion.gro
-    top_file     : .../top_sys/1y0m_water_ion.top
-    tpr          : .../top_sys/genion_1y0m_water_ion.tpr
-    mdp          : ...template/mini.mdp
-    nt           : 0
-    ntmpi        : 0
-    sys_history  : 0
-    <BLANKLINE>
-    State -2:
-    <BLANKLINE>
-    name         : 1y0m
-    sim_name     : genion_SH3_D_neutral
-    coor_file    : .../top_D_SH3/SH3_D_neutral.gro
-    top_file     : .../top_D_SH3/SH3_D_neutral.top
-    tpr          : .../top_D_SH3/genion_SH3_D_neutral.tpr
-    mdp          : ...template/mini.mdp
-    xtc          : .../em_SH3/1y0m.trr
-    edr          : .../em_SH3/1y0m.edr
-    log          : .../em_SH3/1y0m.log
-    nt           : 0
-    ntmpi        : 0
-    sys_history  : 0
-    <BLANKLINE>
-    State -1:
-    <BLANKLINE>
-    name         : 1y0m
-    sim_name     : Init_em_1y0m
-    coor_file    : .../top_D_SH3/Init_em_1y0m.gro
-    top_file     : .../top_D_SH3/SH3_D_neutral.top
-    tpr          : .../top_D_SH3/Init_em_1y0m.tpr
-    mdp          : .../top_D_SH3/Init_em_1y0m.mdp
-    xtc          : .../top_D_SH3/Init_em_1y0m.trr
-    edr          : .../top_D_SH3/Init_em_1y0m.edr
-    log          : .../top_D_SH3/Init_em_1y0m.log
-    nt           : 0
-    ntmpi        : 0
-    sys_history  : 0
-    <BLANKLINE>
-    >>> ###################################
-    >>> ####   Equilibrate the system   ###
-    >>> ###################################
-    >>> equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, \
-"template/equi_vsites.mdp")
-    >>> mdp_options = {'nsteps': 100, 'define': '-DPOSRES', 'dt': 0.001}
-    >>> prot.run_md_sim(out_folder=os.path.join(TEST_OUT, 'equi_HA_D_SH3'), \
-name="equi_HA_D_SH3", mdp_template=equi_template_mdp,\
-                        mdp_options=mdp_options)
-    - Create the tpr file equi_HA_D_SH3.tpr
-    gmx grompp -f equi_HA_D_SH3.mdp -c ../top_D_SH3/1y0m.gro -r \
-../top_D_SH3/1y0m.gro -p ../top_D_SH3/SH3_D_neutral.top -po \
-out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
-    - Launch the simulation equi_HA_D_SH3.tpr
-    gmx mdrun -s equi_HA_D_SH3.tpr -deffnm equi_HA_D_SH3 -nt 0 -ntmpi 0 \
--nsteps -2 -nocopyright
-    >>> prot.get_simulation_time() #doctest: +ELLIPSIS
-    - Get simulation time from : .../equi_HA_D_SH3/equi_HA_D_SH3.cpt
-    gmx check -f .../equi_HA_D_SH3/equi_HA_D_SH3.cpt
-    0.1
-    >>> prot.convert_trj(traj=False) #doctest: +ELLIPSIS
-    - Convert trj/coor
-    gmx trjconv -f .../equi_HA_D_SH3/equi_HA_D_SH3.gro -o \
-.../equi_HA_D_SH3/equi_HA_D_SH3_compact.pdb -s \
-.../equi_HA_D_SH3/equi_HA_D_SH3.tpr -ur compact -pbc mol
-    >>> prot.display() #doctest: +ELLIPSIS
-    name         : 1y0m
-    sim_name     : equi_HA_D_SH3
-    coor_file    : .../equi_HA_D_SH3/equi_HA_D_SH3_compact.pdb
-    top_file     : .../top_D_SH3/SH3_D_neutral.top
-    tpr          : .../equi_HA_D_SH3/equi_HA_D_SH3.tpr
-    mdp          : .../equi_HA_D_SH3/equi_HA_D_SH3.mdp
-    xtc          : .../equi_HA_D_SH3/equi_HA_D_SH3.xtc
-    edr          : .../equi_HA_D_SH3/equi_HA_D_SH3.edr
-    log          : .../equi_HA_D_SH3/equi_HA_D_SH3.log
-    nt           : 0
-    ntmpi        : 0
-    sys_history  : 4
-    >>> #########################################
-    >>> ### Extract Potential Energy and Temp ###
-    >>> #########################################
-    >>> ener_pd = prot.get_ener(['Potential', 'Temp'])  #doctest: +ELLIPSIS
-    - Extract energy
-    gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o tmp_edr.xvg
-    >>> ener_pd['Potential'].mean() #doctest: +ELLIPSIS
-    -2...
-    >>> rmsd_pd = prot.get_rmsd(['C-alpha', 'Protein'])  #doctest: +ELLIPSIS
-    - Extract RMSD
-    - Create the ndx file ...equi_HA_D_SH3.ndx
-    gmx make_ndx -f ...equi_HA_D_SH3_compact.pdb -o ...equi_HA_D_SH3.ndx
-    gmx rms -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...\
-equi_HA_D_SH3.ndx -o tmp_rmsd.xvg -fit rot+trans -ng 1 -pbc no
-    >>> rmsd_pd #doctest: +ELLIPSIS
-       time ...Protein
-    0   0.0...
-    >>> rmsf_pd = prot.get_rmsf(['Protein'], res="yes")  #doctest: +ELLIPSIS
-    - Extract RMSF
-    gmx rmsf -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...\
-equi_HA_D_SH3.ndx -o tmp_rmsf.xvg -fit no -res yes
-    >>> rmsf_pd #doctest: +ELLIPSIS
-        Residue    RMSF
-    0       791  ...
+        > show_log()
+        > TEST_OUT = str(getfixture('tmpdir'))
+        > prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
+        > ###################################
+        > ####   Create the topologie:   ###
+        > ###################################
+        > prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
+    vsite='hydrogens') #doctest: +ELLIPSIS
+        Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
+        Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
+        Succeed to save file tmp_pdb2pqr.pdb
+        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
+    --with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
+        Succeed to read file 00_1y0m.pqr ,  996 atoms found
+        Chain: A  Residue: 0 to 60
+        Succeed to save file 01_1y0m_good_his.pdb
+        - Create topologie
+        gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
+    1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 \
+    -ignh -vsite hydrogens
+        Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie \
+    in a separate file: 1y0m_pdb2gmx.itp
+        Protein_chain_A
+        - ITP file: 1y0m_pdb2gmx.itp
+        - molecules defined in the itp file:
+        * Protein_chain_A
+        Rewrite topologie: 1y0m_pdb2gmx.top
+        > ###################################
+        > ####    Add water and ions:     ###
+        > ###################################
+        > prot.solvate_add_ions(out_folder=os.path.join(TEST_OUT, 'top_sys'))\
+        #doctest: +ELLIPSIS
+        - Create pbc box
+        gmx editconf -f .../top_SH3/1y0m_pdb2gmx.pdb -o \
+    .../top_SH3/1y0m_pdb2gmx_box.pdb -bt dodecahedron -d 1.1
+        - Solvate the pbc box
+        Copy topologie file and dependancies
+        Copy topologie file and dependancies
+        - Create the tpr file genion_1y0m_water_ion.tpr
+        gmx grompp -f .../template/mini.mdp -c 1y0m_water.pdb -r \
+    1y0m_water.pdb -p 1y0m_water_ion.top -po out_mini.mdp -o \
+    genion_1y0m_water_ion.tpr -maxwarn 1
+        - Add ions to the system with an ionic concentration of 0.15 M , \
+    sytem charge = 0.0 water num= 4775
+        Add ions : NA : 13   CL : 13
+        gmx genion -s genion_1y0m_water_ion.tpr -p 1y0m_water_ion.top -o \
+    1y0m_water_ion.gro -np 13 -pname NA -nn 13 -nname CL
+        > ###################################
+        > ####    Minimize the system     ###
+        > ###################################
+        > prot.em(out_folder=os.path.join(TEST_OUT, 'em_SH3'), nsteps=10, \
+    constraints='none')
+        - Create the tpr file 1y0m.tpr
+        gmx grompp -f 1y0m.mdp -c ../top_sys/1y0m_water_ion.gro -r \
+    ../top_sys/1y0m_water_ion.gro -p ../top_sys/1y0m_water_ion.top -po \
+    out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
+        - Launch the simulation 1y0m.tpr
+        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+        > ###################################
+        > ####    Create a D peptide      ###
+        > ###################################
+        > pep = GmxSys(name='D')
+        > pep.create_peptide(sequence='D', out_folder=os.path.join(TEST_OUT, \
+    'top_D'), em_nsteps=10, equi_nsteps=0, vsite='hydrogens') #doctest: +ELLIPSIS
+        -Make peptide: D
+        residue name:X
+        residue name:D
+        Succeed to save file .../top_D/D.pdb
+        - Create topologie
+        gmx pdb2gmx -f ../D.pdb -o D_pdb2gmx.pdb -p D_pdb2gmx.top -i D_posre.itp \
+    -water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
+        Molecule topologie present in D_pdb2gmx.top , extract the topologie \
+    in a separate file: D_pdb2gmx.itp
+        Protein_chain_P
+        - ITP file: D_pdb2gmx.itp
+        - molecules defined in the itp file:
+        * Protein_chain_P
+        Rewrite topologie: D_pdb2gmx.top
+        - Create pbc box
+        gmx editconf -f .../top_D/00_top/D_pdb2gmx.pdb -o \
+    .../top_D/00_top/D_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
+        - Create the tpr file D.tpr
+        gmx grompp -f D.mdp -c ../00_top/D_pdb2gmx_box.pdb -r \
+    ../00_top/D_pdb2gmx_box.pdb -p ../00_top/D_pdb2gmx.top -po out_D.mdp -o \
+    D.tpr -maxwarn 1
+        - Launch the simulation D.tpr
+        gmx mdrun -s D.tpr -deffnm D -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+        > #######################################################
+        > ### Insert 4 copy of the peptide in the SH3 system: ###
+        > #######################################################
+        > prot.insert_mol_sys(mol_gromacs=pep, mol_num=4, new_name='SH3_D', \
+    out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
+        - Convert trj/coor
+        gmx trjconv -f ...D.gro -o ...D_compact.pdb -s ...D.gro -ur compact \
+    -pbc none
+        Succeed to read file ...D_compact.pdb ,  22 atoms found
+        - Copy pbc box using genconf
+        Succeed to read file ...D_compact_copy_box.pdb ,  88 atoms found
+        Succeed to save file ...D_compact_copy_box.pdb
+        Res num: 8
+        - Convert trj/coor
+        gmx trjconv -f ../em_SH3/1y0m.gro -o ../em_SH3/1y0m_compact.pdb -s \
+    ../em_SH3/1y0m.tpr -ur compact -pbc mol
+        Concat files: ['../em_SH3/1y0m_compact.pdb', \
+    '../top_D/01_mini/D_compact_copy_box.pdb']
+        Succeed to save concat file:  SH3_D_pre_mix.pdb
+        Succeed to read file SH3_D_pre_mix.pdb ,  15425 atoms found
+        Insert mol in system
+        Residue list = [4836, 4837, 4838, 4839, 4840, 4841, 4842, 4843]
+        Insert 4 mol of 2 residues each
+        insert mol   1, water mol   ..., time=0...
+        Warning atom 1MCH mass could not be founded
+        Warning atom 2MCH mass could not be founded
+        Warning atom 1HH3 mass could not be founded
+        Warning atom 2HH3 mass could not be founded
+        Warning atom 3HH3 mass could not be founded
+        insert mol   2, water mol   ..., time=0...
+        Warning atom 1MCH mass could not be founded
+        Warning atom 2MCH mass could not be founded
+        Warning atom 1HH3 mass could not be founded
+        Warning atom 2HH3 mass could not be founded
+        Warning atom 3HH3 mass could not be founded
+        insert mol   3, water mol   ..., time=0...
+        Warning atom 1MCH mass could not be founded
+        Warning atom 2MCH mass could not be founded
+        Warning atom 1HH3 mass could not be founded
+        Warning atom 2HH3 mass could not be founded
+        Warning atom 3HH3 mass could not be founded
+        insert mol   4, water mol   ..., time=0...
+        Warning atom 1MCH mass could not be founded
+        Warning atom 2MCH mass could not be founded
+        Warning atom 1HH3 mass could not be founded
+        Warning atom 2HH3 mass could not be founded
+        Warning atom 3HH3 mass could not be founded
+        Delete ... overlapping water atoms
+        Succeed to save file SH3_D.pdb
+        Ligand
+        Add 4 mol ...D_pdb2gmx.itp
+        Succeed to read file SH3_D.pdb ,  15... atoms found
+        Water num: 47...
+        [{'name': 'Protein_chain_A', 'num': '1'}, {'name': 'SOL', ...\
+    {'name': 'Ligand', 'num': '4'}]
+        CHARGE: -4.0
+        Should neutralize the system
+        Copy topologie file and dependancies
+        - Create the tpr file genion_SH3_D_neutral.tpr
+        gmx grompp -f .../template/mini.mdp -c SH3_D.pdb -r SH3_D.pdb -p \
+    SH3_D_neutral.top -po out_mini.mdp -o genion_SH3_D_neutral.tpr -maxwarn 1
+        - Add ions to the system with an ionic concentration of 0 M , \
+    sytem charge = -4.0 water num= 47...
+        Add ions : NA : 4   CL : 0
+        gmx genion -s genion_SH3_D_neutral.tpr -p SH3_D_neutral.top -o \
+    SH3_D_neutral.gro -np 4 -pname NA -nn 0 -nname CL
+        > ################################
+        > ####   Minimize the system   ###
+        > ################################
+        > prot.em_2_steps(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), \
+    no_constr_nsteps=10, constr_nsteps=10)
+        - Create the tpr file Init_em_1y0m.tpr
+        gmx grompp -f Init_em_1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro \
+    -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp -o Init_em_1y0m.tpr -maxwarn 1
+        - Launch the simulation Init_em_1y0m.tpr
+        gmx mdrun -s Init_em_1y0m.tpr -deffnm Init_em_1y0m -nt 0 -ntmpi 0 \
+    -nsteps -2 -nocopyright
+        - Create the tpr file 1y0m.tpr
+        gmx grompp -f 1y0m.mdp -c Init_em_1y0m.gro -r Init_em_1y0m.gro -p \
+    SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
+        - Launch the simulation 1y0m.tpr
+        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+        > ##################################
+        > ####    Show system history    ###
+        > ##################################
+        > prot.display_history() #doctest: +ELLIPSIS
+        State -3:
+        <BLANKLINE>
+        name         : 1y0m
+        sim_name     : genion_1y0m_water_ion
+        coor_file    : .../top_sys/1y0m_water_ion.gro
+        top_file     : .../top_sys/1y0m_water_ion.top
+        tpr          : .../top_sys/genion_1y0m_water_ion.tpr
+        mdp          : ...template/mini.mdp
+        nt           : 0
+        ntmpi        : 0
+        sys_history  : 0
+        <BLANKLINE>
+        State -2:
+        <BLANKLINE>
+        name         : 1y0m
+        sim_name     : genion_SH3_D_neutral
+        coor_file    : .../top_D_SH3/SH3_D_neutral.gro
+        top_file     : .../top_D_SH3/SH3_D_neutral.top
+        tpr          : .../top_D_SH3/genion_SH3_D_neutral.tpr
+        mdp          : ...template/mini.mdp
+        xtc          : .../em_SH3/1y0m.trr
+        edr          : .../em_SH3/1y0m.edr
+        log          : .../em_SH3/1y0m.log
+        nt           : 0
+        ntmpi        : 0
+        sys_history  : 0
+        <BLANKLINE>
+        State -1:
+        <BLANKLINE>
+        name         : 1y0m
+        sim_name     : Init_em_1y0m
+        coor_file    : .../top_D_SH3/Init_em_1y0m.gro
+        top_file     : .../top_D_SH3/SH3_D_neutral.top
+        tpr          : .../top_D_SH3/Init_em_1y0m.tpr
+        mdp          : .../top_D_SH3/Init_em_1y0m.mdp
+        xtc          : .../top_D_SH3/Init_em_1y0m.trr
+        edr          : .../top_D_SH3/Init_em_1y0m.edr
+        log          : .../top_D_SH3/Init_em_1y0m.log
+        nt           : 0
+        ntmpi        : 0
+        sys_history  : 0
+        <BLANKLINE>
+        > ###################################
+        > ####   Equilibrate the system   ###
+        > ###################################
+        > equi_template_mdp = os.path.join(GROMACS_MOD_DIRNAME, \
+    "template/equi_vsites.mdp")
+        > mdp_options = {'nsteps': 100, 'define': '-DPOSRES', 'dt': 0.001}
+        > prot.run_md_sim(out_folder=os.path.join(TEST_OUT, 'equi_HA_D_SH3'), \
+    name="equi_HA_D_SH3", mdp_template=equi_template_mdp,\
+                            mdp_options=mdp_options)
+        - Create the tpr file equi_HA_D_SH3.tpr
+        gmx grompp -f equi_HA_D_SH3.mdp -c ../top_D_SH3/1y0m.gro -r \
+    ../top_D_SH3/1y0m.gro -p ../top_D_SH3/SH3_D_neutral.top -po \
+    out_equi_HA_D_SH3.mdp -o equi_HA_D_SH3.tpr -maxwarn 0
+        - Launch the simulation equi_HA_D_SH3.tpr
+        gmx mdrun -s equi_HA_D_SH3.tpr -deffnm equi_HA_D_SH3 -nt 0 -ntmpi 0 \
+    -nsteps -2 -nocopyright
+        > prot.get_simulation_time() #doctest: +ELLIPSIS
+        - Get simulation time from : .../equi_HA_D_SH3/equi_HA_D_SH3.cpt
+        gmx check -f .../equi_HA_D_SH3/equi_HA_D_SH3.cpt
+        0.1
+        > prot.convert_trj(traj=False) #doctest: +ELLIPSIS
+        - Convert trj/coor
+        gmx trjconv -f .../equi_HA_D_SH3/equi_HA_D_SH3.gro -o \
+    .../equi_HA_D_SH3/equi_HA_D_SH3_compact.pdb -s \
+    .../equi_HA_D_SH3/equi_HA_D_SH3.tpr -ur compact -pbc mol
+        > prot.display() #doctest: +ELLIPSIS
+        name         : 1y0m
+        sim_name     : equi_HA_D_SH3
+        coor_file    : .../equi_HA_D_SH3/equi_HA_D_SH3_compact.pdb
+        top_file     : .../top_D_SH3/SH3_D_neutral.top
+        tpr          : .../equi_HA_D_SH3/equi_HA_D_SH3.tpr
+        mdp          : .../equi_HA_D_SH3/equi_HA_D_SH3.mdp
+        xtc          : .../equi_HA_D_SH3/equi_HA_D_SH3.xtc
+        edr          : .../equi_HA_D_SH3/equi_HA_D_SH3.edr
+        log          : .../equi_HA_D_SH3/equi_HA_D_SH3.log
+        nt           : 0
+        ntmpi        : 0
+        sys_history  : 4
+        > #########################################
+        > ### Extract Potential Energy and Temp ###
+        > #########################################
+        > ener_pd = prot.get_ener(['Potential', 'Temp'])  #doctest: +ELLIPSIS
+        - Extract energy
+        gmx energy -f .../equi_HA_D_SH3/equi_HA_D_SH3.edr -o tmp_edr.xvg
+        > ener_pd['Potential'].mean() #doctest: +ELLIPSIS
+        -2...
+        > rmsd_pd = prot.get_rmsd(['C-alpha', 'Protein'])  #doctest: +ELLIPSIS
+        - Extract RMSD
+        - Create the ndx file ...equi_HA_D_SH3.ndx
+        gmx make_ndx -f ...equi_HA_D_SH3_compact.pdb -o ...equi_HA_D_SH3.ndx
+        gmx rms -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...\
+    equi_HA_D_SH3.ndx -o tmp_rmsd.xvg -fit rot+trans -ng 1 -pbc no
+        > rmsd_pd #doctest: +ELLIPSIS
+           time ...Protein
+        0   0.0...
+        > rmsf_pd = prot.get_rmsf(['Protein'], res="yes")  #doctest: +ELLIPSIS
+        - Extract RMSF
+        gmx rmsf -s ...equi_HA_D_SH3.tpr -f ...equi_HA_D_SH3.xtc -n ...\
+    equi_HA_D_SH3.ndx -o tmp_rmsf.xvg -fit no -res yes
+        > rmsf_pd #doctest: +ELLIPSIS
+            Residue    RMSF
+        0       791  ...
 
     .. note::
         An history of all command used could be saved.
@@ -3074,6 +3074,7 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
 
         :Example:
 
+        >>> show_log()
         >>> TEST_OUT = getfixture('tmpdir')
         >>>
         >>> # Measure s-s bond length:
@@ -4063,45 +4064,43 @@ sytem charge = 0.0 water num= 62...
             * self.coor_file
             * self.top_file
 
-        :Example:
+        :Example::
 
-        >>> TEST_OUT = getfixture('tmpdir')
-        >>> pep = GmxSys(name='SAM_pep')
-        >>> pep.create_peptide(sequence='SAM', out_folder=os.path.join(\
-str(TEST_OUT), 'peptide'), em_nsteps=10, equi_nsteps=10, vsite='hydrogens')\
-#doctest: +ELLIPSIS
-        -Make peptide: SAM
-        residue name:X
-        residue name:S
-        residue name:A
-        residue name:M
-        Succeed to save file .../peptide/SAM.pdb
-        - Create topologie
-        gmx pdb2gmx -f ../SAM.pdb -o SAM_pdb2gmx.pdb -p SAM_pdb2gmx.top -i \
+            > pep = GmxSys(name='SAM_pep')
+            > pep.create_peptide(sequence='SAM', out_folder=os.path.join(\
+str(TEST_OUT), 'peptide'), em_nsteps=10, equi_nsteps=10, vsite='hydrogens')
+            -Make peptide: SAM
+            residue name:X
+            residue name:S
+            residue name:A
+            residue name:M
+            Succeed to save file .../peptide/SAM.pdb
+            - Create topologie
+            gmx pdb2gmx -f ../SAM.pdb -o SAM_pdb2gmx.pdb -p SAM_pdb2gmx.top -i \
 SAM_posre.itp -water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
-        Molecule topologie present in SAM_pdb2gmx.top , extract the \
+            Molecule topologie present in SAM_pdb2gmx.top , extract the \
 topologie in a separate file: SAM_pdb2gmx.itp
-        Protein_chain_P
-        - ITP file: SAM_pdb2gmx.itp
-        - molecules defined in the itp file:
-        * Protein_chain_P
-        Rewrite topologie: SAM_pdb2gmx.top
-        - Create pbc box
-        gmx editconf -f .../peptide/00_top/SAM_pdb2gmx.pdb -o \
+            Protein_chain_P
+            - ITP file: SAM_pdb2gmx.itp
+            - molecules defined in the itp file:
+            * Protein_chain_P
+            Rewrite topologie: SAM_pdb2gmx.top
+            - Create pbc box
+            gmx editconf -f .../peptide/00_top/SAM_pdb2gmx.pdb -o \
 .../peptide/00_top/SAM_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        - Create the tpr file SAM_pep.tpr
-        gmx grompp -f SAM_pep.mdp -c ../00_top/SAM_pdb2gmx_box.pdb -r \
+            - Create the tpr file SAM_pep.tpr
+            gmx grompp -f SAM_pep.mdp -c ../00_top/SAM_pdb2gmx_box.pdb -r \
 ../00_top/SAM_pdb2gmx_box.pdb -p ../00_top/SAM_pdb2gmx.top -po \
 out_SAM_pep.mdp -o SAM_pep.tpr -maxwarn 1
-        - Launch the simulation SAM_pep.tpr
-        gmx mdrun -s SAM_pep.tpr -deffnm SAM_pep -nt 0 -ntmpi 0 -nsteps -2 \
+            - Launch the simulation SAM_pep.tpr
+            gmx mdrun -s SAM_pep.tpr -deffnm SAM_pep -nt 0 -ntmpi 0 -nsteps -2 \
 -nocopyright
-        - Create the tpr file equi_vacuum_SAM.tpr
-        gmx grompp -f equi_vacuum_SAM.mdp -c ../01_mini/SAM_pep.gro -r \
+            - Create the tpr file equi_vacuum_SAM.tpr
+            gmx grompp -f equi_vacuum_SAM.mdp -c ../01_mini/SAM_pep.gro -r \
 ../01_mini/SAM_pep.gro -p ../00_top/SAM_pdb2gmx.top -po \
 out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
-        - Launch the simulation equi_vacuum_SAM.tpr
-        gmx mdrun -s equi_vacuum_SAM.tpr -deffnm equi_vacuum_SAM -nt 0 \
+            - Launch the simulation equi_vacuum_SAM.tpr
+            gmx mdrun -s equi_vacuum_SAM.tpr -deffnm equi_vacuum_SAM -nt 0 \
 -ntmpi 0 -nsteps -2 -nocopyright
 
         .. note::
