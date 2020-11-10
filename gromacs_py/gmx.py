@@ -9,7 +9,6 @@ import os
 import copy
 import logging
 import sys
-import math
 
 from shutil import copy as shutil_copy
 
@@ -1589,18 +1588,23 @@ D.tpr -maxwarn 1
     >>> #######################################################
     >>> prot.insert_mol_sys(mol_gromacs=pep, mol_num=4, new_name='SH3_D', \
 out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
+    - Convert trj/coor
+    gmx trjconv -f ...D.gro -o ...D_compact.pdb -s ...D.gro -ur compact \
+-pbc none
+    Succeed to read file ...D_compact.pdb ,  22 atoms found
     - Copy pbc box using genconf
-    Succeed to read file ../top_D/01_mini/D_copy_box.pdb ,  88 atoms found
-    Succeed to save file ../top_D/01_mini/D_copy_box.pdb
-    AA num: 1
+    Succeed to read file ...D_compact_copy_box.pdb ,  88 atoms found
+    Succeed to save file ...D_compact_copy_box.pdb
+    Res num: 8
     - Convert trj/coor
     gmx trjconv -f ../em_SH3/1y0m.gro -o ../em_SH3/1y0m_compact.pdb -s \
 ../em_SH3/1y0m.tpr -ur compact -pbc mol
     Concat files: ['../em_SH3/1y0m_compact.pdb', \
-'../top_D/01_mini/D_copy_box.pdb']
+'../top_D/01_mini/D_compact_copy_box.pdb']
     Succeed to save concat file:  SH3_D_pre_mix.pdb
     Succeed to read file SH3_D_pre_mix.pdb ,  15425 atoms found
     Insert mol in system
+    Residue list = [4836, 4837, 4838, 4839, 4840, 4841, 4842, 4843]
     Insert 4 mol of 2 residues each
     insert mol   1, water mol   ..., time=0...
     Warning atom 1MCH mass could not be founded
@@ -1628,10 +1632,12 @@ out_folder=os.path.join(TEST_OUT, 'top_D_SH3')) #doctest: +ELLIPSIS
     Warning atom 3HH3 mass could not be founded
     Delete ... overlapping water atoms
     Succeed to save file SH3_D.pdb
-    Peptide
-    Add 4 mol D_pdb2gmx.itp
+    Ligand
+    Add 4 mol ...D_pdb2gmx.itp
     Succeed to read file SH3_D.pdb ,  15... atoms found
     Water num: 47...
+    [{'name': 'Protein_chain_A', 'num': '1'}, {'name': 'SOL', ...\
+{'name': 'Ligand', 'num': '4'}]
     CHARGE: -4.0
     Should neutralize the system
     Copy topologie file and dependancies
@@ -2359,8 +2365,7 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
                                 check_file_out=True)
 
         # Correct His resname
-        coor_in = pdb_manip.Coor(pdb_in="00_" + name + ".pqr",
-                                 pqr_format=True)
+        coor_in = pdb_manip.Coor("00_" + name + ".pqr")
         res_name_pdb2pqr = coor_in.get_attribute_selection(
             attribute='res_name')
         res_name_pdb2pqr += ['HIS', 'HOH']
@@ -3559,7 +3564,8 @@ out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         else:
             self.coor_file = coor_out
 
-    def copy_box(self, nbox, name=None, check_file_out=True, **cmd_args):
+    def copy_box(self, nbox, name=None, check_file_out=True,
+                 renumber=False, **cmd_args):
         """Copy images of a given corrdinates in x, y, and z directions using
         ``gmx genconf``.
 
@@ -3636,12 +3642,18 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
             self.coor_file = copy_coor
             return
 
+        if renumber:
+            renum = 'yes'
+        else:
+            renum = 'no'
+
         # Nbox need to be a string list:
         nbox_str = [str(i) for i in nbox]
 
         cmd_copy = os_command.Command([GMX_BIN, "genconf",
                                        "-f", self.coor_file,
                                        "-o", copy_coor,
+                                       "-renumber", renum,
                                        "-nbox"] + nbox_str,
                                       **cmd_args)
 
@@ -4218,11 +4230,23 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         start_dir = os.path.abspath(".")
         os_command.create_and_go_dir(out_folder)
 
+        # Get molecule resiude number:
+        mol_gromacs.tpr = mol_gromacs.coor_file
+        mol_gromacs.convert_trj(traj=False, pbc='none')
+        mol_coor = pdb_manip.Coor(mol_gromacs.coor_file)
+        res_num = len(list(set(mol_coor.get_attribute_selection(
+            attribute='uniq_resid'))))
+
         # Copy the mol using genconf:
         # Add random rotation ?
         if mol_num != 1:
+            if res_num == 1:
+                renum = True
+            else:
+                renum = False
             mol_gromacs.copy_box(nbox=[mol_num, 1, 1],
-                                 check_file_out=check_file_out, rot="yes")
+                                 check_file_out=check_file_out,
+                                 rot="yes", renumber=renum)
 
         # Before doing the concat, Change the chain of mol_pdb to "Y",
         # this step is necessary for vmd to reognize the inserted mol
@@ -4230,7 +4254,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         mol_coor.change_pdb_field({"chain": "Y"})
         mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
         mol_length = int(mol_coor.get_aa_num() / mol_num)
-        logger.info("AA num: {}".format(mol_length))
+        res_num = len(list(set(mol_coor.get_attribute_selection(
+            attribute='uniq_resid'))))
+        logger.info("Res num: {}".format(res_num))
 
         # Concat the two pdb sys_pdb and mol_pdb
         concat_sys = new_name + "_pre_mix.pdb"
@@ -4251,7 +4277,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         sys_pdb = pdb_manip.Coor(concat_sys)
 
         sys_pdb.insert_mol(pdb_out=new_name + ".pdb", out_folder=".",
-                           mol_chain="Y",
+                           mol_chain="Y", mol_num=mol_num,
                            check_file_out=check_file_out)
 
         self.coor_file = new_name + ".pdb"
@@ -4261,22 +4287,27 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         top_mol = TopSys(mol_gromacs.top_file)
         old_name = top_mol.mol_comp[0]['name']
         # print("Old topologie name is:", old_name)
-        top_mol.change_mol_name(old_name, "Peptide")
+        top_mol.change_mol_name(old_name, "Ligand")
         top_mol.copy_dependancies("./")
         # top_mol.display()
         # Get the new location of the peptide itp file:
-        pep_itp = os.path.basename(top_mol.get_include_no_posre_file_list()[0])
-        # print("Include:", pep_itp)
+        mol_itp = top_mol.get_include_no_posre_file_list()
+        # print("Include:", mol_itp)
 
         # Get the system topologie:
         sys_topologie = TopSys(self.top_file)
-        # sys_topologie.display()
+        # Add atomtypes:
+        if mol_itp[0].endswith('atomtypes.itp'):
+            sys_topologie.add_atomtypes(mol_itp[0])
+            lig_itp = mol_itp[-1]
+        else:
+            lig_itp = mol_itp[0]
         # Add the peptide in the sys topologie and update the water num:
-        sys_topologie.add_mol(mol_name="Peptide", mol_itp_file=pep_itp,
+        sys_topologie.add_mol(mol_name="Ligand", mol_itp_file=lig_itp,
                               mol_num=mol_num)
 
         # Get the new water num after peptide insertion:
-        sys_dict = pdb_manip.Coor(pdb_in=self.coor_file)
+        sys_dict = pdb_manip.Coor(self.coor_file)
         water_res = sys_dict.get_attribute_selection(
             selec_dict={"res_name": ["SOL"]}, attribute='uniq_resid')
         logger.info("Water num: {}".format(len(water_res)))
@@ -4936,9 +4967,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             # Check if it is an extend simulation:
             # And need to update the log file to XXX.part0XXX
             elif os.path.isfile(self.sim_name + ".cpt"):
-                monitor_files['nsteps'] += self.get_simulation_time() / float(sim_mdp_dict['dt'])
+                monitor_files['nsteps'] += self.get_simulation_time() / float(
+                    sim_mdp_dict['dt'])
+                # Find last job number (sim_num)
                 for sim_num in range(2, 9999):
-                    if not os.path.isfile(f"{self.sim_name}.part{sim_num:04d}.edr"):
+                    if not os.path.isfile(
+                            f"{self.sim_name}.part{sim_num:04d}.edr"):
                         break
                 monitor_files['xtc'] = f"{self.sim_name}.part{sim_num:04d}.xtc"
                 monitor_files['edr'] = f"{self.sim_name}.part{sim_num:04d}.edr"
@@ -5794,7 +5828,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
             * self.sim_name
 
-        :return: return dict containing edr, log, xtc, xvg and coor_file file list
+        :return: return dict containing edr, log, xtc, xvg and coor_file
+        file list
         :rtype: dict
 
         """
