@@ -80,7 +80,7 @@ def test_insert_ethanol(tmp_path):
 
     prot.display_history()
 
-@pytest.mark.skipif(float(gromacs_py.gmx.gmx_version) >= 2019,
+@pytest.mark.skipif(float(gmx.gmx_version) >= 2019,
                     reason="Gromacs verions >= 19 have issues with ACE")
 def test_insert_peptide_vsite(tmp_path):
 
