@@ -36,7 +36,7 @@ def test_free_bind(tmp_path):
                                  receptor_grp='DNA',
                                  short_steps=500)
     dna_free.compute_add_intermol_from_traj(ref_coor=None, rec_group='DNA')
-    dg_rest_water = dna_free.ener_rest_water
+    dg_rest_water = dna_free.get_water_restr()
     print(dg_rest_water)
     assert ((5.5 < dg_rest_water) and (dg_rest_water < 9.5))
 
