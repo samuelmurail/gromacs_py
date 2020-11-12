@@ -587,8 +587,6 @@ class FreeEner:
         pbar.update(prod_steps)
 
         return(mol_sys)
-        # return(mol_sys, os.path.join(out_folder, '03_prod/',
-        #                     'prod_' + sys_name + '.xvg'))
 
     def compute_add_intermol_from_traj(self, ref_coor=None,
                                        rec_group='Protein', k=41.84):
@@ -812,12 +810,27 @@ class FreeEner:
         top.write_file(self.gmxsys.top_file[:-4] + '_rest.top')
         self.gmxsys.top_file = self.gmxsys.top_file[:-4] + '_rest.top'
 
+
+    def get_water_restr(self, temp=300):
+        """ Compute restaint energy in water using
+        ...
+        """
+
+        top = TopSys(self.gmxsys.top_file)
+
+        dist = float(top.inter_bond_list[0]['rA'])
+        k_bond = float(top.inter_bond_list[0]['kB'])
+
+        k_angle = float(top.inter_angl_list[0]['kB'])
+        angle_1 = float(top.inter_angl_list[0]['thA'])
+        angle_2 = float(top.inter_angl_list[1]['thA'])
+
         # Compute DG restr in water:
         V0 = 1660 * 1e-3  # nm³
         GK = KB * 1e-3 / 4.184  # Gas constant kcal/mol/K
         # K need to converted to Kcal (currently in KJ)
-        k_bond = 1e2 * k / 4.184  # k*1e2 kcal/(nm*mol)
-        k_angle = k / 4.184
+        k_bond /= 4.184  # k*1e2 kcal/(nm*mol)
+        k_angle /= 4.184
 
         numerator = 8 * math.pi**2 * V0 * (k_bond * k_angle**5)**0.5
         denominator_1 = (dist**2 * math.sin(math.radians(angle_1))
@@ -832,9 +845,7 @@ class FreeEner:
         # Convert to self.unit
         dg_rest_water *= self.conv_fac
 
-        logger.info(f'DG water restr = {dg_rest_water:.2f} {self.unit_name}')
-
-        self.ener_rest_water = dg_rest_water
+        return(dg_rest_water)
 
     def plot_intermol_restr(self, graph_out=None):
         """
