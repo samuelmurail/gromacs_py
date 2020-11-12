@@ -6,7 +6,6 @@ dependencies:
   - python=3.7
   - gromacs=2019.1
   - ambertools=20.9
-  - ocl-icd-system
   - rdkit
   - pip
   - pip:
