@@ -4596,7 +4596,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         for key, value in local_mdp_opt.items():
             if key not in mdp_template_dict:
                 logger.warning("WARNING !!! ADDING unusual parameter : \"{}"
-                               "\"in the mdp file {}".format(key, self.mdp))
+                               "\"in the mdp file {}".format(key, mdp_out))
 
         mdp_template_dict.update(local_mdp_opt)
 
