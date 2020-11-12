@@ -6,11 +6,9 @@ Tests for GmxSys class
 """
 
 import pytest
-import numpy as np
 import os
 
-import gromacs_py.gmx
-from gromacs_py.gmx import GmxSys
+from gromacs_py import gmx
 import gromacs_py.tools.ambertools as ambertools
 
 from pdb_manip_py import pdb_manip
@@ -29,11 +27,11 @@ __status__ = "Production"
 
 def test_insert_ethanol(tmp_path):
 
-    gromacs_py.gmx.show_log()
+    gmx.show_log()
     ##################################
     # ##   Create the topologie:   ###
     ##################################
-    prot = GmxSys(name='1y0m', coor_file=PDB_1Y0M)
+    prot = gmx.GmxSys(name='1y0m', coor_file=PDB_1Y0M)
     prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_SH3'))
     top_coor = pdb_manip.Coor(prot.coor_file)
     assert top_coor.num == 996
@@ -58,7 +56,7 @@ def test_insert_ethanol(tmp_path):
 
     assert charge == 0
 
-    eth_sys = GmxSys(name='ETH', coor_file=eth_pdb)
+    eth_sys = gmx.GmxSys(name='ETH', coor_file=eth_pdb)
     eth_sys.prepare_top_ligand(
         out_folder=os.path.join(tmp_path, 'eth_top'),
         ff='amber99sb-ildn', include_mol={'ETH': smile})
@@ -86,11 +84,11 @@ def test_insert_ethanol(tmp_path):
                     reason="Gromacs verions >= 19 have issues with ACE")
 def test_insert_peptide_vsite(tmp_path):
 
-    gromacs_py.gmx.show_log()
+    gmx.show_log()
     ##################################
     # ##   Create the topologie:   ###
     ##################################
-    prot = GmxSys(name='1y0m', coor_file=PDB_1Y0M)
+    prot = gmx.GmxSys(name='1y0m', coor_file=PDB_1Y0M)
     prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_SH3'),
                      vsite='hydrogens')
     top_coor = pdb_manip.Coor(prot.coor_file)
@@ -110,7 +108,7 @@ def test_insert_peptide_vsite(tmp_path):
     ###################################
     # ##    Create a DD peptide     ###
     ###################################
-    pep = GmxSys(name='DD')
+    pep = gmx.GmxSys(name='DD')
     pep.create_peptide(sequence='DD',
                        out_folder=os.path.join(tmp_path, 'top_DD'),
                        em_nsteps=10, equi_nsteps=0,
