@@ -453,6 +453,7 @@ class FreeEner:
                                'rvdw': 1.1,
                                'coulombtype': 'pme',
                                'rcoulomb': 1.1,
+                               'lincs_order': 8,  # Try to fix the LINCS Errors
                                'free_energy': 'yes',
                                'init_lambda-state': 0,
                                'calc-lambda-neighbors': 1,
@@ -589,7 +590,8 @@ class FreeEner:
         return(mol_sys)
 
     def compute_add_intermol_from_traj(self, ref_coor=None,
-                                       rec_group='Protein', k=41.84):
+                                       rec_group='Protein', k=41.84,
+                                       cutoff_prot=6.0):
         """ Compute intermolecular restraint from the last GmxSys trajectory.
         Get a coor object
         Get distance and angles
@@ -598,14 +600,6 @@ class FreeEner:
         if ref_coor is None:
             ref_coor = self.ref_coor
 
-        if not ref_coor.endswith('.pdb'):
-            ref_sys = GmxSys(name='ref', coor_file=ref_coor)
-            ref_sys.tpr = ref_coor
-            ref_sys.convert_trj(traj=False, pbc='none')
-            ref_coor_pdb = ref_sys.coor_file
-        else:
-            ref_coor_pdb = ref_coor
-        coor = pdb_manip.Coor(ref_coor_pdb)
 
         # Center and align traj:
         self.gmxsys.convert_trj(
@@ -613,34 +607,20 @@ class FreeEner:
         self.gmxsys.convert_trj(
             select=rec_group + '\n System', fit='rot+trans', pbc='none')
 
-        # Get RMSF for ligand:
-        lig_rmsf = self.gmxsys.get_rmsf([self.mol_name])
-        # Sort df by RMSF
-        lig_rmsf = lig_rmsf.sort_values(by=['RMSF'])
-        # Get the stablest atom which is not Hydrogen
-        for i, row in lig_rmsf.iterrows():
-            atom = coor.atom_dict[int(row['Atom'])]
-            if not atom['name'].startswith('H'):
-                lig_atom_list = [int(row['Atom'])]
-                break
-        # Get connected atoms:
-        lig_coor = coor.select_part_dict({'res_name': [self.mol_name]})
-        atom_coor = pdb_manip.Coor()
+        lig_atom_list = self.get_ligand_atoms(ref_coor)
 
-        # Add 2 close atom consecutively
-        for _ in range(2):
-            atom_coor.atom_dict = {0: coor.atom_dict[lig_atom_list[-1]]}
-            close_lig_atoms = lig_coor.get_index_dist_between(
-                atom_coor, cutoff_min=1.0, cutoff_max=2.0)
-            for i in close_lig_atoms:
-                atom = coor.atom_dict[i]
-                if not atom['name'].startswith('H') and i not in lig_atom_list:
-                    lig_atom_list.append(i)
-                    break
+        rec_atom_list = self.get_protein_atoms(ref_coor, lig_atom_list,
+                                               rec_group=rec_group,
+                                               cutoff_max=cutoff_prot)
 
-        # Atom index need to be +1 to be in gromacs numbering
-        lig_atom_list = [index + 1 for index in lig_atom_list]
-        logger.debug(f'Ligand atom indexes : {lig_atom_list}')
+        self.add_intermol_restr_index(rec_atom_list, lig_atom_list,
+                                      ref_coor, k=k)
+
+    def get_protein_atoms(self, ref_coor, lig_atom_list, rec_group='Protein',
+                          cutoff_max=6.0):
+        """
+        """
+        coor = pdb_manip.Coor(ref_coor)
 
         # Get protein RMSF
         prot_rmsf = self.gmxsys.get_rmsf([rec_group])
@@ -652,10 +632,11 @@ class FreeEner:
             bk_atoms_list = ['C4\'', 'C3\'', 'O3\'', 'O5\'', 'P', 'C5\'']
         backbone = coor.select_part_dict({'name': bk_atoms_list})
         # Create coor for the 3 ligand atoms
+        atom_coor = pdb_manip.Coor()
         atom_coor.atom_dict = {
-            i: coor.atom_dict[lig_atom_list[i]] for i in range(3)}
+            i: coor.atom_dict[lig_atom_list[i] - 1] for i in range(3)}
         around_atom = backbone.get_index_dist_between(
-            atom_coor, cutoff_min=1.0, cutoff_max=6.0)
+            atom_coor, cutoff_min=0.0, cutoff_max=cutoff_max)
         # Extract RMSF of contact atoms
         around_lig_df = prot_rmsf[prot_rmsf.Atom.isin(around_atom)]
         around_lig_df = around_lig_df.sort_values(by=['RMSF'])
@@ -672,10 +653,48 @@ class FreeEner:
         # Atom index need to be +1 to be in gromacs numbering
         rec_atom_list = [index + 1 for index in rec_atom_list]
         logger.debug(f'Receptor atom indexes : {rec_atom_list}')
-        # Add C, CA, N
 
-        self.add_intermol_restr_index(rec_atom_list, lig_atom_list,
-                                      ref_coor_pdb, k=k)
+        return(rec_atom_list)
+
+    def get_ligand_atoms(self, ref_coor):
+        """
+        """
+
+        coor = pdb_manip.Coor(ref_coor)
+        # Get RMSF for ligand:
+        lig_rmsf = self.gmxsys.get_rmsf([self.mol_name])
+        # Sort df by RMSF
+        lig_rmsf = lig_rmsf.sort_values(by=['RMSF'])
+        # Get the stablest atom which is not Hydrogen
+        for i, row in lig_rmsf.iterrows():
+            atom = coor.atom_dict[int(row['Atom']) - 1]
+            if not atom['name'].startswith('H'):
+                lig_atom_list = [int(row['Atom']) - 1]
+                break
+        # Get connected atoms:
+        lig_coor = coor.select_part_dict({'res_name': [self.mol_name]})
+        atom_coor = pdb_manip.Coor()
+
+        # Add 2 close atom consecutively
+        cutoff_max = 1.9
+        while len(lig_atom_list) < 3:
+            cutoff_max += 0.1
+            for _ in range(2):
+                atom_coor.atom_dict = {0: coor.atom_dict[lig_atom_list[-1]]}
+                close_lig_atoms = lig_coor.get_index_dist_between(
+                    atom_coor, cutoff_min=1.0, cutoff_max=cutoff_max)
+                for i in close_lig_atoms:
+                    atom = coor.atom_dict[i]
+                    if not atom['name'].startswith('H') and i not in lig_atom_list:
+                        lig_atom_list.append(i)
+                        break
+
+        # Atom index need to be +1 to be in gromacs numbering
+        lig_atom_list = [index + 1 for index in lig_atom_list]
+        logger.debug(f'Ligand atom indexes : {lig_atom_list}')
+        print(f'Ligand atom indexes : {lig_atom_list}')
+
+        return(lig_atom_list)
 
     def add_intermol_restr_index(self, rec_index_list, lig_index_list,
                                  ref_coor, k=41.84, temp=300):
@@ -809,7 +828,6 @@ class FreeEner:
 
         top.write_file(self.gmxsys.top_file[:-4] + '_rest.top')
         self.gmxsys.top_file = self.gmxsys.top_file[:-4] + '_rest.top'
-
 
     def get_water_restr(self, temp=300):
         """ Compute restaint energy in water using
