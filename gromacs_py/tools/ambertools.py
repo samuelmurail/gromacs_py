@@ -501,21 +501,21 @@ def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
                 to_del_list.append(atom_num)
         mol_coor.del_atom_index(to_del_list)
 
-    mol_coor.write_pdb(res_name+'.pdb', check_file_out=False)
+    mol_coor.write_pdb(res_name + '.pdb', check_file_out=False)
 
     # Add hydrogens:
     # add_hydrogen(res_name+'.pdb', res_name+'_h.pdb')
-    charge = add_hydrogen_rdkit(res_name+'.pdb',
+    charge = add_hydrogen_rdkit(res_name + '.pdb',
                                 smile,
-                                res_name+'_h.pdb')
+                                res_name + '_h.pdb')
 
     # Get only one molecule
-    mol_h_coor = pdb_manip.Coor(res_name+'_h.pdb')
+    mol_h_coor = pdb_manip.Coor(res_name + '_h.pdb')
     res_list = mol_h_coor.get_attribute_selection(attribute='uniq_resid')
     mol_uniq_coor = mol_h_coor.select_part_dict(
         selec_dict={'uniq_resid': [res_list[0]]})
     # Save coordinates:
-    mol_uniq_coor.write_pdb(res_name+'_h_unique.pdb', check_file_out=False)
+    mol_uniq_coor.write_pdb(res_name + '_h_unique.pdb', check_file_out=False)
 
     # Compute topologie with acpype:
     gmxsys = acpype(res_name+'_h_unique.pdb', res_name,
@@ -524,7 +524,7 @@ def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
                     atom_type="gaff")
 
     return({'GmxSys': gmxsys,
-            'coor': os_command.full_path_and_check(res_name+'_h.pdb'),
+            'coor': os_command.full_path_and_check(res_name + '_h.pdb'),
             'num': len(res_list)})
 
 
