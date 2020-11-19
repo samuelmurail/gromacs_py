@@ -600,7 +600,6 @@ class FreeEner:
         if ref_coor is None:
             ref_coor = self.ref_coor
 
-
         # Center and align traj:
         self.gmxsys.convert_trj(
             select=rec_group + '\n System', center='yes')
@@ -685,7 +684,8 @@ class FreeEner:
                     atom_coor, cutoff_min=1.0, cutoff_max=cutoff_max)
                 for i in close_lig_atoms:
                     atom = coor.atom_dict[i]
-                    if not atom['name'].startswith('H') and i not in lig_atom_list:
+                    if not (atom['name'].startswith('H')
+                            or i in lig_atom_list):
                         lig_atom_list.append(i)
                         break
 
@@ -912,6 +912,7 @@ class FreeEner:
         axs[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         axs[1].set_xlabel(r'angle ($^{\circ}$)')
         axs[1].xaxis.set_label_coords(0.5, -0.1)
+        axs[1].set_xlim(0, 180)
         axs[1].grid()
 
         dihe_index_list = []
@@ -931,6 +932,7 @@ class FreeEner:
         axs[2].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         axs[2].set_xlabel(r'dihedral angle ($^{\circ}$)')
         axs[2].xaxis.set_label_coords(0.5, -0.1)
+        axs[2].set_xlim(-180, 180)
         axs[2].grid()
 
         if graph_out:
