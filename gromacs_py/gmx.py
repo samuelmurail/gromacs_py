@@ -1516,8 +1516,8 @@ class GmxSys:
         gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
     1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 \
     -ignh -vsite hydrogens
-        Molecule topologie present in 1y0m_pdb2gmx.top , extract the topologie \
-    in a separate file: 1y0m_pdb2gmx.itp
+        Molecule topologie present in 1y0m_pdb2gmx.top , extract the \
+topologie in a separate file: 1y0m_pdb2gmx.itp
         Protein_chain_A
         - ITP file: 1y0m_pdb2gmx.itp
         - molecules defined in the itp file:
@@ -1553,20 +1553,21 @@ class GmxSys:
     ../top_sys/1y0m_water_ion.gro -p ../top_sys/1y0m_water_ion.top -po \
     out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         - Launch the simulation 1y0m.tpr
-        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 \
+-nocopyright
         > ###################################
         > ####    Create a D peptide      ###
         > ###################################
         > pep = GmxSys(name='D')
         > pep.create_peptide(sequence='D', out_folder=os.path.join(TEST_OUT, \
-    'top_D'), em_nsteps=10, equi_nsteps=0, vsite='hydrogens') #doctest: +ELLIPSIS
+    'top_D'), em_nsteps=10, equi_nsteps=0, vsite='hydrogens')
         -Make peptide: D
         residue name:X
         residue name:D
         Succeed to save file .../top_D/D.pdb
         - Create topologie
-        gmx pdb2gmx -f ../D.pdb -o D_pdb2gmx.pdb -p D_pdb2gmx.top -i D_posre.itp \
-    -water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
+        gmx pdb2gmx -f ../D.pdb -o D_pdb2gmx.pdb -p D_pdb2gmx.top -i \
+D_posre.itp -water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
         Molecule topologie present in D_pdb2gmx.top , extract the topologie \
     in a separate file: D_pdb2gmx.itp
         Protein_chain_P
@@ -1655,8 +1656,9 @@ class GmxSys:
         > prot.em_2_steps(out_folder=os.path.join(TEST_OUT, 'top_D_SH3'), \
     no_constr_nsteps=10, constr_nsteps=10)
         - Create the tpr file Init_em_1y0m.tpr
-        gmx grompp -f Init_em_1y0m.mdp -c SH3_D_neutral.gro -r SH3_D_neutral.gro \
-    -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp -o Init_em_1y0m.tpr -maxwarn 1
+        gmx grompp -f Init_em_1y0m.mdp -c SH3_D_neutral.gro -r \
+SH3_D_neutral.gro -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp \
+-o Init_em_1y0m.tpr -maxwarn 1
         - Launch the simulation Init_em_1y0m.tpr
         gmx mdrun -s Init_em_1y0m.tpr -deffnm Init_em_1y0m -nt 0 -ntmpi 0 \
     -nsteps -2 -nocopyright
@@ -1664,7 +1666,8 @@ class GmxSys:
         gmx grompp -f 1y0m.mdp -c Init_em_1y0m.gro -r Init_em_1y0m.gro -p \
     SH3_D_neutral.top -po out_1y0m.mdp -o 1y0m.tpr -maxwarn 1
         - Launch the simulation 1y0m.tpr
-        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 -nocopyright
+        gmx mdrun -s 1y0m.tpr -deffnm 1y0m -nt 0 -ntmpi 0 -nsteps -2 \
+-nocopyright
         > ##################################
         > ####    Show system history    ###
         > ##################################
@@ -4076,8 +4079,8 @@ str(TEST_OUT), 'peptide'), em_nsteps=10, equi_nsteps=10, vsite='hydrogens')
             residue name:M
             Succeed to save file .../peptide/SAM.pdb
             - Create topologie
-            gmx pdb2gmx -f ../SAM.pdb -o SAM_pdb2gmx.pdb -p SAM_pdb2gmx.top -i \
-SAM_posre.itp -water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
+            gmx pdb2gmx -f ../SAM.pdb -o SAM_pdb2gmx.pdb -p SAM_pdb2gmx.top \
+-i SAM_posre.itp -water tip3p -ff charmm36-jul2017 -ignh -ter -vsite hydrogens
             Molecule topologie present in SAM_pdb2gmx.top , extract the \
 topologie in a separate file: SAM_pdb2gmx.itp
             Protein_chain_P
@@ -4093,8 +4096,8 @@ topologie in a separate file: SAM_pdb2gmx.itp
 ../00_top/SAM_pdb2gmx_box.pdb -p ../00_top/SAM_pdb2gmx.top -po \
 out_SAM_pep.mdp -o SAM_pep.tpr -maxwarn 1
             - Launch the simulation SAM_pep.tpr
-            gmx mdrun -s SAM_pep.tpr -deffnm SAM_pep -nt 0 -ntmpi 0 -nsteps -2 \
--nocopyright
+            gmx mdrun -s SAM_pep.tpr -deffnm SAM_pep -nt 0 -ntmpi 0 -nsteps \
+-2 -nocopyright
             - Create the tpr file equi_vacuum_SAM.tpr
             gmx grompp -f equi_vacuum_SAM.mdp -c ../01_mini/SAM_pep.gro -r \
 ../01_mini/SAM_pep.gro -p ../00_top/SAM_pdb2gmx.top -po \
@@ -4252,7 +4255,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         mol_coor = pdb_manip.Coor(mol_gromacs.coor_file)
         mol_coor.change_pdb_field({"chain": "Y"})
         mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
-        mol_length = int(mol_coor.get_aa_num() / mol_num)
+        # mol_length = int(mol_coor.get_aa_num() / mol_num)
         res_num = len(list(set(mol_coor.get_attribute_selection(
             attribute='uniq_resid'))))
         logger.info("Res num: {}".format(res_num))
