@@ -675,18 +675,20 @@ class FreeEner:
         atom_coor = pdb_manip.Coor()
 
         # Add 2 close atom consecutively
-        cutoff_max = 1.9
+        cutoff_max = 1.5
         while len(lig_atom_list) < 3:
             cutoff_max += 0.1
-            for _ in range(2):
-                atom_coor.atom_dict = {0: coor.atom_dict[lig_atom_list[-1]]}
-                close_lig_atoms = lig_coor.get_index_dist_between(
-                    atom_coor, cutoff_min=1.0, cutoff_max=cutoff_max)
-                for i in close_lig_atoms:
-                    atom = coor.atom_dict[i]
-                    if not (atom['name'].startswith('H')
-                            or i in lig_atom_list):
-                        lig_atom_list.append(i)
+            atom_coor.atom_dict = {0: coor.atom_dict[lig_atom_list[-1]]}
+            close_lig_atoms = lig_coor.get_index_dist_between(
+                atom_coor, cutoff_min=0.1, cutoff_max=cutoff_max)
+            if len(close_lig_atoms) > 0:
+                for _, row in lig_rmsf.iterrows():
+                    num = int(row['Atom']) - 1
+                    atom = coor.atom_dict[num]
+                    if num in close_lig_atoms and not (
+                            atom['name'].startswith('H')
+                            or num in lig_atom_list):
+                        lig_atom_list.append(num)
                         break
 
         # Atom index need to be +1 to be in gromacs numbering
@@ -694,7 +696,8 @@ class FreeEner:
         logger.debug(f'Ligand atom indexes : {lig_atom_list}')
         print(f'Ligand atom indexes : {lig_atom_list}')
 
-        return(lig_atom_list)
+        # In rare case there is more than 3 atoms
+        return(lig_atom_list[:3])
 
     def add_intermol_restr_index(self, rec_index_list, lig_index_list,
                                  ref_coor, k=41.84, temp=300):
@@ -733,15 +736,7 @@ class FreeEner:
         angle_type = 1
         dihed_type = 2
 
-        # Get distance and angles
-
-        if not ref_coor.endswith('.pdb'):
-            ref_sys = GmxSys(name='ref', coor_file=ref_coor)
-            ref_sys.tpr = ref_coor
-            ref_sys.convert_trj(traj=False, pbc='none')
-            coor = pdb_manip.Coor(ref_sys.coor_file)
-        else:
-            coor = pdb_manip.Coor(ref_coor)
+        coor = pdb_manip.Coor(ref_coor)
 
         # R0-L0
         # Index from gromacs starts at 1 and in pdb_manip at 0
@@ -864,6 +859,57 @@ class FreeEner:
         dg_rest_water *= self.conv_fac
 
         return(dg_rest_water)
+
+    def show_intermol_restr(self):
+        """ Show traj with atom implied in intermolecular
+        restraints.
+        """
+
+        view = self.gmxsys.view_traj()
+        view.clear_representations()
+        view.add_representation("cartoon")
+
+        # Get distance index
+        top = TopSys(self.gmxsys.top_file)
+
+        atom_list = []
+        for bond in top.inter_bond_list:
+            atom_a = int(bond['ai']) - 1
+            atom_b = int(bond['aj']) - 1
+            view.add_representation("distance",
+                                    atomPair=[(f'@{atom_a}',
+                                               f'@{atom_b}')])
+            atom_list += [atom_a, atom_b]
+
+        # Get all atoms:
+        for angle in top.inter_dihe_list:
+            atom_a = int(angle['ai']) - 1
+            atom_b = int(angle['aj']) - 1
+            atom_c = int(angle['ak']) - 1
+            atom_d = int(angle['al']) - 1
+            atom_list += [atom_a, atom_b, atom_c, atom_d]
+        # Get unique value:
+        atom_list = list(set(atom_list))
+
+        # Get residue number:
+        coor = pdb_manip.Coor(self.ref_coor)
+        residue_list = []
+        for atom in atom_list:
+            residue_list.append(coor.atom_dict[atom]['res_num'])
+
+        selection = f'[{self.mol_name}]'
+        if residue_list:
+            selection += ' or '
+            selection += ','.join([str(i) for i in residue_list])
+
+        view.add_representation("licorice",
+                                selection=selection)
+        atom_list_sel = '@' + ','.join([str(i) for i in atom_list])
+        view.add_representation("ball+stick",
+                                selection=atom_list_sel,
+                                aspectRatio=4.0)
+
+        return(view)
 
     def plot_intermol_restr(self, graph_out=None):
         """
