@@ -100,7 +100,12 @@ def read_xvg(xvg_file):
                 legend = True
                 y_label_list = [line.split("\"")[1]]
             if not line.startswith(("#", "@")):
+                row_num = len(line.split())
                 break
+
+    while len([x_axis] + y_label_list) < row_num:
+        y_label_list.append(
+            y_label_list[0] + ' {}'.format(len(y_label_list) + 1))
 
     ener_pd = pd.read_csv(xvg_file, comment='#',
                           skiprows=first_line,
