@@ -6079,6 +6079,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             [str(i) for i in range(len(distance_list))]))
 
         ener_pd = monitor.read_xvg(output_xvg)
+        # print(ener_pd)
         # ener_pd = ener_pd.reset_index()
         ener_pd.columns = [ener_pd.columns[0]] +\
             ['dist_{}_{}'.format(dist[0], dist[1]) for dist in distance_list]
@@ -6129,7 +6130,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         cmd_convert.run()
 
         ener_pd = monitor.read_xvg(output_xvg)
-        ener_pd = ener_pd.reset_index()
+        # ener_pd = ener_pd.reset_index()
+        # print(ener_pd)
         ener_pd.columns = [ener_pd.columns[2], 'Avg'] +\
             [label for label in label_list]
         ener_pd = ener_pd.drop(['Avg'], axis=1)
