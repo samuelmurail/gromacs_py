@@ -206,7 +206,7 @@ class FreeEner:
         """
         # EM
         self.gmxsys.em_2_steps(out_folder=os.path.join(
-                                self.out_folder, 'mol_water_em'),
+                                self.out_folder, 'mol_solv_em'),
                                no_constr_nsteps=em_steps,
                                constr_nsteps=em_steps,
                                posres="",
@@ -589,6 +589,16 @@ class FreeEner:
 
         return(mol_sys)
 
+    def align_ref_traj(self, rec_group='Protein'):
+        """ 
+        """
+
+        # Center and align traj:
+        self.gmxsys.convert_trj(
+            select=rec_group + '\n System', center='yes')
+        self.gmxsys.convert_trj(
+            select=rec_group + '\n System', fit='rot+trans', pbc='none')
+
     def compute_add_intermol_from_traj(self, ref_coor=None,
                                        rec_group='Protein', k=41.84,
                                        cutoff_prot=6.0):
@@ -600,23 +610,21 @@ class FreeEner:
         if ref_coor is None:
             ref_coor = self.ref_coor
 
-        # Center and align traj:
-        self.gmxsys.convert_trj(
-            select=rec_group + '\n System', center='yes')
-        self.gmxsys.convert_trj(
-            select=rec_group + '\n System', fit='rot+trans', pbc='none')
+        self.align_ref_traj(rec_group=rec_group)
 
         lig_atom_list = self.get_ligand_atoms(ref_coor)
 
-        rec_atom_list = self.get_protein_atoms(ref_coor, lig_atom_list,
-                                               rec_group=rec_group,
-                                               cutoff_max=cutoff_prot)
+        rec_atom_list = self.get_protein_atoms_from_rmsf(ref_coor,
+                                                         lig_atom_list,
+                                                         rec_group=rec_group,
+                                                         cutoff_max=cutoff_prot)
 
         self.add_intermol_restr_index(rec_atom_list, lig_atom_list,
                                       ref_coor, k=k)
 
-    def get_protein_atoms(self, ref_coor, lig_atom_list, rec_group='Protein',
-                          cutoff_max=6.0):
+    def get_protein_atoms_from_rmsf(self, ref_coor, lig_atom_list,
+                                    rec_group='Protein',
+                                    cutoff_max=6.0):
         """
         """
         coor = pdb_manip.Coor(ref_coor)
@@ -648,6 +656,32 @@ class FreeEner:
             {'uniq_resid': [uniq_res], 'name': [bk_atoms_list[1]]})
         rec_atom_list += coor.get_index_selection(
             {'uniq_resid': [uniq_res], 'name': [bk_atoms_list[2]]})
+
+        # Atom index need to be +1 to be in gromacs numbering
+        rec_atom_list = [index + 1 for index in rec_atom_list]
+        logger.debug(f'Receptor atom indexes : {rec_atom_list}')
+
+        return(rec_atom_list)
+
+    def get_protein_atoms_from_res(self, resid,
+                                   rec_group='Protein'):
+        """
+        """
+
+        coor = pdb_manip.Coor(self.ref_coor)
+
+        # Get backbone protein atom around the ligand:
+        if rec_group == 'Protein':
+            bk_atoms_list = ['C', 'CA', 'N']
+        elif rec_group == 'DNA':
+            bk_atoms_list = ['C4\'', 'C3\'', 'O3\'']
+
+        rec_atom_list = coor.get_index_selection(
+            {'res_num': [resid], 'name': [bk_atoms_list[0]]})
+        rec_atom_list += coor.get_index_selection(
+            {'res_num': [resid], 'name': [bk_atoms_list[1]]})
+        rec_atom_list += coor.get_index_selection(
+            {'res_num': [resid], 'name': [bk_atoms_list[2]]})
 
         # Atom index need to be +1 to be in gromacs numbering
         rec_atom_list = [index + 1 for index in rec_atom_list]
@@ -896,11 +930,13 @@ class FreeEner:
         residue_list = []
         for atom in atom_list:
             residue_list.append(coor.atom_dict[atom]['res_num'])
+        residue_list = list(set(residue_list))
 
         selection = f'[{self.mol_name}]'
-        if residue_list:
+        if len(residue_list) > 0:
             selection += ' or '
             selection += ','.join([str(i) for i in residue_list])
+        print('residue list:', residue_list)
 
         view.add_representation("licorice",
                                 selection=selection)
@@ -916,6 +952,8 @@ class FreeEner:
         """
         fig, axs = plt.subplots(3, figsize=(8, 10))
         fig.suptitle(r'Inter Molecular Retraints')
+
+        width_ratio = 0.7
 
         top = TopSys(self.gmxsys.top_file)
 
@@ -941,6 +979,12 @@ class FreeEner:
         axs[0].set_xlabel('distance ($nm$)')
         axs[0].xaxis.set_label_coords(0.5, -0.1)
         axs[0].grid()
+        # To avoid legend being cut:
+        box = axs[0].get_position()
+        axs[0].set_position([box.x0, box.y0,
+                             box.width * width_ratio,
+                             box.height])
+
 
         angle_index_list = []
         for angle in top.inter_angl_list:
@@ -960,6 +1004,11 @@ class FreeEner:
         axs[1].xaxis.set_label_coords(0.5, -0.1)
         axs[1].set_xlim(0, 180)
         axs[1].grid()
+        # To avoid legend being cut:
+        box = axs[1].get_position()
+        axs[1].set_position([box.x0, box.y0,
+                             box.width * width_ratio,
+                             box.height])
 
         dihe_index_list = []
         for angle in top.inter_dihe_list:
@@ -980,6 +1029,11 @@ class FreeEner:
         axs[2].xaxis.set_label_coords(0.5, -0.1)
         axs[2].set_xlim(-180, 180)
         axs[2].grid()
+        # To avoid legend being cut:
+        box = axs[2].get_position()
+        axs[2].set_position([box.x0, box.y0,
+                             box.width * width_ratio,
+                             box.height])
 
         if graph_out:
             plt.savefig(graph_out)
@@ -1254,6 +1308,7 @@ class FreeEner:
     def plot_convergence_graph(self, graph_out=None):
         """
         """
+        width_ratio = 0.85
 
         fig, axs = plt.subplots(2, figsize=(8, 8), sharex=True)
         fig.suptitle(r'Convergence of $\Delta G$')
@@ -1281,6 +1336,11 @@ class FreeEner:
                 label=r'$\Delta G_{vdw}$')
         axs[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         axs[0].grid()
+        box = axs[0].get_position()
+        axs[0].set_position([box.x0, box.y0,
+                             box.width * width_ratio,
+                             box.height])
+
 
         ti_tot_list = self.convergence_data['tot'][0]
         ti_tot_sd_list = self.convergence_data['tot'][1]
@@ -1292,6 +1352,10 @@ class FreeEner:
         axs[1].yaxis.set_label_coords(-0.1, 1)
         axs[1].set_xlabel(r'$time \; (ps)$')
         axs[1].grid()
+        box = axs[1].get_position()
+        axs[1].set_position([box.x0, box.y0,
+                             box.width * width_ratio,
+                             box.height])
 
         if graph_out:
             plt.savefig(graph_out)
