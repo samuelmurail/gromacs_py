@@ -67,6 +67,42 @@ KB = 8.31446261815324
 
 
 class FreeEner:
+    """ Free Energy encapsulation class.
+
+    This class can be used to launch and analyze free energy
+    calculations using Free Energy Perturbation.
+
+    :param mol_name: ligand's residue name
+    :type mol_name: str
+
+    :param unit: unit, default='kcal'
+    :type unit: str
+
+    :param out_folder: output folder
+    :type out_folder: str
+
+    :param lambda_coul: lambda points for Coulomb
+    :type lambda_coul: list of float
+
+    :param lambda_vdw: lambda points for Lennard Jones
+    :type lambda_vdw: list of float
+
+    :param lambda_restr: lambda points for restraints
+    :type lambda_restr: list of float
+
+    :param xvg_file_list: List of free energy xvg files
+    :type xvg_file_list: list of string
+
+    :param lambda_sys_list: List of lambda GmxSys
+    :type lambda_sys_list: list of string
+
+    :param temp: Temperature
+    :type temp: float
+
+    :param smile: Ligand SMILE
+    :type smile: str
+
+    """
 
     def __init__(self, mol_name, out_folder, unit='kcal'):
         self.mol_name = mol_name[:3]
@@ -323,6 +359,37 @@ class FreeEner:
         self.prod_time = prod_time
         self.xvg_file_list = xvg_file_list
 
+    def extend_lambda_prod_threads(self, prod_time, thread_num=4):
+        """
+        """
+
+        dt = float(self.lambda_sys_list[0].get_mdp_dict()['dt'])
+        nsteps = prod_time / dt
+        lambda_num = len(self.lambda_restr) + len(self.lambda_coul) +\
+            len(self.lambda_vdw)
+        xvg_file_list = []
+        lambda_list = list(range(lambda_num))
+        start_dir = os.path.abspath(".")
+
+        def extend_lambda(lambda_num):
+            os.chdir(start_dir)
+            logger.info(f'Compute lambda {i+1} / {lambda_num}')
+
+            self.lambda_sys_list[i].extend_sim(nsteps=nsteps)
+            output = self.lambda_sys_list[i].get_all_output()
+            return(output['xvg'])
+
+        with ThreadPoolExecutor(max_workers=thread_num) as executor:
+            lambda_results = executor.map(extend_lambda, lambda_list)
+
+        for result in lambda_results:
+            xvg_file_list += result
+
+        self.prod_time = prod_time
+        self.xvg_file_list = xvg_file_list
+
+
+
     def run(self, lambda_coul_list, lambda_vdw_list, lambda_restr_list=[],
             mbar=False, dir_name='free_ener_run',
             em_steps=5000, nvt_time=10, npt_time=10, prod_time=100,
@@ -502,6 +569,205 @@ class FreeEner:
                 monitor_tool=monitor_tool)
             self.lambda_sys_list.append(lambda_sys)
             self.xvg_file_list.append(lambda_sys.xvg)
+
+        self.temp = temp
+        self.lambda_coul = list(lambda_coul_list)
+        self.lambda_vdw = list(lambda_vdw_list)
+        self.lambda_restr = list(lambda_restr_list)
+        self.prod_time = prod_time
+
+    def run_threads(self, lambda_coul_list, lambda_vdw_list, lambda_restr_list=[],
+                    mbar=False, dir_name='free_ener_run',
+                    em_steps=5000, nvt_time=10, npt_time=10, prod_time=100,
+                    dt=0.002, temp=300.0, thread_num=4,
+                    temp_groups='Protein non-Protein', maxwarn=1,
+                    monitor_tool=monitor.PROGRESS_BAR):
+        """Compute free energy to transfer a molecule from the
+        system to vacum.
+
+        :param out_folder: path of the output folder
+        :type out_folder: str
+
+        :param mol_name: Name of the molecule
+        :type mol_name: str
+
+        :param lambda_coul_list: List lambda points for Coulomb
+        :type lambda_coul_list: list
+
+        :param lambda_vdw_list: List lambda points for Lennard Jones
+        :type lambda_vdw_list: list
+
+        :param lambda_bond_list: List lambda points for restraints
+        :type lambda_bond_list: list, default=[]
+
+        :param mbar: MBAR flag
+        :type mbar: bool, default=False
+
+        :param em_steps: number of minimisation steps
+        :type em_steps: int, default=5000
+
+        :param nvt_time: Time (ps) of NVT equilibration
+        :type nvt_time: int, default=10 ps
+
+        :param npt_time:  Time (ps) of NPT equilibration
+        :type npt_time: int, default=10 ps
+
+        :param prod_time: Time (ps) of production run
+        :type prod_time: float, default=100 ps
+
+        :param dt: integration time step
+        :type dt: float, default=0.002
+
+        :param name: name of the simulation to run
+        :type name: str, default=None
+
+        :param temp: Temperature K
+        :type temp: float, default=300.0
+
+        :param temp_groups: Group(s) for temperature coupling
+        :type temp_groups: str, default='Protein non-Protein'
+
+        :param maxwarn: Maximum number of warnings when using ``gmx grompp``
+        :type maxwarn: int, default=0
+
+        :param monitor: option to monitor a simulation, if not none monitor
+            should contains two values: ``function`` the function to be ran
+            while simulation is running and ``input`` parameters for the
+            function
+        :type rerun: dict, default=None
+
+        **Object requirement(s):**
+
+            * self.coor_file
+            * self.top_file
+            * self.nt
+            * self.ntmpi
+            * self.gpu_id
+
+        **Object field(s) changed:**
+
+            * self.tpr
+            * self.sim_name
+            * self.coor_file
+            * self.xtc
+
+        """
+
+        if monitor.isnotebook():
+            from tqdm.notebook import tqdm
+        else:
+            from tqdm import tqdm
+
+        # Remove lambda=0 for vdw and elec
+        # If previous restr lambdas are computed
+        if len(lambda_restr_list) > 0:
+            lambda_coul_list = list(lambda_coul_list)
+            lambda_coul_list.remove(0.0)
+        if len(lambda_restr_list) + len(lambda_coul_list) > 0:
+            lambda_vdw_list = list(lambda_vdw_list)
+            lambda_vdw_list.remove(0.0)
+
+        lambda_restr_num = len(lambda_restr_list)
+        lambda_coul_num = len(lambda_coul_list)
+        lambda_vdw_num = len(lambda_vdw_list)
+
+        restr_lambdas = "".join([
+            '{:.2f} '.format(i) for i in lambda_restr_list]) +\
+            "1.00 " * (lambda_vdw_num + lambda_coul_num)
+        coul_lambdas = "0.00 " * lambda_restr_num + "".join([
+            '{:.2f} '.format(i) for i in lambda_coul_list]) +\
+            "1.00 " * (lambda_vdw_num)
+        vdw_lambdas = "0.00 " * (lambda_coul_num + lambda_restr_num) +\
+            "".join(['{:.2f} '.format(i) for i in lambda_vdw_list])
+
+        logger.info(f"Coulomb lambda : {coul_lambdas}\n"
+                    f"Vdw lambda     : {vdw_lambdas}\n"
+                    f"restr_lambdas  : {restr_lambdas}")
+
+        # https://events.prace-ri.eu/event/674/attachments/618/896/MD_FreeEnergyTutorial.pdf
+        # Suggest to use tau_t = 1.0 to avoid
+        # over-damping the dynamics of water
+        tau_t_str = " ".join(['{}'.format(1.0)
+                              for _ in range(len(temp_groups.split()))])
+        ref_t_str = " ".join(['{}'.format(temp)
+                              for _ in range(len(temp_groups.split()))])
+
+        free_ener_option_md = {'integrator': 'sd',
+                               'dt': dt,
+                               'constraints': 'all-bonds',
+                               'nstcalcenergy': 50,
+                               'tcoupl': '',
+                               'tc_grps': temp_groups,
+                               'tau_t': tau_t_str,
+                               'ref_t': ref_t_str,
+                               'vdwtype': 'cut_off',
+                               'vdw_modifier': 'force_switch',
+                               'rvdw_switch': 1.0,
+                               'rvdw': 1.1,
+                               'coulombtype': 'pme',
+                               'rcoulomb': 1.1,
+                               'lincs_order': 8,  # Try to fix the LINCS Errors
+                               'free_energy': 'yes',
+                               'init_lambda-state': 0,
+                               'calc-lambda-neighbors': 1,
+                               'delta_lambda': 0,
+                               'coul_lambdas': coul_lambdas,
+                               'vdw_lambdas': vdw_lambdas,
+                               'bonded_lambdas': restr_lambdas,
+                               'sc_alpha': 0.5,
+                               'sc_power': 1,
+                               'sc_sigma': 0.3,
+                               'couple_moltype': self.mol_name,
+                               'couple_lambda0': 'vdw-q',
+                               'couple_lambda1': 'none',
+                               'couple_intramol': 'no',
+                               'nstdhdl': 50,
+                               'separate_dhdl_file': 'yes'}
+
+        self.xvg_file_list = []
+
+        nvt_steps = int(nvt_time / dt)
+        npt_steps = int(npt_time / dt)
+        prod_steps = int(prod_time / dt)
+
+        tot_step = (lambda_restr_num + lambda_coul_num + lambda_vdw_num) * (
+            em_steps + nvt_steps + npt_steps + prod_steps)
+        pbar = tqdm(total=tot_step)
+
+        from concurrent.futures import ThreadPoolExecutor
+
+        lambda_list = list(range(lambda_restr_num + lambda_coul_num + lambda_vdw_num))
+        start_dir = os.path.abspath(".")
+
+        def run_lambda(i):
+            os.chdir(start_dir)
+            logger.info('Compute lambda {} / {}'.format(
+                i + 1, lambda_restr_num + lambda_coul_num + lambda_vdw_num))
+
+            lambda_sys = FreeEner.compute_lambda_point(
+                self.gmxsys, i,
+                self.mol_name,
+                os.path.join(self.out_folder,
+                             dir_name),
+                free_ener_option_md, pbar,
+                mbar=mbar,
+                em_steps=em_steps,
+                nvt_steps=nvt_steps,
+                npt_steps=npt_steps,
+                prod_steps=prod_steps,
+                dt=dt,
+                maxwarn=maxwarn,
+                monitor_tool=monitor_tool)
+            #self.lambda_sys_list.append(lambda_sys)
+            #self.xvg_file_list.append(lambda_sys.xvg)
+            return(lambda_sys)
+
+        with ThreadPoolExecutor(max_workers=thread_num) as executor:
+            lambda_results = executor.map(run_lambda, lambda_list)
+
+        for result in lambda_results:
+            self.lambda_sys_list.append(result)
+            self.xvg_file_list.append(result.xvg)
 
         self.temp = temp
         self.lambda_coul = list(lambda_coul_list)
@@ -735,23 +1001,8 @@ class FreeEner:
 
     def add_intermol_restr_index(self, rec_index_list, lig_index_list,
                                  ref_coor, k=41.84, temp=300):
-        """Compute the intermolecula restraints base on the
-        self.coor file.
-
-        :param rec_index_list: List of the receptor atom index
-        :type rec_index_list: list
-
-        :param lig_index_list: List of the ligand atom index
-        :type lig_index_list: list
-
-        **Object requirement(s):**
-
-            * self.coor_file
-            * self.top_file
-
-        **Object field(s) changed:**
-
-            * self.top_file
+        """Compute and add the intermolecular restraints based on the
+        ref_coor distance and angles.
 
         Give three atoms for each receptor and ligand index list:
         R0, R1 R2 and L0 L1 L2
@@ -764,6 +1015,31 @@ class FreeEner:
         - 2 dihedral angles:
             - R0-L0-L1-L2
             - R2-R1-R0-L0
+
+        :param rec_index_list: List of the receptor atom index
+        :type rec_index_list: list
+
+        :param lig_index_list: List of the ligand atom index
+        :type lig_index_list: list
+
+        :param ref_coor: Reference coordinates file
+        :type ref_coor: str
+
+        :param k: intermolecular force constant,
+            (default=41.84 kcal mol-1 nm-2)
+        :type k: float
+
+        :param temp: Temperature defalult=300 K
+        :type temp: float
+
+        **Object requirement(s):**
+
+            * self.gmxsys.coor_file
+            * self.gmxsys.top_file
+
+        **Object field(s) changed:**
+
+            * self.gmxsys.top_file
 
         """
         bond_type = 6
@@ -859,8 +1135,14 @@ class FreeEner:
         self.gmxsys.top_file = self.gmxsys.top_file[:-4] + '_rest.top'
 
     def get_water_restr(self, temp=300):
-        """ Compute restaint energy in water using
-        ...
+        """ Compute ligand restaint energy in water using
+        Boresh et al. equation:
+
+        $$ \Delta G_{restr} = RT \ln \left( \dfrac{8 \pi^2 V^0}
+        {r^2_0 \sin{\theta_{a 0}} \sin{\theta_{b 0}}} \dfrac{
+        \sqrt{k_r k_{\theta_a} k_{\theta_b} k_{\tau_\alpha} k_{\tau_\beta}
+        k_{\tau_\gamma}}} {2 \pi KT^3} \right) $$
+
         """
 
         top = TopSys(self.gmxsys.top_file)
@@ -896,7 +1178,7 @@ class FreeEner:
 
     def show_intermol_restr(self):
         """ Show traj with atom implied in intermolecular
-        restraints.
+        restraints using nglview library.
         """
 
         view = self.gmxsys.view_traj()
