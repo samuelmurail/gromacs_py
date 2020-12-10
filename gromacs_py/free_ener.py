@@ -72,12 +72,6 @@ class FreeEner:
     This class can be used to launch and analyze free energy
     calculations using Free Energy Perturbation.
 
-    :param mol_name: ligand's residue name
-    :type mol_name: str
-
-    :param unit: unit, default='kcal'
-    :type unit: str
-
     :param out_folder: output folder
     :type out_folder: str
 
@@ -156,6 +150,10 @@ class FreeEner:
 
     @property
     def unit_graph(self):
+        """ Return unit as math latex for matplotlib
+        label purpose.
+
+        """
         if self.unit == 'kcal':
             return(r'kcal \cdot mol^{-1}')
         elif self.unit == 'kJ':
@@ -167,10 +165,27 @@ class FreeEner:
 
     def water_box_from_SMILE(self, smile, method_3d='rdkit',
                              iter_num=5000, box_dist=1.1):
-        """ Create water box with a molecule
+        """ Create a water box coordinates and toplogie with a
+        molecule defined by its SMILE.
 
-        Default box dist 1.1 nm was taken as minimal distance for
-        CH4 molecule, to let domain decomposition.
+        :param smile: Molecule's SMILE
+        :type smile: str
+
+        :param method_3d: Method to compute 3D coordinates
+            , default='rdkit'
+        :type method_3d: str
+
+        :param iter_num: Iteration step number for 3D coordinate
+            computation, default=5000
+        :type iter_num: int
+
+        :param box_dist: Ditance to egde box (nm),default=1.1
+        :type box_dist: float
+
+        .. Note::
+            Default box dist 1.1 nm was taken as minimal distance for
+            CH4 molecule, to allow domain decomposition with `gmx mdrun`.
+
         """
 
         self.smile = smile
@@ -197,7 +212,26 @@ class FreeEner:
 
     def octanol_box_from_SMILE(self, smile, method_3d='rdkit',
                                iter_num=5000, box_dist=1.3):
-        """ Create water box with a molecule
+        """ Create an octanol box coordinates and toplogie with a
+        molecule defined by its SMILE.
+
+        :param smile: Molecule's SMILE
+        :type smile: str
+
+        :param method_3d: Method to compute 3D coordinates
+            , default='rdkit'
+        :type method_3d: str
+
+        :param iter_num: Iteration step number for 3D coordinate
+            computation, default=5000
+        :type iter_num: int
+
+        :param box_dist: Ditance to egde box (nm),default=1.3
+        :type box_dist: float
+
+        .. Note::
+            Default box dist 1.3 nm was taken as minimal distance for
+            CH4 molecule, to allow domain decomposition with `gmx mdrun`.
         """
 
         self.smile = smile
@@ -236,10 +270,27 @@ class FreeEner:
 
         sys_top.write_file(self.gmxsys.top_file)
 
-    def equilibrate_solvent_box(self, em_steps=10000, dt=0.002, prod_time=10,
-                                short_steps=50000, temp=300):
-        """ Create water box with a molecule
+    def equilibrate_solvent_box(self, em_steps=10000, dt=0.002, prod_time=10.0,
+                                short_steps=50000, temp=300.0):
+        """ Equilibrate a solvent (water, octanol) box.
+
+        :param em_steps: Energy minimisation step number, default=10000
+        :type em_steps: int
+
+        :param dt: Integration time step (ps), default=0.002
+        :type dt: float
+
+        :param prod_time: Equilibration time (ns), default=10.0
+        :type prod_time: float
+
+        :param short_steps: Short equilibration steps, default=50000
+        :type short_steps: int
+
+        :param temp: Temperature of equilibration, default=300.0
+        :type temp: float
+
         """
+
         # EM
         self.gmxsys.em_2_steps(out_folder=os.path.join(
                                 self.out_folder, 'mol_solv_em'),
@@ -267,8 +318,19 @@ class FreeEner:
             dt=dt, maxwarn=1, **mdp_options)
 
     def prepare_complex_pdb(self, pdb_in, smile, ff='amber99sb-ildn'):
+        """ Prepare topologie from a pdb file, create box around and solvate it.
+
+        :param pdb_in: Input PDB file
+        :type pdb_in: str
+
+        :param smile: Ligand's SMILE
+        :type smile: str
+
+        :param ff: Forcefield, default='amber99sb-ildn'
+        :type ff: str
+
         """
-        """
+
         self.gmxsys = GmxSys(name=self.mol_name, coor_file=pdb_in)
         self.gmxsys.prepare_top(out_folder=os.path.join(
                                     self.out_folder, 'complex_top'),
@@ -283,7 +345,38 @@ class FreeEner:
                             dt=0.002, dt_HA=0.001, temp=300,
                             receptor_grp='Protein',
                             short_steps=50000):
-        """
+        """ Equilibrate a receptor-ligand complex system.
+
+        :param em_steps: Energy minimisation step number, default=10000
+        :type em_steps: int
+
+        :param HA_time: Heavy atoms restraints equilibration time (ns), default=0.25
+        :type HA_time: float
+
+        :param CA_time: Alpha carbon atoms restraints equilibration
+            time (ns), default=0.5
+        :type CA_time: float
+
+        :param CA_LOW_time: Low alpha carbon atoms restraints equilibration
+            time (ns), default=1.0
+        :type CA_LOW_time: float
+
+        :param dt: Integration time step (ps), default=0.002
+        :type dt: float
+
+        :param dt_HA: Integration time step (ps), default=0.001
+        :type dt_HA: float
+
+        :param temp: Temperature of equilibration, default=300.0
+        :type temp: float
+
+        :param receptor_grp: Receptor group (for temperature coupling)
+            , default='Protein'
+        :type receptor_grp: str
+
+        :param short_steps: Short equilibration steps, default=50000
+        :type short_steps: int
+
         """
 
         self.gmxsys.em_2_steps(out_folder=os.path.join(
@@ -741,6 +834,7 @@ class FreeEner:
 
         def run_lambda(i):
             os.chdir(start_dir)
+            print('change dir to:', start_dir)
             logger.info('Compute lambda {} / {}'.format(
                 i + 1, lambda_restr_num + lambda_coul_num + lambda_vdw_num))
 
