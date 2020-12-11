@@ -4067,7 +4067,10 @@ sytem charge = 0.0 water num= 62...
             * self.coor_file
             * self.top_file
 
-        :Example::
+
+        :Example:
+
+        .. code-block:: python
 
             > pep = GmxSys(name='SAM_pep')
             > pep.create_peptide(sequence='SAM', out_folder=os.path.join(\
