@@ -1494,6 +1494,8 @@ class GmxSys:
     :param sys_history: List of previous GmxSys() states
     :type sys_history: list of GmxSys()
 
+    :Example:
+
     .. code-block:: python
 
         > show_log()
@@ -1780,10 +1782,6 @@ SH3_D_neutral.gro -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp \
     .. note::
         An history of all command used could be saved.
 
-    .. note::
-        Files necessary for testing:../test_files/1y0m.pdb,
-        ../test_files/5vav.pdb
-        To do the unitary test, execute gmx5.py (-v for verbose mode)
     """
 
     def __init__(self, name=None, coor_file=None, top_file=None, tpr=None):
@@ -2334,8 +2332,6 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
             No options are allowed (forcefield, water model, termini capping)
             except for vsites.
 
-        .. note::
-            Starting file need to be a pdb, this should be changed.
         """
 
         start_dir = os.path.abspath(".")
@@ -3058,21 +3054,21 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
 
         Add the following terms:
 
-        - 1 Bond
-            - SG-SG
+        * 1 Bond
+            * SG-SG
 
-        - 2 Angle
-            - SG-SG-CB
-            - CB-SG-SG
+        * 2 Angle
+            * SG-SG-CB
+            * CB-SG-SG
 
-        - 7 Dihed
-            - CA-CB-SG-SG
-            - HB1-CB-SG-SG
-            - HB2-CB-SG-SG
-            - CB-SG-SG-CB
-            - SG-SG-CB-HB1
-            - SG-SG-CB-HB2
-            - SG-SG-CB-CA
+        * 7 Dihed
+            * CA-CB-SG-SG
+            * HB1-CB-SG-SG
+            * HB2-CB-SG-SG
+            * CB-SG-SG-CB
+            * SG-SG-CB-HB1
+            * SG-SG-CB-HB2
+            * SG-SG-CB-CA
 
 
         :Example:
@@ -4109,8 +4105,12 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             gmx mdrun -s equi_vacuum_SAM.tpr -deffnm equi_vacuum_SAM -nt 0 \
 -ntmpi 0 -nsteps -2 -nocopyright
 
-        .. note::
-            Pymol need to be installed to run the peptide creation
+        .. Warning::
+            The peptide function won't work with gromacs version above 2018.
+            There is issues with COOH C-temini, see:
+            https://redmine.gromacs.org/issues/3301
+            Use another C-ter or use a previous version of gromacs.
+
 
         """
 
