@@ -915,7 +915,8 @@ class FreeEner:
 
         Give three atoms for each receptor and ligand index list:
         R0, R1 R2 and L0 L1 L2
-        Will define:
+        Will define:  
+
         - 1 bond:
             - R0-L0
         - 2 angles:
@@ -1047,10 +1048,10 @@ class FreeEner:
         r""" Compute ligand restaint energy in water using
         Boresh et al. equation:
 
-        $$ \Delta G_{restr} = RT \ln \left( \dfrac{8 \pi^2 V^0}
+        :math:`\Delta G_{restr} = RT \ln \left( \dfrac{8 \pi^2 V^0}
         {r^2_0 \sin{\theta_{a 0}} \sin{\theta_{b 0}}} \dfrac{
         \sqrt{k_r k_{\theta_a} k_{\theta_b} k_{\tau_\alpha} k_{\tau_\beta}
-        k_{\tau_\gamma}}} {2 \pi KT^3} \right) $$
+        k_{\tau_\gamma}}} {2 \pi KT^3} \right)`
 
         """
 
@@ -1554,7 +1555,7 @@ class FreeEner:
     @staticmethod
     def symmetry_correction(smile, temp=300):
         r""" Compute symmetry correction
-        $\Delta_{sym} = −k T ln(\sigma) $
+        :math:`\Delta_{sym} = −k T ln(\sigma)`
 
         return value in kcal/mol
 
