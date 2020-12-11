@@ -1992,7 +1992,7 @@ SH3_D_neutral.gro -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp \
         """ Return a `nglview` object to view the object coordinates
         in a jupyter notebook with the module ``nglview``.
 
-        Example:
+        :Example:
 
         >>> import nglview as nv #doctest: +SKIP
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
@@ -2021,7 +2021,7 @@ SH3_D_neutral.gro -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp \
         """ Return a `nglview` object to view the object trajectorie
         in a jupyter notebook with the module ``nglview``.
 
-        Example:
+        :Example:
 
         >>> import nglview as nv #doctest: +SKIP
         >>> prot = GmxSys(name='1y0m', coor_file=TEST_PATH+'/1y0m.pdb')
@@ -3055,13 +3055,16 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         Add the following terms:
 
         * 1 Bond
+
             * SG-SG
 
         * 2 Angle
+
             * SG-SG-CB
             * CB-SG-SG
 
         * 7 Dihed
+
             * CA-CB-SG-SG
             * HB1-CB-SG-SG
             * HB2-CB-SG-SG

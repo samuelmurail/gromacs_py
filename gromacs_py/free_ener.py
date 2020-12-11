@@ -915,14 +915,19 @@ class FreeEner:
 
         Give three atoms for each receptor and ligand index list:
         R0, R1 R2 and L0 L1 L2
-        Will define:  
+        Will define:
 
         * 1 bond:
+
             * R0-L0
+
         * 2 angles:
+
             * R0-L0-L1
             * R1-R0-L0
+
         * 2 dihedral angles:
+
             * R0-L0-L1-L2
             * R2-R1-R0-L0
 
