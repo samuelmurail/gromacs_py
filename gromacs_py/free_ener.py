@@ -1559,7 +1559,7 @@ class FreeEner:
 
         return value in kcal/mol
 
-        .. code-block::
+        .. code-block:: python
 
             > FreeEner.symmetry_correction('c1ccccc1')
             -1.4814...
