@@ -41,16 +41,17 @@ Main features:
    - Energy minimisation
    - Equilibration with different position restraints
    - Production
-   - **GPU** acceleration
 
 * Topologie manipulation starting from a raw ``PDB``:
    - Amino acid protonation and pKa calculation using `apbs/pdb2pqr <http://www.poissonboltzmann.org/>`_
    - Position constraints file ``.itp`` creation
    - Cyclic peptide topologie
    - Cystein bond topologie modification
+   - ligand topologie using `ambertools` and `acpype`
 
 * Advanced simulation tools:
    - Monitor a simulation while running
+   - Free Energy calculations
    - Interrupt a simulation if a criterion is met (Not implemented yet)
 
 
@@ -58,6 +59,7 @@ Compatibility
 ---------------------------------------
 
 * Supported Gromacs versions:
+   - 2020
    - 2019*
    - 2018*
    - 2017
@@ -80,6 +82,9 @@ Compatibility
 Quick install
 ---------------------------------------
 
+With pip
+***************************************
+
 If gromacs (version >= 5.1) is already install, then install you need to install the `gromacs_py` library, and add the gromacs `gmx` command in the environmnent variable `$PATH`:
 
 .. code-block:: bash
@@ -89,52 +94,14 @@ If gromacs (version >= 5.1) is already install, then install you need to install
    # Add gromacs 'gmx' path:
    export PATH='*path_to_gromacs*/bin/':$PATH
 
+With conda
+***************************************
 
-Tutorial
----------------------------------------
-
-Here is an example of a short simulation of the SH3 domain of phospholipase Cγ1.
-Seven successive steps are used:
-
-1. Topologie creation using ``create_top.py``.
-2. Minimisation of the structure using ``minimize_pdb.py``.
-3. Solvation of the system using ``solvate_ions.py``.
-4. Minimisation of the system using ``minimize_pdb.py``.
-5. Equilibration of the system using ``equi_3_step.py``.
-6. Production run using ``production.py``.
-7. Extension of the production run using ``extend.py``.
+If you don't need a GPU version you can use directly the `gromacs_py` conda package:
 
 .. code-block:: bash
 
-   # Create topologie
-   create_top.py -f gromacs_py/test_files/1y0m.pdb -o tmp/1y0m/top -vsite
-
-   # Minimize the protein structure
-   minimize_pdb.py -f tmp/1y0m/top/1y0m_pdb2gmx_box.pdb -p tmp/1y0m/top/1y0m_pdb2gmx.top -o tmp/1y0m/em/  -n em_1y0m -nt 2
-
-   # Add water and ions
-   solvate_ions.py -f tmp/1y0m/em/em_1y0m_compact.pdb -p tmp/1y0m/top/1y0m_pdb2gmx.top -o tmp/1y0m_water_ions/top/  -n 1y0m_water_ions
-
-   # Minimize the system
-   minimize_pdb.py -f tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.gro -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/em/  -n em_1y0m
-
-   # Do three small equilibrations with postion contraints on heavy atoms (first), Carbon alpha (second) and low constraint on Carbon alpha (third)
-   equi_3_step.py -f tmp/1y0m_water_ions/em/em_1y0m_compact.pdb -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/  -n 1y0m -HA_time 0.1 -dt_HA 0.002 -CA_time 0.1 -CA_LOW_time 0.1 -dt 0.004 -maxwarn 1
-
-   # Small production run of 0.1 ns
-   production.py -f tmp/1y0m_water_ions/02_equi_CA_LOW/equi_CA_LOW_1y0m.gro -p tmp/1y0m_water_ions/top/1y0m_water_ions_water_ion.top -o tmp/1y0m_water_ions/03_prod -n 1y0m -time 0.1 -dt 0.004 -maxwarn 1
-
-   # Extension of the simulation
-   extend.py -s tmp/1y0m_water_ions/03_prod/prod_1y0m.tpr -time 0.2
-
-   # Remove simulation files
-   rm -r ./tmp
-
-Or simply use one command to do all previous commands:
-
-.. code-block:: bash
-
-   top_em_equi_3_step_prod.py -f gromacs_py/test/input/1y0m.pdb -o tmp/1y0m -vsite -HA_time 0.1 -CA_time 0.1 -CA_LOW_time 0.1 -prod_time 0.3
+   conda install gromacs_py
 
 Authors
 ---------------------------------------
