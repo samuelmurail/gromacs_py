@@ -7,6 +7,7 @@
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Table of Contents:
 
    readme
@@ -18,6 +19,7 @@
    authors
    history
 
+.. include:: ../README.rst
 
 Indices and tables
 ------------------
