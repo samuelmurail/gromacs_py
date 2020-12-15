@@ -8,16 +8,23 @@
 .. toctree::
    :maxdepth: 2
    :hidden:
-   :caption: Table of Contents:
+   :caption: User Documentation:
 
    readme
    installation
    notebook/00_basic_example.ipynb
    script
-   modules
-   contributing
    authors
    history
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Developers:
+
+   contributing
+   modules
+
 
 .. include:: ../README.rst
 

@@ -14,7 +14,6 @@
 .. image:: https://anaconda.org/bioconda/gromacs_py/badges/version.svg
    :target: https://anaconda.org/bioconda/gromacs_py
 
-
 .. image:: https://badge.fury.io/py/gromacs-py.svg
    :target: https://badge.fury.io/py/gromacs-py
 
@@ -22,8 +21,10 @@ Gromacs_py
 =======================================
 
 
-Gromacs_py is a python library allowing a simplified use of the gromacs MD simulation software. Gromacs_py can build topologie based on a pdb file, create the simulation system (box, add water and ions) and run minimisation, equilibration and production run.
-One of the main objective of the gromacs_py wrapper is to automatize routine operations for MD simulation of multiple systems.
+**Gromacs_py** is a Python library allowing a simplified use of the Gromacs MD simulation software. **Gromacs_py** can build a system topologie based on a pdb file, create the simulation system (pbc box, adding water and ions) and run minimisation, equilibration and production runs.
+One of the main objective of the **Gromacs_py** wrapper is to automatize routine operations for MD simulation of multiple systems.
+
+**Gromacs_py** is under active development using continuous integration with `Travis Cl <https://travis-ci.org/samuelmurail/gromacs_py>`_. 
 
 * Online Documentation:
    https://gromacs-py.readthedocs.io
@@ -31,61 +32,15 @@ One of the main objective of the gromacs_py wrapper is to automatize routine ope
 * Source code repository:
    https://github.com/samuelmurail/gromacs_py
 
-Main features:
----------------------------------------
-
-* Python Scriptable simulation:
-   - Topologie creation
-   - Solvation
-   - Ion insertion
-   - Energy minimisation
-   - Equilibration with different position restraints
-   - Production
-
-* Topologie manipulation starting from a raw ``PDB``:
-   - Amino acid protonation and pKa calculation using `apbs/pdb2pqr <http://www.poissonboltzmann.org/>`_
-   - Position constraints file ``.itp`` creation
-   - Cyclic peptide topologie
-   - Cystein bond topologie modification
-   - ligand topologie using `ambertools` and `acpype`
-
-* Advanced simulation tools:
-   - Monitor a simulation while running
-   - Free Energy calculations
-   - Interrupt a simulation if a criterion is met (Not implemented yet)
-
-
-Compatibility
----------------------------------------
-
-* Supported Gromacs versions:
-   - 2020
-   - 2019*
-   - 2018*
-   - 2017
-   - 2016
-   - 5.1
-   - 5.0
-
-* Supported Python versions:
-   - 3.8*
-   - 3.7*
-   - 3.6*
-   - 3.5*
-
-* Supported OS:
-   - osx*
-   - linux*
-
-**\*** tested after each code submission.
-
 Quick install
 ---------------------------------------
 
-With pip
+The latest release can be installed via `pip` or `conda`.
+
+Pip
 ***************************************
 
-If gromacs (version >= 5.1) is already install, then install you need to install the `gromacs_py` library, and add the gromacs `gmx` command in the environmnent variable `$PATH`:
+If Gromacs (version >= 5.1) is already install, then you need to install the **Gromacs_py** library using `pypi <https://pypi.org/project/gromacs-py/>`_, and add the Gromacs ``gmx`` command in the environmnent variable ``$PATH``:
 
 .. code-block:: bash
 
@@ -94,14 +49,14 @@ If gromacs (version >= 5.1) is already install, then install you need to install
    # Add gromacs 'gmx' path:
    export PATH='*path_to_gromacs*/bin/':$PATH
 
-With conda
+Conda
 ***************************************
 
-If you don't need a GPU version you can use directly the `gromacs_py` conda package:
+If you don't need a GPU compiled version of Gromacs you can use directly the **Gromacs_py** `conda package <https://anaconda.org/bioconda/gromacs_py>`_ to install both Gromacs software and **Gromacs_py** library:
 
 .. code-block:: bash
 
-   conda install gromacs_py
+   conda install -c bioconda gromacs_py
 
 Authors
 ---------------------------------------

@@ -123,16 +123,19 @@ Launch test with `doctest`_, will check that module’s docstrings are up-to-dat
 .. code-block:: bash
 
 	$ pytest
-	================================= test session starts =================================
-	platform darwin -- Python 3.7.6, pytest-5.4.1, py-1.8.1, pluggy-0.13.1
-	rootdir: /Users/smurail/Documents/Code/gromacs_py_test, inifile: pytest.ini
-	plugins: cov-2.8.1
-	collected 13 items
+	=========================== test session starts ========================
+	platform linux -- Python 3.8.2, pytest-5.4.2, py-1.9.0, pluggy-0.13.1
+	rootdir: /home/murail/Documents/Code/gromacs_py, inifile: pytest.ini
+	plugins: cov-2.10.1
+	collected 30 items
 
-	gromacs_py/gromacs/gmx5.py ...........                                          [ 84%]
-	gromacs_py/gromacs/tools/monitor.py ..                                          [100%]
+	gromacs_py/gmx.py .............                                   [ 43%]
+	gromacs_py/test/test_FreeEner.py ......                           [ 63%]
+	gromacs_py/test/test_GmxSys.py ..                                 [ 70%]
+	gromacs_py/tools/ambertools.py ....                               [ 83%]
+	gromacs_py/tools/monitor.py .....                                 [100%]
 
-	=========================== 13 passed in 103.74s (0:01:43) ============================
+	======================= 30 passed in 236.83s (0:03:56) =================
 
 .. _doctest: https://docs.python.org/3/library/doctest.html
 

@@ -5837,7 +5837,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             * self.sim_name
 
         :return: return dict containing edr, log, xtc, xvg and coor_file
-        file list
+            file list
         :rtype: dict
 
         """
