@@ -2201,6 +2201,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
     def prepare_top(self, out_folder, name=None,
                     vsite="none", ignore_ZN=True,
                     ff="charmm36-jul2017", ph=7.0,
+                    res_prot_dict=None,
                     include_mol={}):
         """Prepare the topologie of a protein:
 
@@ -2225,7 +2226,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
 
         :param vsite: option for topologie's bonds constraints ("none",
             "hydrogens", "all")
-        :type vsite: str, optional, default="hydrogens"
+        :type vsite: str, optional, default="none"
 
         :param ignore_ZN: option for not adding parameters to ZINC finger
         :type ignore_ZN: bool, optional, default=False
@@ -2391,7 +2392,12 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
             coor_in.correct_his_name()
             coor_in.correct_cys_name()
             coor_in.correct_chain()
+            coor_in.correct_protonated_res()
+            if res_prot_dict is not None:
+                GmxSys.set_coor_aa_prot(coor_in, res_prot_dict,
+                                        ff=pdb2pqr_ff)
 
+        # NOTE The zinc finger should ne removed from here:
         if not ignore_ZN:
             zinc_in = coor_in.add_zinc_finger(start_pdb)
         else:
@@ -2401,13 +2407,12 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
 
         self.coor_file = "01_" + name + "_good_his.pdb"
 
-        # Compute topology for system without zinc
-        if not zinc_in:
-            pdb2gmx_option_dict = {'vsite': vsite, 'ignh': None}
-        # Compute topology for system with zinc
-        else:
-            pdb2gmx_option_dict = {'vsite': vsite, 'ignh': None,
-                                   'merge': 'all'}
+        # Compute topology options
+        pdb2gmx_option_dict = {'vsite': vsite, 'ignh': None}
+        # Options for system with zinc
+        if zinc_in:
+            pdb2gmx_option_dict['merge'] = 'all'
+
         self.add_top(out_folder=".", check_file_out=True, ff=ff,
                      pdb2gmx_option_dict=pdb2gmx_option_dict)
 
@@ -2435,14 +2440,59 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
         if mol_sys_list:
             # Add coordinates:
             GmxSys.concat_coor(self.coor_file, *pdb_mol_list,
-                               pdb_out=self.coor_file[:-4]+'_mol.pdb',
+                               pdb_out=self.coor_file[:-4] + '_mol.pdb',
                                check_file_out=False)
-            self.coor_file = self.coor_file[:-4]+'_mol.pdb'
+            self.coor_file = self.coor_file[:-4] + '_mol.pdb'
             # Save topologie
-            sys_topologie.write_file(self.top_file[:-4]+'_mol.top')
-            self.top_file = self.top_file[:-4]+'_mol.top'
+            sys_topologie.write_file(self.top_file[:-4] + '_mol.top')
+            self.top_file = self.top_file[:-4] + '_mol.top'
 
         os.chdir(start_dir)
+
+    @staticmethod
+    def set_coor_aa_prot(coor_in, res_prot_dict, ff):
+        """ Set manually residue protonation.
+
+        :param coor_in: coordinate to update
+        :type coor_in: Coor
+
+        :param res_prot_dict: Dictionary of protonated residues
+        :type res_prot_dict: dict
+
+        :param ff: forcefield
+        :type ff: str
+
+        """
+
+        res_dict = {'ASPP': ['ASP', 'ASPP', 'ASH'],
+                    'ASH': ['ASP', 'ASPP', 'ASH'],
+                    'GLUP': ['GLU', 'GLUP', 'GLH'],
+                    'GLH': ['GLU', 'GLUP', 'GLH'],
+                    'GLU': ['GLU', 'GLUP', 'GLH'],
+                    'RN1': ['ARG', 'RN1'],
+                    'LSN': ['LYS', 'LSN'],
+                    'HSP': ['HIS', 'HSP', 'HSD', 'HSE', 'HIP', 'HID', 'HIE'],
+                    'HSD': ['HIS', 'HSP', 'HSD', 'HSE', 'HIP', 'HID', 'HIE'],
+                    'HSE': ['HIS', 'HSP', 'HSD', 'HSE', 'HIP', 'HID', 'HIE'],
+                    'HIP': ['HIS', 'HSP', 'HSD', 'HSE', 'HIP', 'HID', 'HIE'],
+                    'HID': ['HIS', 'HSP', 'HSD', 'HSE', 'HIP', 'HID', 'HIE'],
+                    'HIE': ['HIS', 'HSP', 'HSD', 'HSE', 'HIP', 'HID', 'HIE'],
+                    'CYM': ['CYS', 'CYM']}
+
+        for res in res_prot_dict:
+
+            local_dict = res_prot_dict[res]
+            local_dict['res_name'] = res_dict[res]
+
+            change_index_list = coor_in.get_index_selection(local_dict)
+
+            if len(change_index_list) == 0:
+                logger.warning("Selection dict {} return no"
+                               " atoms. Check your selection".format(
+                                   local_dict))
+
+            coor_in.change_index_pdb_field(index_list=change_index_list,
+                                           change_dict={"res_name": res})
 
     def prepare_top_ligand(self, out_folder, name=None,
                            ff="amber99sb-ildn", water_model='tip3p',
@@ -2530,14 +2580,17 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
         # Get path of forcefield and water model
         for forcefield in FORCEFIELD_PATH_LIST:
             if os_command.check_file_exist(
-                        os.path.join(forcefield, ff+'.ff', 'forcefield.itp')):
+                        os.path.join(forcefield, ff + '.ff',
+                                     'forcefield.itp')):
                 path_ff = os.path.abspath(
-                    os.path.join(forcefield, ff+'.ff', 'forcefield.itp'))
+                    os.path.join(forcefield, ff + '.ff',
+                                 'forcefield.itp'))
             if os_command.check_file_exist(
-                        os.path.join(forcefield, ff+'.ff',
-                                     water_model+'.itp')):
+                        os.path.join(forcefield, ff + '.ff',
+                                     water_model + '.itp')):
                 path_water = os.path.abspath(
-                    os.path.join(forcefield, ff+'.ff', water_model+'.itp'))
+                    os.path.join(forcefield, ff + '.ff',
+                                 water_model + '.itp'))
 
         sys_top.forcefield = {'name': ff,
                               'fullname': "{}.ff/forcefield.itp".format(ff),
@@ -2566,12 +2619,12 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
         if mol_sys_list:
             # Add coordinates:
             GmxSys.concat_coor(self.coor_file, *pdb_mol_list,
-                               pdb_out=self.coor_file[:-4]+'_mol.pdb',
+                               pdb_out=self.coor_file[:-4] + '_mol.pdb',
                                check_file_out=False)
-            self.coor_file = self.coor_file[:-4]+'_mol.pdb'
+            self.coor_file = self.coor_file[:-4] + '_mol.pdb'
             # Save topologie
-            sys_top.write_file(self.top_file[:-4]+'_mol.top')
-            self.top_file = self.top_file[:-4]+'_mol.top'
+            sys_top.write_file(self.top_file[:-4] + '_mol.top')
+            self.top_file = self.top_file[:-4] + '_mol.top'
 
         os.chdir(start_dir)
 
@@ -4057,6 +4110,10 @@ sytem charge = 0.0 water num= 62...
         :param ion_C: ionic concentraton (Molar)
         :type ion_C: float, optional, default=0.15
 
+        :param vsite: option for topologie's bonds constraints ("none",
+            "hydrogens", "all")
+        :type vsite: str, optional, default="none"
+
         **Object requirement(s):**
 
             * None
@@ -5266,6 +5323,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             function
         :type monitor: dict, default=None
 
+        :param vsite: option for bonds constraints ("none")
+        :type vsite: str, optional, default="none"
+
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
 
@@ -5396,6 +5456,9 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             function
         :type monitor: dict, default=None
 
+        :param vsite: option for bonds constraints ("none")
+        :type vsite: str, optional, default="none"
+
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
 
@@ -5485,6 +5548,11 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             while simulation is running and ``input`` parameters for the
             function
         :type monitor: dict, default=None
+
+        :param vsite: option for topologie's bonds constraints ("none",
+            "hydrogens", "all")
+        :type vsite: str, optional, default="none"
+
 
         :param mdp_options: Additional mdp parameters to use
         :type mdp_options: dict
@@ -5910,7 +5978,14 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
     def convert_selection_to_index(self, selection_list):
         """ Convert selection list with selection name eg.
-        "System" to the index number eg. "0".
+        ["System"] to the index number eg. ["0"].
+
+        :param selection_list: List of selection names
+        :type selection_list: list
+
+        :return: list of selection numbers
+        :rtype: list
+
         """
 
         sele_dict = self.get_index_dict()
@@ -5931,7 +6006,24 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
     def get_ener(self, selection_list, output_xvg='tmp_edr.xvg',
                  check_file_out=True, keep_ener_file=False):
         """Get energy of a system using ``gmx energy``.
-        """
+
+        :param selection_list: List of selection names or number
+        :type selection_list: list
+
+        :param output_xvg: output `.xvg` file name
+        :type output_xvg: str, default='tmp_edr.xvg'
+
+        :param check_file_out: flag to check or not if file has already
+            been created. If the file is present then the command break.
+        :type check_file_out: bool, default=True
+
+        :param keep_ener_file: flag to keep or not output `.xvg` file.
+        :type keep_ener_file: bool, default=False
+
+        :return: Energy table
+        :rtype: pd.DataFrame
+
+       """
 
         logger.info("- Extract energy")
 
@@ -5959,6 +6051,25 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                  fit="rot+trans", pbc="no",
                  keep_ener_file=False):
         """Get RMSD of a system using ``gmx rms``.
+
+
+        :param selection_list: List of selection names or number
+        :type selection_list: list, default=['C-alpha', 'Protein']
+
+        :param output_xvg: output `.xvg` file name
+        :type output_xvg: str, default='tmp_rmsd.xvg'
+
+        :param fit: Coordinates Fitting Method
+        :type fit: str, default="rot+trans"
+
+        :param pbc: Peridic Boundary condition treatment
+        :type pbc: str, default="no"
+
+        :param keep_ener_file: flag to keep or not output `.xvg` file.
+        :type keep_ener_file: bool, default=False
+
+        :return: RMSD table
+        :rtype: pd.DataFrame
         """
 
         logger.info("- Extract RMSD")
@@ -5992,6 +6103,24 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                  fit="no", res="no",
                  keep_ener_file=False):
         """Get RMSF of a system using ``gmx rmsf``.
+
+        :param selection_list: List of selection names or number
+        :type selection_list: list
+
+        :param output_xvg: output `.xvg` file name
+        :type output_xvg: str, default='tmp_rmsf.xvg'
+
+        :param fit: Flag for fitting before computing RMSF
+        :type fit: str, default="no"
+
+        :param res: Residue averaging flag
+        :type res: str, default="no"
+
+        :param keep_ener_file: flag to keep or not output `.xvg` file.
+        :type keep_ener_file: bool, default=False
+
+        :return: RMSF table
+        :rtype: pd.DataFrame
         """
 
         logger.info("- Extract RMSF")
@@ -6021,48 +6150,23 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
         return(ener_pd)
 
-    @staticmethod
-    def get_bar(xvg_file_list, bar_xvg='bar.xvg',
-                barint_xvg='barint.xvg', hist_xvg='histogram.xvg',
-                begin_time=0, end_time=-1,
-                check_file_out=True, keep_ener_file=False):
-        """Get energy of a system using ``gmx bar``.
-
-        I don't know how to compute std like in gmx bar.
-        """
-
-        logger.info("- Extract bar energy")
-
-        cmd_convert = os_command.Command([GMX_BIN, "bar",
-                                          "-f", *xvg_file_list,
-                                          "-o", bar_xvg,
-                                          "-oi", barint_xvg,
-                                          "-oh", hist_xvg,
-                                          "-b", str(begin_time),
-                                          "-e", str(end_time)])
-
-        cmd_convert.display()
-        output = cmd_convert.run(out_data=True)
-
-        # Search in all line, if it start with "Last frame"
-        for line in output['stdout'].splitlines():
-            if line.startswith("total"):
-                total = float(line.split()[5])
-                std = float(line.split()[7])
-
-        ener_pd = monitor.read_xvg(bar_xvg)
-
-        if not keep_ener_file:
-            os_command.delete_file(bar_xvg)
-            os_command.delete_file(barint_xvg)
-            os_command.delete_file(hist_xvg)
-
-        return {'DG': total, 'std': std, 'table': ener_pd}
-
     def get_dist(self, distance_list, output_xvg='tmp_dist.xvg',
                  keep_ener_file=False):
         """Get distances as a function of time
         for a trajectory using ``gmx distance``.
+
+
+        :param distance_list: List of atom couple
+        :type distance_list: list
+
+        :param output_xvg: output `.xvg` file name
+        :type output_xvg: str, default='tmp_dist.xvg'
+
+        :param keep_ener_file: flag to keep or not output `.xvg` file.
+        :type keep_ener_file: bool, default=False
+
+        :return: Distance table
+        :rtype: pd.DataFrame
         """
 
         logger.info("- Extract distance")
@@ -6099,6 +6203,22 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
     def get_angle(self, angle_list, output_xvg='tmp_angle.xvg',
                   keep_ener_file=False, improper=False):
         """Get angle of a traj using ``gmx angle``.
+
+        :param angle_list: List of atom triplet
+        :type angle_list: list
+
+        :param output_xvg: output `.xvg` file name
+        :type output_xvg: str, default='tmp_angle.xvg'
+
+        :param keep_ener_file: flag to keep or not output `.xvg` file.
+        :type keep_ener_file: bool, default=False
+
+        :param improper: flag to compute improper angles.
+        :type improper: bool, default=False
+
+        :return: Distance table
+        :rtype: pd.DataFrame
+
         """
 
         # logger.info("- Extract angle")
