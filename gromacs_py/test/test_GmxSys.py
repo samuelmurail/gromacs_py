@@ -13,7 +13,7 @@ import gromacs_py.tools.ambertools as ambertools
 
 from pdb_manip_py import pdb_manip
 
-from .datafiles import PDB_1Y0M
+from .datafiles import PDB_1Y0M, PDB_1RXZ
 
 # Autorship information
 __author__ = "Samuel Murail"
@@ -23,6 +23,134 @@ __license__ = "GNU General Public License v2.0"
 __maintainer__ = "Samuel Murail"
 __email__ = "samuel.murail@u-paris.fr"
 __status__ = "Production"
+
+
+def test_set_protonate_charmm(tmp_path):
+
+    gmx.show_log()
+    ##########################################
+    # ##   Create the topologie at PH 4.0  ###
+    ##########################################
+
+    res_prot_dict = {'GLUP': {'res_num': [9, 24, 31, 57]},
+                     'ASPP': {'res_num': [3, 70]},
+                     'HSP': {'res_num': [28, 35]},
+                     'HSD': {'res_num': [175]},
+                     'HSE': {'res_num': [214]}}
+
+    prot = gmx.GmxSys(name='1RXZ_ph4', coor_file=PDB_1RXZ)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph4'), ph=7.0,
+                     res_prot_dict=res_prot_dict)
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 4081
+
+    top_1RXZ = gmx.TopSys(prot.top_file)
+    assert top_1RXZ.charge() == -4
+
+
+def test_set_protonate_amber(tmp_path):
+
+    gmx.show_log()
+    ##########################################
+    # ##   Create the topologie at PH 4.0  ###
+    ##########################################
+
+    res_prot_dict = {'GLH': {'res_num': [9, 24, 31, 57]},
+                     'ASH': {'res_num': [3, 70]},
+                     'HIP': {'res_num': [28, 35]},
+                     'HID': {'res_num': [175]},
+                     'HIE': {'res_num': [214]}}
+
+    prot = gmx.GmxSys(name='1RXZ_ph4', coor_file=PDB_1RXZ)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph4'), ph=7.0,
+                     res_prot_dict=res_prot_dict,
+                     ff="amber99sb-ildn")
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 4081
+
+    top_1RXZ = gmx.TopSys(prot.top_file)
+    assert top_1RXZ.charge() == -4
+
+
+def test_protonate_ph4_7_12_charmm(tmp_path):
+
+    gmx.show_log()
+    ##########################################
+    # ##   Create the topologie at PH 4.0  ###
+    ##########################################
+    prot = gmx.GmxSys(name='1RXZ_ph4', coor_file=PDB_1RXZ)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph4'), ph=4.0)
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 4108
+
+    top_1RXZ = gmx.TopSys(prot.top_file)
+    assert top_1RXZ.charge() == 23
+
+    ##########################################
+    # ##   Create the topologie at PH 7.0  ###
+    ##########################################
+    prot = gmx.GmxSys(name='1RXZ_ph7', coor_file=PDB_1RXZ)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph7'), ph=7.0)
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 4073
+
+    top_1RXZ = gmx.TopSys(prot.top_file)
+    assert top_1RXZ.charge() == -12
+
+    ##########################################
+    # ##   Create the topologie at PH 10.0 ###
+    ##########################################
+
+    # Remark: Charmm doesn't allow lysine unprotonated
+    prot = gmx.GmxSys(name='1RXZ_ph10', coor_file=PDB_1RXZ)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph10'),
+                     ph=10.0)
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 4073
+
+    top_1RXZ = gmx.TopSys(prot.top_file)
+    assert top_1RXZ.charge() == -12
+
+
+def test_protonate_ph4_7_amber(tmp_path):
+
+    gmx.show_log()
+    ##########################################
+    # ##   Create the topologie at PH 4.0  ###
+    ##########################################
+    prot = gmx.GmxSys(name='1RXZ_ph4', coor_file=PDB_1RXZ)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph4'),
+                     ph=4.0, ff="amber99sb-ildn")
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 4108
+
+    top_1RXZ = gmx.TopSys(prot.top_file)
+    assert top_1RXZ.charge() == 23
+
+    ##########################################
+    # ##   Create the topologie at PH 7.0  ###
+    ##########################################
+    prot = gmx.GmxSys(name='1RXZ_ph7', coor_file=PDB_1RXZ)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph7'),
+                     ph=7.0, ff="amber99sb-ildn")
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 4073
+
+    top_1RXZ = gmx.TopSys(prot.top_file)
+    assert top_1RXZ.charge() == -12
+
+    ##########################################
+    # ##   Create the topologie at PH 10.0 ###
+    ##########################################
+    # Remark: Amber allow lysine unprotonated
+    prot = gmx.GmxSys(name='1RXZ_ph10', coor_file=PDB_1RXZ)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph10'),
+                     ph=10.0, ff="amber99sb-ildn")
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 4071
+
+    top_1RXZ = gmx.TopSys(prot.top_file)
+    assert top_1RXZ.charge() == -14
 
 
 def test_insert_ethanol(tmp_path):
