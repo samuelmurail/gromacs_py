@@ -1,0 +1,67 @@
+;	File 'equi.mdp' was generated
+;	By user: Samuel Murail 
+;   Parameters for charmm36 taken from:
+;   http://manual.gromacs.org/documentation/2018/user-guide/force-fields.html
+
+
+; GENERAL INPUT FLAGS
+    title                   = Equilibrate
+    define                  = 
+
+; RUN FLAGS
+    integrator              = md
+    dt                      = 0.002  ; Use 2fs
+    nsteps                  = 5000000 ; 1 ns
+    pbc                     = xyz
+
+; NON-BONDED INTERACTIONS FLAGS
+    ns-type                 = Grid
+    nstlist                 = 10
+    rlist                   = 1.2
+    vdwtype                 = cut-off
+    vdw-modifier            = force-switch
+    rvdw                    = 1.2
+    rvdw-switch             = 1.0
+    cutoff-scheme           = Verlet
+    coulombtype             = PME
+    rcoulomb                = 1.2
+    fourierspacing          = 0.12
+    DispCorr                = no
+
+; TEMPERATURE COUPLING FLAGS
+    tcoupl                  = v-rescale
+    tc-grps                 = Protein 	non-Protein
+    tau_t                   = 0.1 		0.1
+    ref_t                   = 300 		300
+
+; PRESSURE COUPLING FLAGS
+    pcoupl                  = parrinello-Rahman
+    pcoupltype              = isotropic
+    tau_p                   = 5.0
+    compressibility         = 4.5e-5
+    ref_p                   = 1.0
+    refcoord-scaling        = com
+
+; OTHER FLAGS
+    nstcalcenergy           = 100 ; Default value
+    comm_mode               = Linear
+    nstcomm                 = 100 ; Default value
+    comm_grps               = system ; Default value
+
+; CONSTRAINT FLAGS
+    disre                   = simple
+    constraints             = h-bonds
+    constraint_algorithm    = lincs
+    lincs-iter              = 1 ; Default value
+    lincs-order             = 4 ; Default value
+    lincs_warnangle         = 30 ; Default value
+
+; OUTPUT FLAGS
+    nstxout                 = 500000
+    nstvout                 = 500000
+    nstfout                 = 0
+    nstlog                  = 5000
+    nstenergy               = 5000
+    nstxout-compressed      = 5000
+    energygrps              = System ; Use only one group is mandatory for GPU acceleration
+

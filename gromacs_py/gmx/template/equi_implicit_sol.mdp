@@ -1,0 +1,65 @@
+;	File 'equi.mdp' was generated
+;	By user: Samuel Murail 
+
+; GENERAL INPUT FLAGS
+    title                   = Equilibrate
+    define                  = 
+
+; RUN FLAGS
+    integrator              = md
+    dt                      = 0.005  ; Use 5fs with virtual sites
+    nsteps                  = 200000 ; 1 ns
+    pbc                     = no
+
+; NON-BONDED INTERACTIONS FLAGS
+    ns-type                 = Grid
+    nstlist                 = 0
+    rlist                   = 0
+    coulombtype             = cut-off   
+    rcoulomb                = 0
+    vdwtype                 = cut-off
+    rvdw                    = 0
+    cutoff-scheme           = group
+
+; TEMPERATURE COUPLING FLAGS
+    tcoupl                  = v-rescale
+    tc-grps                 = system
+    tau_t                   = 0.1 		
+    ref_t                   = 300 		
+
+; PRESSURE COUPLING FLAGS
+    Pcoupl                  = no
+
+; OTHER FLAGS
+    nstcalcenergy           = 100
+    comm_mode               = Angular
+    nstcomm                 = 100
+    comm_grps               = system
+    DispCorr                = no
+
+; CONSTRAINT FLAGS
+    disre                   = simple
+    constraints             = all-bonds
+    constraint_algorithm    = lincs
+    lincs-iter              = 1
+    lincs-order             = 6
+    lincs_warnangle         = 45
+    disre-fc                = 1000
+
+; OUTPUT FLAGS
+    nstxout                 = 0
+    nstvout                 = 0
+    nstfout                 = 0
+    nstlog                  = 5000
+    nstenergy               = 5000
+    nstxout-compressed      = 5000
+    energygrps              = System
+
+
+; GBSA 
+implicit-solvent    = GBSA
+gb-algorithm        = OBC
+gb_epsilon_solvent  = 80
+rgbradii            = 0
+
+

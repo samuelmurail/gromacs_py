@@ -1,0 +1,64 @@
+;	File 'equi.mdp' was generated
+;	By user: Samuel Murail 
+
+; GENERAL INPUT FLAGS
+    title                   = Equilibrate
+    define                  = 
+
+; RUN FLAGS
+    integrator              = md
+    dt                      = 0.005  ; Use 5fs with virtual sites
+    nsteps                  = 200000 ; 1 ns
+    pbc                     = xyz
+
+; NON-BONDED INTERACTIONS FLAGS
+    ns-type                 = Grid
+    nstlist                 = 10
+    rlist                   = 1.0
+    coulombtype             = pme
+    rcoulomb                = 1.0
+    vdwtype                 = cut-off
+    rvdw                    = 1.0
+    cutoff-scheme           = Verlet
+    fourierspacing          = 0.12
+
+; TEMPERATURE COUPLING FLAGS
+    tcoupl                  = v-rescale
+    tc-grps                 = Protein 	non-Protein
+    tau_t                   = 0.1 		0.1
+    ref_t                   = 300 		300
+
+; PRESSURE COUPLING FLAGS
+    pcoupl                  = parrinello-Rahman
+    pcoupltype              = isotropic
+    tau_p                   = 5.0
+    compressibility         = 4.5e-5
+    ref_p                   = 1.0
+    refcoord-scaling        = com
+
+; OTHER FLAGS
+    nstcalcenergy           = 100
+    comm_mode               = Linear
+    nstcomm                 = 100
+    DispCorr                = EnerPres
+
+; CONSTRAINT FLAGS
+    disre                   = simple
+    constraints             = all-bonds
+    constraint_algorithm    = lincs
+    lincs-iter              = 1
+    lincs-order             = 6
+    lincs_warnangle         = 45
+    comm_grps               = system
+    disre-fc                = 1000
+    nstdisreout             = 0
+
+; OUTPUT FLAGS
+    nstxout                 = 200000
+    nstvout                 = 200000
+    nstfout                 = 0
+    nstlog                  = 5000
+    nstenergy               = 5000
+    nstxout-compressed      = 5000
+    energygrps              = System
+

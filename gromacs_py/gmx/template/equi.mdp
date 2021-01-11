@@ -1,0 +1,83 @@
+;	File 'equi.mdp' was generated
+;	By user: Samuel Murail 
+
+; GENERAL INPUT FLAGS
+    title                   = Equilibrate
+    define                  = 
+
+; RUN FLAGS
+    integrator              = md
+    dt                      = 0.002  ; Use 2fs without virtual sites
+    nsteps                  = 200000 ; 1 ns
+    pbc                     = xyz
+
+; NON-BONDED INTERACTIONS FLAGS
+    ns-type                 = Grid
+    nstlist                 = 10
+    rlist                   = 1.0
+    coulombtype             = pme
+    rcoulomb                = 1.0
+    vdwtype                 = cut-off
+    vdw-modifier            = Potential-shift-Verlet
+    rvdw                    = 1.0
+    rvdw-switch             = 0.0
+    cutoff-scheme           = Verlet
+    fourierspacing          = 0.12
+    DispCorr                = EnerPres
+
+; TEMPERATURE COUPLING FLAGS
+    tcoupl                  = v-rescale
+    tc-grps                 = Protein 	non-Protein
+    tau_t                   = 0.1 		0.1
+    ref_t                   = 300 		300
+
+; PRESSURE COUPLING FLAGS
+    pcoupl                  = parrinello-Rahman
+    pcoupltype              = isotropic
+    tau_p                   = 5.0
+    compressibility         = 4.5e-5
+    ref_p                   = 1.0
+    refcoord-scaling        = com
+
+; OTHER FLAGS
+    nstcalcenergy           = 100
+    comm_mode               = Linear
+    nstcomm                 = 100
+
+; CONSTRAINT FLAGS
+    disre                   = simple
+    constraints             = h-bonds
+    constraint_algorithm    = lincs
+    lincs-iter              = 1
+    lincs-order             = 4
+    lincs_warnangle         = 30
+    comm_grps               = system
+    disre-fc                = 1000
+    nstdisreout             = 0
+
+; OUTPUT FLAGS
+    nstxout                 = 200000
+    nstvout                 = 200000
+    nstfout                 = 0
+    nstlog                  = 5000
+    nstenergy               = 5000
+    nstxout-compressed      = 5000
+    energygrps              = System
+
+; FREE ENERGY GLAGS
+    free_energy             = no
+    init_lambda-state       = 0
+    delta_lambda            = 0
+    coul_lambdas            =
+    vdw_lambdas             =
+    bonded_lambdas          =
+    sc_alpha                = 0.5
+    sc_power                = 1
+    sc_sigma                = 0.3
+    couple_moltype          =
+    couple_lambda0          = vdw-q
+    couple_lambda1          = none
+    couple_intramol         = no
+    nstdhdl                 = 50
+    separate_dhdl_file      = yes
+    calc_lambda_neighbors   =
