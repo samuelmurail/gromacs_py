@@ -18,11 +18,24 @@ from os_command_py import os_command
 from pdb_manip_py import pdb_manip
 
 from . import gmx
-from .gmx import TopSys, GmxSys, GROMACS_MOD_DIRNAME
+from .gmx import GROMACS_MOD_DIRNAME
 from .tools import monitor, ambertools
 
+# Autorship information
+__author__ = "Samuel Murail"
+__copyright__ = "Copyright 2020, RPBS"
+__credits__ = ["Samuel Murail"]
+__license__ = "GNU General Public License v2.0"
+__maintainer__ = "Samuel Murail"
+__email__ = "samuel.murail@u-paris.fr"
+__status__ = "Development"
 
-def show_log(pdb_manip_log=True):
+
+# Logging
+logger = logging.getLogger(__name__)
+
+
+def show_log():
     """ To use only with Doctest !!!
     Redirect logger output to sys.stdout
     """
@@ -34,23 +47,6 @@ def show_log(pdb_manip_log=True):
     logger.addHandler(logging.StreamHandler(sys.stdout))
 
     gmx.show_log()
-    if pdb_manip_log:
-        # Show pdb_manip Logs:
-        pdb_manip.show_log()
-
-
-# Logging
-logger = logging.getLogger(__name__)
-
-
-# Autorship information
-__author__ = "Samuel Murail"
-__copyright__ = "Copyright 2020, RPBS"
-__credits__ = ["Samuel Murail"]
-__license__ = "GNU General Public License v2.0"
-__maintainer__ = "Samuel Murail"
-__email__ = "samuel.murail@u-paris.fr"
-__status__ = "Development"
 
 
 # Check if Readthedoc is launched skip the program path searching
@@ -200,7 +196,7 @@ class FreeEner:
         logger.info(f'ligand charge is {charge}')
 
         # Topologie and system creation
-        self.gmxsys = GmxSys(name=self.mol_name, coor_file=pdb_file)
+        self.gmxsys = gmx.GmxSys(name=self.mol_name, coor_file=pdb_file)
         self.gmxsys.prepare_top_ligand(
             out_folder=os.path.join(self.out_folder, 'mol_top'),
             ff='amber99sb-ildn', include_mol={self.mol_name: smile})
@@ -245,7 +241,7 @@ class FreeEner:
         logger.info(f'ligand charge is {charge}')
 
         # Topologie and system creation
-        self.gmxsys = GmxSys(name=self.mol_name, coor_file=pdb_file)
+        self.gmxsys = gmx.GmxSys(name=self.mol_name, coor_file=pdb_file)
         self.gmxsys.prepare_top_ligand(
             out_folder=os.path.join(self.out_folder, 'mol_top'),
             ff='amber99sb-ildn', include_mol={self.mol_name: smile})
@@ -329,7 +325,7 @@ class FreeEner:
 
         """
 
-        self.gmxsys = GmxSys(name=self.mol_name, coor_file=pdb_in)
+        self.gmxsys = gmx.GmxSys(name=self.mol_name, coor_file=pdb_in)
         self.gmxsys.prepare_top(out_folder=os.path.join(
                                     self.out_folder, 'complex_top'),
                                 ff=ff, include_mol={self.mol_name: smile})
@@ -1040,7 +1036,7 @@ class FreeEner:
                         round(dihed_3, 3), 0,
                         round(dihed_3, 3), k]]
 
-        top = TopSys(self.gmxsys.top_file)
+        top = gmx.TopSys(self.gmxsys.top_file)
 
         top.add_intermolecular_restr(bond_list=bond_list,
                                      angle_list=angle_list,
@@ -1060,7 +1056,7 @@ class FreeEner:
 
         """
 
-        top = TopSys(self.gmxsys.top_file)
+        top = gmx.TopSys(self.gmxsys.top_file)
 
         dist = float(top.inter_bond_list[0]['rA'])
         k_bond = float(top.inter_bond_list[0]['kB'])
@@ -1101,7 +1097,7 @@ class FreeEner:
         view.add_representation("cartoon")
 
         # Get distance index
-        top = TopSys(self.gmxsys.top_file)
+        top = gmx.TopSys(self.gmxsys.top_file)
 
         atom_list = []
         for bond in top.inter_bond_list:
@@ -1152,7 +1148,7 @@ class FreeEner:
 
         width_ratio = 0.7
 
-        top = TopSys(self.gmxsys.top_file)
+        top = gmx.TopSys(self.gmxsys.top_file)
 
         dist_index_list = []
         for bond in top.inter_bond_list:
