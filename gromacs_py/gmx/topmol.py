@@ -6,15 +6,10 @@
 
 
 import os
-import copy
 import logging
 import sys
 
-from shutil import copy as shutil_copy
-
 from os_command_py import os_command
-from pdb_manip_py import pdb_manip
-from pdb_manip_py import pdb2pqr
 
 from .rtp import Rtp
 
@@ -41,6 +36,7 @@ def show_log():
     logger.setLevel(logging.INFO)
     # Add sys.sdout as handler
     logger.addHandler(logging.StreamHandler(sys.stdout))
+
 
 def show_debug():
     """ To use only with Doctest !!!

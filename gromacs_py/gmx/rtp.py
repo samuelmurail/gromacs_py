@@ -72,4 +72,3 @@ class Rtp:
                                               'aj': line_list[1],
                                               'ak': line_list[2],
                                               'al': line_list[3]})
-

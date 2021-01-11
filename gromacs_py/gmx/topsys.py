@@ -6,18 +6,23 @@
 
 
 import os
-import copy
 import logging
 import sys
 
 from shutil import copy as shutil_copy
 
 from os_command_py import os_command
-from pdb_manip_py import pdb_manip
-from pdb_manip_py import pdb2pqr
 
 from .itp import Itp
 
+# Autorship information
+__author__ = "Samuel Murail"
+__copyright__ = "Copyright 2020, RPBS"
+__credits__ = ["Samuel Murail"]
+__license__ = "GNU General Public License v2.0"
+__maintainer__ = "Samuel Murail"
+__email__ = "samuel.murail@u-paris.fr"
+__status__ = "Production"
 
 # Logging
 logger = logging.getLogger(__name__)
@@ -54,29 +59,6 @@ if 'GMXLIB' in os.environ:
 FORCEFIELD_PATH_LIST.append(os.path.join(GMX_PATH, "share/gromacs/top"))
 
 
-"""
-
-# In case gmx5 is launched as main, relative import will failed
-try:
-    from .tools import monitor, ambertools
-except ImportError:
-    logger.info("Relative import from .tools fails,"
-                " use absolute import instead")
-    import tools.monitor as monitor
-    import tools.ambertools as ambertools
-
-
-# Autorship information
-__author__ = "Samuel Murail"
-__copyright__ = "Copyright 2020, RPBS"
-__credits__ = ["Samuel Murail"]
-__license__ = "GNU General Public License v2.0"
-__maintainer__ = "Samuel Murail"
-__email__ = "samuel.murail@u-paris.fr"
-__status__ = "Production"
-
-"""
-
 def show_log():
     """ To use only with Doctest !!!
     Redirect logger output to sys.stdout
@@ -88,7 +70,7 @@ def show_log():
     # Add sys.sdout as handler
     logger.addHandler(logging.StreamHandler(sys.stdout))
 
-        # Show log of top sys:
+    # Show log of top sys:
     from . import itp
     itp.show_log()
 
@@ -103,66 +85,6 @@ def show_debug(pdb_manip_log=True):
     logger.setLevel(logging.DEBUG)
     # Add sys.sdout as handler
     logger.addHandler(logging.StreamHandler(sys.stdout))
-
-
-"""
-
-
-# Check if Readthedoc is launched skip the program path searching
-on_rtd = os.environ.get('READTHEDOCS') == 'True'
-if on_rtd:
-    logger.info("Gromacs cannot be found")
-    GMX_BIN = ""
-    gmx_version = ""
-else:
-    GMX_BIN = os_command.which('gmx')
-    gmx_version = os_command.get_gmx_version()
-    logger.info("Gromacs version is {}".format(gmx_version))
-
-# Get local gmx path
-GMX_PATH = "/".join(GMX_BIN.split("/")[:-2])
-# Deduce the water gro file path
-WATER_GRO = os.path.join(GMX_PATH, "share/gromacs/top/spc216.gro")
-
-# Get library path
-GROMACS_MOD_DIRNAME = os.path.dirname(os.path.abspath(__file__))
-
-FORCEFIELD_PATH_LIST = [os.path.join(GROMACS_MOD_DIRNAME, "template")]
-# GMXLIB_var should not include GMXPATH top dir, it could induce some conflict
-GMXLIB_var = os.path.join(GROMACS_MOD_DIRNAME, "template")
-
-# Check if GMXLIB env variable is defines if yes add it to forcefield path
-if 'GMXLIB' in os.environ:
-    # Needed for pytest in monitor.py, otherwise add twice GROMACS_MOD_DIRNAME
-    if os.environ['GMXLIB'] not in FORCEFIELD_PATH_LIST:
-        FORCEFIELD_PATH_LIST.append(os.environ['GMXLIB'])
-        GMXLIB_var += ":" + os.environ['GMXLIB']
-
-FORCEFIELD_PATH_LIST.append(os.path.join(GMX_PATH, "share/gromacs/top"))
-
-logger.info('FORCEFIELD_PATH_LIST = {}'.format(FORCEFIELD_PATH_LIST))
-
-# Test folder path
-GMX_LIB_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_PATH = os.path.join(GMX_LIB_DIR, "test_files/")
-
-
-# Global variable
-# Protein heavy atoms
-HA_NAME = ['N', 'C', 'O', 'CA', 'CB', 'CG', 'CG1', 'CG2', 'SG',
-           'OG', 'OG1', 'CD', 'CD1', 'CD2', 'OD1', 'OD2', 'SD',
-           'ND1', 'CE', 'CE1', 'CE2', 'CE3', 'OE1', 'OE2', 'NE',
-           'NE1', 'NE2', 'OH', 'CZ', 'CZ2', 'CZ3', 'NZ', 'NH1',
-           'NH2']
-# DNA heavy atoms
-HA_NAME += ['O5\'', 'C5\'', 'C4\'', 'O4\'', 'C1\'', 'N1', 'C6',
-            'CG2', 'C5', 'C4', 'N4', 'N3', 'C2', 'O2', 'C3\'',
-            'C2\'', 'O3\'', 'P', 'O1P', 'O2P', 'N9', 'C8', 'N7',
-            'O6', 'N2', 'C7', 'N6', 'O4']
-
-# Boltzmann Constant
-KB = 8.31446261815324
-"""
 
 
 class TopSys:

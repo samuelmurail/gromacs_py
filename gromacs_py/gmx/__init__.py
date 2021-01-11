@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+""" gmx library include the gromacs system class ``GmxSys``, as well as
+topologie ``TopSys`` and itp.
+"""
+
 import sys
 import logging
 
 from .itp import Itp
 from .topsys import TopSys
-from .gmxsys import GmxSys, GROMACS_MOD_DIRNAME, gmx_version
+from .gmxsys import GmxSys, GROMACS_MOD_DIRNAME
 
 # Autorship information
 __author__ = "Samuel Murail"
@@ -20,6 +24,7 @@ __status__ = "Prototype"
 
 # Logging
 logger = logging.getLogger(__name__)
+
 
 def show_log(pdb_manip_log=True):
     """ To use only with Doctest !!!

@@ -11,11 +11,11 @@ import sys
 
 from os_command_py import os_command
 
-from .rtp import Rtp
 from .topmol import TopMol
 
 # Logging
 logger = logging.getLogger(__name__)
+
 
 def show_log():
     """ To use only with Doctest !!!
@@ -31,6 +31,7 @@ def show_log():
     # Show log of top sys:
     from . import topmol
     topmol.show_log()
+
 
 # Autorship information
 __author__ = "Samuel Murail"

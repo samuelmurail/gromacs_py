@@ -18,7 +18,7 @@ from os_command_py import os_command
 from pdb_manip_py import pdb_manip
 
 from . import gmx
-from .gmx import GROMACS_MOD_DIRNAME #TopSys, GmxSys, 
+from .gmx import GROMACS_MOD_DIRNAME
 from .tools import monitor, ambertools
 
 # Autorship information
@@ -33,6 +33,7 @@ __status__ = "Development"
 
 # Logging
 logger = logging.getLogger(__name__)
+
 
 def show_log():
     """ To use only with Doctest !!!
