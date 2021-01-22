@@ -55,7 +55,7 @@ setup(
         "matplotlib",
         "os_command_py",
         "pdb2pqr_htmd_propka30>=0.0.4",
-        "pdb_manip_py>=1.3.5",
+        "pdb_manip_py>=1.3.6",
         "tqdm",
     ],
     package_data={
