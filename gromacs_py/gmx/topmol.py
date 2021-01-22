@@ -122,74 +122,82 @@ class TopMol:
                                 atom['mass'],
                                 tot_charge))
         # Print bonds field
-        filout.write("\n[ bonds ]\n;  ai    aj funct            c0           "
-                     " c1            c2            c3\n")
-        for param in self.bond_list:
-            filout.write("{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
-                param['ai'], param['aj'], param['funct'],
-                param['r'], param['k']))
+        if self.bond_list:
+            filout.write("\n[ bonds ]\n;  ai    aj funct            c0           "
+                         " c1            c2            c3\n")
+            for param in self.bond_list:
+                filout.write("{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
+                    param['ai'], param['aj'], param['funct'],
+                    param['r'], param['k']))
         # Print constraints field
-        filout.write("\n[ constraints ]\n;  ai    aj funct            c0    "
-                     "        c1\n")
-        for param in self.cons_list:
-            filout.write("{:>6}{:>6}{:>6}\n".format(
-                param['ai'], param['aj'], param['funct']))
+        if self.cons_list:
+            filout.write("\n[ constraints ]\n;  ai    aj funct            c0    "
+                         "        c1\n")
+            for param in self.cons_list:
+                filout.write("{:>6}{:>6}{:>6}\n".format(
+                    param['ai'], param['aj'], param['funct']))
         # Print pairs field
-        filout.write("\n[ pairs ]\n;  ai    aj funct            c0          "
-                     "  c1            c2            c3\n")
-        for param in self.pair_list:
-            filout.write("{:>6}{:>6}{:>6}\n".format(
-                param['ai'], param['aj'], param['funct']))
+        if self.pair_list:
+            filout.write("\n[ pairs ]\n;  ai    aj funct            c0          "
+                         "  c1            c2            c3\n")
+            for param in self.pair_list:
+                filout.write("{:>6}{:>6}{:>6}\n".format(
+                    param['ai'], param['aj'], param['funct']))
         # Print angles field
-        filout.write("\n[ angles ]\n;  ai    aj    ak funct            c0   "
-                     "         c1            c2            c3\n")
-        for param in self.angl_list:
-            filout.write("{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
-                param['ai'], param['aj'],
-                param['ak'], param['funct'],
-                param['theta'], param['cth']))
+        if self.angl_list:
+            filout.write("\n[ angles ]\n;  ai    aj    ak funct            c0   "
+                         "         c1            c2            c3\n")
+            for param in self.angl_list:
+                filout.write("{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
+                    param['ai'], param['aj'],
+                    param['ak'], param['funct'],
+                    param['theta'], param['cth']))
         # Print dihedrals field
-        filout.write("\n[ dihedrals ]\n;  ai    aj    ak    al funct        "
-                     "    c0            c1            c2            c3      "
-                     "      c4            c5\n")
-        for param in self.dihe_list:
-            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}"
-                         "{:>6}\n".format(param['ai'], param['aj'],
-                                          param['ak'], param['al'],
-                                          param['funct'], param['phase'],
-                                          param['kd'], param['pn']))
+        if self.dihe_list:
+            filout.write("\n[ dihedrals ]\n;  ai    aj    ak    al funct        "
+                         "    c0            c1            c2            c3      "
+                         "      c4            c5\n")
+            for param in self.dihe_list:
+                filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}"
+                             "{:>6}\n".format(param['ai'], param['aj'],
+                                              param['ak'], param['al'],
+                                              param['funct'], param['phase'],
+                                              param['kd'], param['pn']))
         # Print virtual_sites3 field
-        filout.write("\n[ cmap ]\n;  ai    aj    ak    al    am funct\n")
-        for param in self.cmap_list:
-            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
-                param['ai'], param['aj'],
-                param['ak'], param['al'],
-                param['am'], param['funct']))
+        if self.cmap_list:
+            filout.write("\n[ cmap ]\n;  ai    aj    ak    al    am funct\n")
+            for param in self.cmap_list:
+                filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
+                    param['ai'], param['aj'],
+                    param['ak'], param['al'],
+                    param['am'], param['funct']))
         # Print virtual_sites3 field
-        filout.write("\n[ virtual_sites3 ]\n;  ai    aj    ak    al funct    "
-                     "        c0            c1\n")
-        for param in self.vs3_list:
-            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
-                param['ai'], param['aj'],
-                param['ak'], param['al'],
-                param['funct']))
+        if self.vs3_list:
+            filout.write("\n[ virtual_sites3 ]\n;  ai    aj    ak    al funct    "
+                         "        c0            c1\n")
+            for param in self.vs3_list:
+                filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
+                    param['ai'], param['aj'],
+                    param['ak'], param['al'],
+                    param['funct']))
         # Print virtual_sites3 field
-        filout.write("\n[ virtual_sites4 ]\n;  ai    aj    ak    al    am"
-                     " funct            c0            c1            c2\n")
-        for param in self.vs4_list:
-            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
-                param['ai'], param['aj'],
-                param['ak'], param['al'],
-                param['am'], param['funct']))
-
+        if self.vs4_list:
+            filout.write("\n[ virtual_sites4 ]\n;  ai    aj    ak    al    am"
+                         " funct            c0            c1            c2\n")
+            for param in self.vs4_list:
+                filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
+                    param['ai'], param['aj'],
+                    param['ak'], param['al'],
+                    param['am'], param['funct']))
         # Print position restraints
-        filout.write("\n[ position_restraints ]\n;  ai    funct         kx "
-                     "         ky          kz\n")
-        for param in self.pos_restr:
-            filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
-                param['ai'], param['funct'],
-                param['kx'], param['ky'],
-                param['kz']))
+        if self.pos_restr:
+            filout.write("\n[ position_restraints ]\n;  ai    funct         kx "
+                         "         ky          kz\n")
+            for param in self.pos_restr:
+                filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
+                    param['ai'], param['funct'],
+                    param['kx'], param['ky'],
+                    param['kz']))
         if len(self.if_pos_restr) > 0:
             def_str = ''
             def_end_flag = False
