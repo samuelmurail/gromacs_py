@@ -13,7 +13,7 @@ import gromacs_py.tools.ambertools as ambertools
 
 from pdb_manip_py import pdb_manip
 
-from .datafiles import PDB_1Y0M, PDB_1RXZ
+from .datafiles import PDB_1Y0M, PDB_1RXZ, PDB_1JD4
 
 # Autorship information
 __author__ = "Samuel Murail"
@@ -23,6 +23,35 @@ __license__ = "GNU General Public License v2.0"
 __maintainer__ = "Samuel Murail"
 __email__ = "samuel.murail@u-paris.fr"
 __status__ = "Production"
+
+
+def test_zinc_finger(tmp_path):
+
+    gmx.show_log()
+    ##################################
+    # ##   Create the topologie:   ###
+    ##################################
+    prot = gmx.GmxSys(name='1jd4', coor_file=PDB_1JD4)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_DIAP1'),
+                     vsite='hydrogens', ignore_ZN=False)
+
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 3292
+
+    prot.switch_ion_octa_dummy()
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 3304
+
+    prot.solvate_add_ions(out_folder=os.path.join(tmp_path, 'top_sys'), maxwarn=3)
+
+    prot.em(out_folder=os.path.join(tmp_path, 'em_DIAP1'),
+            nsteps=10,
+            constraints='none')
+    em_coor = pdb_manip.Coor(prot.coor_file)
+    assert em_coor.num == 56366
+
+    ener_pd = prot.get_ener(['Potential'])
+    assert ener_pd['Potential'].values[-1] < -155000
 
 
 def test_set_protonate_charmm(tmp_path):
@@ -259,3 +288,4 @@ def test_insert_peptide_vsite(tmp_path):
     assert 15300 < prot_lig_coor.num < 15518
 
     prot.display_history()
+
