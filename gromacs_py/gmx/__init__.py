@@ -5,7 +5,6 @@
 topologie ``TopSys`` and itp.
 """
 
-import sys
 import logging
 
 from .itp import Itp
@@ -27,16 +26,6 @@ logger = logging.getLogger(__name__)
 
 
 def show_log(pdb_manip_log=True):
-    """ To use only with Doctest !!!
-    Redirect logger output to sys.stdout
-    """
-    # Delete all handlers
-    logger.handlers = []
-    # Set the logger level to INFO
-    logger.setLevel(logging.INFO)
-    # Add sys.sdout as handler
-    logger.addHandler(logging.StreamHandler(sys.stdout))
 
-    # Show log of top sys:
     from . import gmxsys
     gmxsys.show_log()
