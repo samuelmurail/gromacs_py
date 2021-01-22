@@ -416,8 +416,38 @@ class TopSys:
         self.mol_comp.append({'name': mol_name, 'num': str(mol_num)})
         self.add_mol_itp(mol_itp_file)
 
+    def remove_ion(self, ion_name_list):
+        """Remove a molecule from the topologie (composition and itp_list)
+        """
+
+        logger.info("Remove mol(s) : {}".format(' '.join(ion_name_list)))
+        itp_remove_list = []
+        mol_remove_list = []
+
+        for itp in self.itp_list:
+            for mol in itp.top_mol_list:
+                for atom in mol.atom_dict.values():
+                    if atom['atom_name'] in ion_name_list and len(itp.top_mol_list) ==1:
+                        # print(itp.name, 'YOYOYO')
+                        itp_remove_list.append(itp)
+                        mol_remove_list.append(mol.name)
+
+        for itp in itp_remove_list:
+            self.itp_list.remove(itp)
+
+        mol_comp = []
+        for mol in self.mol_comp:
+            if mol['name'] not in mol_remove_list:
+                mol_comp.append(mol)
+
+        self.mol_comp = mol_comp
+
     def add_atomtypes(self, new_atomtypes):
         """ Add atomtypes in a topologie.
+
+        :param new_atomtypes: path of the atomtype itp file
+        :type new_atomtypes: str
+
         """
 
         # check if and atomtypes file exists:
