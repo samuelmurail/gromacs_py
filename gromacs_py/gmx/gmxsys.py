@@ -16,6 +16,7 @@ from pdb_manip_py import pdb2pqr
 
 
 from .topsys import TopSys
+from .topmol import TopMol
 from .itp import Itp
 
 # Logging
@@ -128,10 +129,15 @@ HA_NAME += ['O5\'', 'C5\'', 'C4\'', 'O4\'', 'C1\'', 'N1', 'C6',
             'C2\'', 'O3\'', 'P', 'O1P', 'O2P', 'N9', 'C8', 'N7',
             'O6', 'N2', 'C7', 'N6', 'O4']
 
+PROT_RES = ['GLY', 'HIS', 'HSP', 'HSE', 'HSD', 'HIP', 'HIE', 'HID',
+            'ARG', 'LYS', 'ASP', 'ASPP', 'ASN', 'GLU', 'GLUP', 'GLN',
+            'SER', 'THR', 'ASN', 'GLN', 'CYS', 'SEC', 'PRO', 'ALA',
+            'ILE', 'PHE', 'TYR', 'TRP', 'VAL', 'LEU', 'MET']
 
 ################################
 # ## Gromacs System Object #####
 ################################
+
 
 class GmxSys:
     """Gromacs system encapsulation class.
@@ -706,7 +712,7 @@ SH3_D_neutral.gro -p SH3_D_neutral.top -po out_Init_em_1y0m.mdp \
                 'conda install -c conda-forge nglview')
             return
 
-        if self.coor_file[:-3] != 'pdb':
+        if self.coor_file[-3:] not in ['pdb', 'gro']:
             if self.tpr is None:
                 self.tpr = self.coor_file
             self.convert_trj(traj=False, pbc='none')
@@ -924,7 +930,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         :type name: str, optional, default=None
 
         :param vsite: option for topologie's bonds constraints ("none",
-            "hydrogens", "all")
+            "hydrogens", "aromatics")
         :type vsite: str, optional, default="none"
 
         :param ignore_ZN: option for not adding parameters to ZINC finger
@@ -1096,11 +1102,11 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
                 GmxSys.set_coor_aa_prot(coor_in, res_prot_dict,
                                         ff=pdb2pqr_ff)
 
-        # NOTE The zinc finger should ne removed from here:
+        # NOTE The zinc finger should be removed from here:
         if not ignore_ZN:
-            zinc_in = coor_in.add_zinc_finger(start_pdb)
-        else:
-            zinc_in = False
+            coor_in.add_zinc_finger(start_pdb)
+        # else:
+        #    zinc_in = False
 
         coor_in.write_pdb(pdb_out="01_" + name + "_good_his.pdb")
 
@@ -1109,8 +1115,9 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
         # Compute topology options
         pdb2gmx_option_dict = {'vsite': vsite, 'ignh': None}
         # Options for system with zinc
-        if zinc_in:
-            pdb2gmx_option_dict['merge'] = 'all'
+
+        # if zinc_in:  # No more necessay if using octahedral dummy Zinc model
+        #    pdb2gmx_option_dict['merge'] = 'all'
 
         self.add_top(out_folder=".", check_file_out=True, ff=ff,
                      pdb2gmx_option_dict=pdb2gmx_option_dict)
@@ -1148,6 +1155,274 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
 
         os.chdir(start_dir)
 
+    def create_itp_atomtype_ion_octa_dummy(self, atomtypes, ion_name=['MN', 'ZN']):
+        """
+        Forcefield A and B values taken from :
+        Duarte et al. 2014 J. Phys. Chem. B
+
+        https://en.wikipedia.org/wiki/Lennard-Jones_potential
+
+        $$ A = 4 \epsilon \sigma^12$$
+        $$ B = 4 \epsilon \sigma^6$$
+
+        $$ \sigma = \sqrt[6]{\frac{A}{B}} $$
+        $$ \epsilon = \frac{B^2}{4A} $$
+
+        ion_name=['NI', 'CO', 'ZN', 'MN', 'FE', 'MG', 'CA']
+
+        ; MM  171         35
+        ; D   0.05         0
+        ;
+        ; MN
+        ; C12, C6 = 171**2, 35**2
+        ; sigma = (C12/C6)**(1/6) = 1.697 A = 0.1697 nm
+        ; eps = C6**2/(4*C12) = 12.829 Kcal mol-1 = 418.4 KJ mol -1
+        ;
+        ; DMN
+        ; C12, C6 = 0, 35**2
+
+        ; MN  25    36.938000    0.000  A   0.1697    12.829
+        ; Gromacs unit is : kJ mol−1 nm−2   kb = kb_cal_A * 4.184 * 100
+
+        ; Aqvist and Warshel JACS 1990
+        ;
+        ; MM  145        25
+        ; D   0           0
+        ; Kb = 1600 (kcal mol−1Å−2) and Kθ = 250 (kcal mol−1rad−2) and
+        ; no bond between dummies.
+        ; C12, C6 = 145**2, 25**2
+        ; sigma = (C12/C6)**(1/6) = 1.7967 A = 0.17967 nm
+        ; eps = C6**2/(4*C12) = 4.645 Kcal mol-1 = 19.4337 KJ mol -1
+        ; MN  25    36.938000    0.000  A   0.17967    19.4337
+
+        """
+        # Add Topologie:
+
+        # Compute sigma and epsilon form A and B
+        for name, atom in atomtypes.items():
+            C6, C12 = atom['A']**2, atom['B']**2
+            # A in kcal.mol-1.Å(-12)
+            # Convert to kJ.mol-1.nm(-12)
+            C6 *= 4.184 * 10**-12 
+            # B in kcal.mol.Å(-3)
+            # Convert to kJ.mol-1.nm(-6)
+            C12 *= 4.184 * 10**-6 
+            if C12 != 0.0:
+                sigma = (C6 / C12)**(1 / 6)
+                eps = C12**2 / (4 * C6)
+            else:
+                # Is it a good fix ?, need to adjust sigma
+                # to have high enough epsilon
+                sigma = -0.1
+                eps = C6 / (4 * sigma**(12))
+
+            atom['eps'] = eps  # nm
+            atom['sigma'] = sigma  # KJ.mol^(-1)
+
+            # print(f'C6 ={(C6 * 4.184 * 1e-6):8.2e} '
+            #       'C12 = {(C12 * 4.184 * 1e-12):7.4e}')
+            print(f'{name:4} sig = {(sigma):7.4f} nm'
+                  f' eps ={eps:8.2f} KJ.mol-1.nm-2')
+
+        # Atomtype itp file:
+
+        ion_atom_type = self.top_file[:-4] + '_atomtypes.itp'
+
+        # Write the atomtype in a separate file:
+        with open(ion_atom_type, 'w') as file:
+            file.write('[ atomtypes ]\n')
+
+            for name in ion_name+['D']:
+                atom_dict = atomtypes[name]
+                file.write(' {:3}      {:3}         {:8.5f}  {:8.5f}'
+                           '   {}     {:12.5e}   {:12.5e}\n'.format(
+                            name,
+                            atom_dict['atnum'],
+                            atom_dict['mass'],
+                            atom_dict['charge'],
+                            'A',
+                            atom_dict['sigma'],
+                            atom_dict['eps']))
+        return ion_atom_type
+
+    def create_itp_ion_octa_dummy(self, atomtypes, ion_name=['MN', 'ZN']):
+        """
+        """
+
+        # Unit: distance in (nm), k in kcal.mol-1.Å-2
+        bond_type = {'ID': {'d': 0.0900, 'k': 800},
+                     'DD': {'d': 0.1273, 'k': 800}}
+
+        # Convert k in kJ.mol-1.nm-2:
+        for bond in bond_type.values():
+            bond['k'] *= 4.184 * 100
+
+        index_list = []
+        for i in range(2, 8):
+            index_list.append([1, i])
+        bond_type['ID']['list'] = index_list
+
+        index_list = [[2, 3], [2, 5], [2, 6], [2, 7],
+                      [4, 3], [4, 5], [4, 6], [4, 7],
+                      [5, 6], [5, 7], [3, 6], [3, 7]]
+        # To avoid to much constraints
+        # avoid with virtual sites ??
+        # if vsite != 'none':
+        #    index_list = []
+        bond_type['DD']['list'] = index_list
+
+
+        # Unit: angle in (degreee), k in kcal.mol-1.rad-2
+        angle_type = {'DiMDi': {'theta': 180.0, 'k': 250},
+                      'DiMDj': {'theta': 90.0, 'k': 250},
+                      'MDiDj': {'theta': 45.0, 'k': 250},
+                      'DiDjDi': {'theta': 90.0, 'k': 250},
+                      'DiDjDk': {'theta': 60.0, 'k': 250}}
+
+        # Convert k in kJ.mol-1.rad-2:
+        for angle in angle_type.values():
+            angle['k'] *= 4.184
+
+        index_list = [[2, 1, 4], [3, 1, 5], [6, 1, 7]]
+        angle_type['DiMDi']['list'] = index_list
+
+        index_list = [[2, 1, 3], [2, 1, 5], [2, 1, 6],
+                      [2, 1, 7], [4, 1, 3], [4, 1, 5],
+                      [4, 1, 6], [4, 1, 7], [5, 1, 6],
+                      [5, 1, 7], [3, 1, 6], [3, 1, 7]]
+        angle_type['DiMDj']['list'] = index_list
+
+
+        index_list = [[1, 2, 3], [1, 2, 5], [1, 2, 6],
+                      [1, 2, 7], [1, 4, 3], [1, 4, 5],
+                      [1, 4, 6], [1, 4, 7], [1, 5, 6],
+                      [1, 5, 7], [1, 3, 6], [1, 3, 7]]
+        angle_type['MDiDj']['list'] = index_list
+
+        index_list = [[2, 3, 4], [2, 5, 4], [2, 6, 4],
+                      [2, 7, 4], [3, 6, 5], [3, 7, 5],
+                      [3, 2, 5], [3, 4, 5], [6, 2, 7],
+                      [6, 3, 7], [6, 4, 7], [6, 5, 7]]
+        angle_type['DiDjDi']['list'] = index_list
+
+        index_list = [[2, 3, 6], [2, 3, 7], [2, 5, 6],
+                      [2, 5, 7], [2, 6, 3], [2, 6, 5],
+                      [2, 7, 3], [2, 7, 5], [4, 3, 6],
+                      [4, 3, 7], [4, 5, 6], [4, 5, 7],
+                      [4, 6, 3], [4, 6, 5], [4, 7, 3],
+                      [4, 7, 5]]
+        angle_type['DiDjDk']['list'] = index_list
+
+        itp_file_name = self.top_file[:-4] + '_octa_ions.itp'
+        # Create empty itp file:
+        with open(itp_file_name, 'w') as filout:
+            filout.write("; Itp file created by " + __name__ + "\n\n")
+
+        ion_itp = Itp(name='Ion_octa_dummy',
+                      fullname=itp_file_name.split('/')[-1],
+                      path=itp_file_name)
+
+        # Write the ion itp files:
+        for name in ion_name:
+
+            local_top = TopMol(name + 'D', 3)
+            ion_itp.top_mol_list.append(local_top)
+
+            # ATOM part:
+            i = 1
+            atom = {"num": i, "atom_type": name, "atom_name": name,
+                    "res_num": 1, "res_name": name + 'D', "charge_num": i,
+                    "charge": atomtypes[name]['charge'],
+                    "mass": atomtypes[name]['mass']}
+            local_top.atom_dict[i] = atom
+            # Dummy atoms part:
+            for i in range(2, 8):
+                local_top.atom_dict[i] = {"num": i, "atom_type": 'D',
+                                          "atom_name": 'D{}'.format(i - 1),
+                                          "res_num": 1, "res_name": name + 'D',
+                                          "charge_num": i,
+                                          "charge": atomtypes['D']['charge'],
+                                          "mass": atomtypes['D']['mass']}
+            # BOND part:
+            funct = 1
+            for bond in bond_type.values():
+                for i, j in bond['list']:
+                    local_top.bond_list.append({'ai': i, 'aj': j,
+                                                'funct': funct,
+                                                'r': bond['d'],
+                                                'k': bond['k']})
+            # ANGLE part:
+            funct = 1
+            for angle in angle_type.values():
+                for i, j, k in angle['list']:
+                    local_top.angl_list.append({'ai': i, 'aj': j,
+                                                'ak': k,
+                                                'funct': funct,
+                                                'theta': angle['theta'],
+                                                'cth': angle['k']})
+
+        ion_itp.write_file(itp_file_name)
+
+        return(ion_itp)
+
+    def switch_ion_octa_dummy(self, ion_name=['MN', 'ZN']):
+
+        # Unit: A: kcal^(1/2).mol^(-1/2).Å^(-6) B: kcal^(1/2).mol^(-1/2).Å^(-3)
+        atomtypes = {'NI': {'atnum': 28, 'mass': 40.69, 'charge': -1.0,
+                            'A': 113.0, 'B': 84.0},
+                     'CO': {'atnum': 27, 'mass': 40.93, 'charge': -1.0,
+                            'A': 61.0, 'B': 31.0},
+                     'ZN': {'atnum': 30, 'mass': 47.39, 'charge': -1.0,
+                            'A': 68.0, 'B': 38.0},
+                     'MN': {'atnum': 25, 'mass': 36.94, 'charge': -1.0,
+                            'A': 171.0, 'B': 35.0},
+                     'FE': {'atnum': 26, 'mass': 37.85, 'charge': -1.0,
+                            'A': 70.0, 'B': 10.0},
+                     'MG': {'atnum': 12, 'mass': 6.30, 'charge': -1.0,
+                            'A': 63.0, 'B': 9.0},
+                     'CA': {'atnum': 20, 'mass': 22.08, 'charge': -1.0,
+                            'A': 350.0, 'B': 15.0},
+                     'D': {'atnum': 0, 'mass': 3.0, 'charge': 0.5,
+                           'A': 0.05, 'B': 0.0}}
+        # Correct coodinates:
+        ion_num = {}
+        coor = pdb_manip.Coor(self.coor_file)
+        for name in ion_name:
+            print(name)
+            ion_num[name] = coor.select_part_dict({'name': [name]}).num
+            index = coor.get_index_selection({'res_name': [name]})
+            print(name, len(index))
+            coor.change_index_pdb_field(index,
+                                        {'res_name' : name + 'D'})
+        coor.correct_ion_octa(ion_name)
+
+        coor.write_pdb(self.coor_file[:-4] + '_newion.pdb', check_file_out=False)
+        self.coor_file = self.coor_file[:-4] + '_newion.pdb'
+
+        # Correct topologie
+        ion_atom_type = self.create_itp_atomtype_ion_octa_dummy(atomtypes, ion_name)
+        ion_itp = self.create_itp_ion_octa_dummy(atomtypes, ion_name)
+
+        # Create and add to topologie the atomtype itp:
+        sys_top = TopSys(self.top_file)
+        sys_top.add_atomtypes(ion_atom_type)
+
+        # Use add_mol function !!!
+        # But before need to use the remove mol function !!!
+        sys_top.remove_ion(ion_name)
+
+        for ion, num in ion_num.items():
+            if num > 0:
+                print(ion, sys_top.mol_num(ion))
+                #sys_top.remove_mol(mol_name=ion)
+                sys_top.add_mol(mol_name=ion+'D',
+                                mol_itp_file=ion_itp.path,
+                                mol_num=num)
+
+        #sys_top.itp_list += [ion_itp]
+        sys_top.write_file(self.top_file[:-4] + '_newion.top')
+        self.top_file = self.top_file[:-4] + '_newion.top'
+
     @staticmethod
     def set_coor_aa_prot(coor_in, res_prot_dict, ff):
         """ Set manually residue protonation.
@@ -1163,11 +1438,12 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
 
         """
 
-        res_dict = {'ASPP': ['ASP', 'ASPP', 'ASH'],
-                    'ASH': ['ASP', 'ASPP', 'ASH'],
+        res_dict = {'ASP':  ['ASP', 'ASPP', 'ASH'],
+                    'ASPP': ['ASP', 'ASPP', 'ASH'],
+                    'ASH':  ['ASP', 'ASPP', 'ASH'],
                     'GLUP': ['GLU', 'GLUP', 'GLH'],
-                    'GLH': ['GLU', 'GLUP', 'GLH'],
-                    'GLU': ['GLU', 'GLUP', 'GLH'],
+                    'GLH':  ['GLU', 'GLUP', 'GLH'],
+                    'GLU':  ['GLU', 'GLUP', 'GLH'],
                     'RN1': ['ARG', 'RN1'],
                     'LSN': ['LYS', 'LSN'],
                     'HSP': ['HIS', 'HSP', 'HSD', 'HSE', 'HIP', 'HID', 'HIE'],
@@ -1189,9 +1465,48 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
                 logger.warning("Selection dict {} return no"
                                " atoms. Check your selection".format(
                                    local_dict))
+            else:
+                logger.info("Set resname of sel dict {} to "
+                            " {}.".format(
+                                   local_dict, res))
+                coor_in.change_index_pdb_field(index_list=change_index_list,
+                                               change_dict={"res_name": res})
 
-            coor_in.change_index_pdb_field(index_list=change_index_list,
-                                           change_dict={"res_name": res})
+        chain_list = coor_in.get_attribute_selection(attribute='chain')
+        res_prot_dict = {'ASP': [],
+                         'ASPP': [],
+                         'ASH': [],
+                         'GLUP': [],
+                         'GLH': [],
+                         'GLU': [],
+                         'RN1': [],
+                         'LSN': [],
+                         'HSP': [],
+                         'HSD': [],
+                         'HSE': [],
+                         'HIP': [],
+                         'HID': [],
+                         'HIE': [],
+                         'CYM': []}
+
+        prot_result = {}
+
+        logger.info('Protonation is :')
+        for chain in chain_list:
+
+            logger.info('Chain {}'.format(chain))
+
+            prot_result[chain] = copy.deepcopy(res_prot_dict)
+
+            chain_sel = coor_in.select_part_dict(selec_dict={'chain': [chain]})
+            for resname in res_prot_dict.keys():
+                local_sel = chain_sel.select_part_dict(
+                    selec_dict={'res_name': [resname]})
+                res_list = local_sel.get_attribute_selection(
+                    attribute='res_num')
+                if len(res_list) > 0:
+                    prot_result[chain][resname] = res_list
+                    logger.info('\tresidue {}: {}'.format(resname, res_list))
 
     def prepare_top_ligand(self, out_folder, name=None,
                            ff="amber99sb-ildn", water_model='tip3p',
@@ -2692,6 +3007,7 @@ nsteps=10, constraints="none")
 
     def solvate_add_ions(self, out_folder, name=None, ion_C=0.15,
                          create_box_flag=True, box_dist=1.1,
+                         radius=0.25,
                          maxwarn=1):
         """Solvate a system with three succesive steps:
 
@@ -2780,7 +3096,7 @@ sytem charge = 0.0 water num= 62...
 
         # Solvate box:
         self.solvate_box(out_folder=out_folder,
-                         name=name + "_water", radius=0.25)
+                         name=name + "_water", radius=radius)
 
         # Add ions:
         self.add_ions(out_folder=out_folder,
@@ -2998,8 +3314,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         mol_gromacs.tpr = mol_gromacs.coor_file
         mol_gromacs.convert_trj(traj=False, pbc='none')
         mol_coor = pdb_manip.Coor(mol_gromacs.coor_file)
-        res_num = len(list(set(mol_coor.get_attribute_selection(
-            attribute='uniq_resid'))))
+        res_num = len(mol_coor.get_attribute_selection(
+            attribute='uniq_resid'))
 
         # Copy the mol using genconf:
         # Add random rotation ?
@@ -3018,8 +3334,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         mol_coor.change_pdb_field({"chain": "Y"})
         mol_coor.write_pdb(mol_gromacs.coor_file, check_file_out=False)
         # mol_length = int(mol_coor.get_aa_num() / mol_num)
-        res_num = len(list(set(mol_coor.get_attribute_selection(
-            attribute='uniq_resid'))))
+        res_num = len(mol_coor.get_attribute_selection(
+            attribute='uniq_resid'))
         logger.info("Res num: {}".format(res_num))
 
         # Concat the two pdb sys_pdb and mol_pdb
@@ -3454,7 +3770,10 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         if ndx_name is not None:
             ndx_out = ndx_name + ".ndx"
         else:
-            ndx_out = self.tpr[:-4] + ".ndx"
+            if self.tpr is not None:
+                ndx_out = self.tpr[:-4] + ".ndx"
+            else:
+                ndx_out = self.coor_file[:-4] + ".ndx"
 
         if folder_out != "":
             ndx_out = os.path.join(folder_out, ndx_out)
@@ -3520,6 +3839,35 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                     index_dict[group] = index
                     index += 1
         return(index_dict)
+
+    def center_mol_box(self, sele_dict={'res_name': PROT_RES, 'name': HA_NAME},
+                       traj=False, ref_coor=None, **cmd_args):
+        """ Center a sytem on a selection of residue
+
+        :param res_list: List of residues
+        :type res_list: str
+
+        """
+
+        if ref_coor is None:
+            ref_coor = self.coor_file
+
+        coor_complex = pdb_manip.Coor(ref_coor)
+        center_res = coor_complex.get_center_residue(
+            selec_dict=sele_dict,
+            field='uniq_resid')
+        # Gromacs residue index starts at 1
+        center_res += 1
+
+        self.add_ndx('ri {} \n q \n'.format(center_res))
+
+        index_dict = self.get_index_dict()
+        sel_center = index_dict['r_{}'.format(center_res)]
+
+        self.convert_trj(select='{:d} \n System'.format(sel_center), traj=traj,
+                         ur='tric',
+                         pbc='mol', center='yes', **cmd_args)
+        # self.convert_trj(traj=traj)
 
     def add_tpr(self, name, r=None, po=None, folder_out="",
                 check_file_out=True, **grompp_options):
@@ -4042,10 +4390,16 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
             * self.tpr
             * self.coor_file
             * self.xtc
+
+        .. Note::
+            In case of LINCS warning or segmentation fault, try to center the
+            protein in the box using the center_mol_box() function.
+
         """
 
         if name is None:
             name = self.name
+
         if pdb_restr is None:
             pdb_restr = self.coor_file
 
@@ -4060,12 +4414,17 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                                ', that may induce sever issues with your '
                                'simualtion !'.format(dt, dt_HA))
 
-        # Use berendsen instead of Parinello with pos constraints
-        # Not necessarly, just need to center prot/DNA in the box
+        # need to center prot/DNA in the box to avoid position restraint
+        # across the box
+        # self.center_mol_box()
+
         mdp_options.update({'nsteps': int(nsteps_HA),
-                            # 'pcoupl': 'berendsen',
+                            'pcoupl': 'berendsen',
                             'define': '-DPOSRES',
-                            'dt': dt_HA})
+                            'dt': dt_HA,
+                            'comm_mode': 'none',
+                            'refcoord_scaling': 'com'})
+
         self.run_md_sim(out_folder=os.path.join(out_folder, "00_equi_HA"),
                         name="equi_HA_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
@@ -4081,7 +4440,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                         monitor_tool=monitor_tool)
 
         mdp_options.update({'nsteps': int(nsteps_CA_LOW),
-                            'define': '-DPOSRES_CA_LOW', 'dt': dt})
+                            'pcoupl': 'parrinello-rahman',
+                            'define': '-DPOSRES_CA_LOW'})
         self.run_md_sim(out_folder=os.path.join(out_folder, "02_equi_CA_LOW"),
                         name="equi_CA_LOW_" + name,
                         pdb_restr=pdb_restr, mdp_template=equi_template_mdp,
