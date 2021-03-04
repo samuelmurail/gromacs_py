@@ -6,6 +6,9 @@
 import argparse
 import shutil
 from gromacs_py import gmx
+from pdb_manip_py import pdb_manip
+
+import os
 
 __author__ = "Samuel Murail"
 
@@ -35,14 +38,56 @@ def parser_input():
                         type=float, default=0)
     parser.add_argument('-gpu_id', action="store", dest="gpuid",
                         help='List of GPU device id-s to use, default=\"\" ', default="None")
+    parser.add_argument('-keep_segid', action="store_true", dest="keep_segid",
+                        help='Flag to indicate if the original chain/segid should be kept')
 
     return parser
 
+def get_chain_res_list(pdb_file):
+    """ Get chain and residue list
+    In order to remap them to gromacs
+    pdb.
+    """
+
+    ref_coor = pdb_manip.Coor(pdb_file)
+    ca_coor = ref_coor.select_part_dict(selec_dict={'name': ['CA']})
+
+    chain_res_list = []
+
+    for atom_num, atom in sorted(ca_coor.atom_dict.items()):
+        chain_res_list.append([atom['chain'], atom['res_num']])
+
+    return(chain_res_list)
+
+def set_chain_res_list(pdb_file, chain_res_list):
+    """ Set the chain and residue as in the provided list.
+    Save the new pdb and overwrite the pdb input.
+    """
+
+    ref_coor = pdb_manip.Coor(pdb_file)
+    i = 0
+
+    for atom_num, atom in sorted(ref_coor.atom_dict.items()):
+
+        if atom['res_num'] == chain_res_list[i][1]:
+            atom['chain'] = chain_res_list[i][0]
+        elif atom['res_num'] == chain_res_list[i+1][1]:
+            i += 1
+            atom['chain'] = chain_res_list[i][0]
+        else:
+            print('/n'*100+'WRONG'+'/n'*100)
+            break
+
+    ref_coor.write_pdb(pdb_file, check_file_out=False)
 
 if __name__ == "__main__":
 
+
     my_parser = parser_input()
     args = my_parser.parse_args()
+
+    if args.keep_segid:
+        chain_res_list = get_chain_res_list(args.f)
 
     vsite = "none"
     peptide = gmx.GmxSys(name=args.name, coor_file=args.f)
@@ -65,6 +110,9 @@ if __name__ == "__main__":
 
     # Get the minimised structure:
     shutil.copyfile(peptide.coor_file, args.name + '.pdb')
+
+    if args.keep_segid:
+        set_chain_res_list(args.name + '.pdb', chain_res_list)
 
     # Keep or not the intermediate files:
     if not args.keep_flag:
