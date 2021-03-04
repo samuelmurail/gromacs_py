@@ -866,6 +866,7 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
                 new_coor))
             self.coor_file = new_coor
             self.top_file = top_file
+            os.chdir(start_dir)
             return
 
         # Define pdb2gmx command:
@@ -3859,7 +3860,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         # Gromacs residue index starts at 1
         center_res += 1
 
-        self.add_ndx('ri {} \n q \n'.format(center_res))
+        self.add_ndx('ri {} \n q \n'.format(center_res), check_file_out=False)
 
         index_dict = self.get_index_dict()
         sel_center = index_dict['r_{}'.format(center_res)]
