@@ -11,5 +11,5 @@ recursive-exclude * *.py[co]
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif *.ipynb
 recursive-include bin *.py
 
-recursive-include gromacs_py/template/charmm36-jul2017.ff/*
-recursive-include gromacs_py/template/*mdp
+recursive-include gromacs_py/gmx/template/charmm36-jul2017.ff/*
+recursive-include gromacs_py/gmx/template/*mdp
