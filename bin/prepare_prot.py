@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-""" Equilibrate in 3 steps a system (coor+top), (i) first equilibration with heavy \
-atoms position restraints, (ii) second equilibration with alpha carbon position \
-restraints and (iii) finaly equilibration with weak alpha carbon position restraints
+""" Equilibrate in 3 steps a system (coor+top), (i) first equilibration with
+heavy atoms position restraints, (ii) second equilibration with alpha carbon
+position restraints and (iii) finaly equilibration with weak alpha carbon
+position restraints
 """
 import argparse
 from gromacs_py import gmx
@@ -13,11 +14,13 @@ __author__ = "Samuel Murail"
 def parser_input():
 
     # Parse arguments :
-    parser = argparse.ArgumentParser(description="(i) Create topologie for a protein, (ii) minimize the protein structure in 2 steps,\
-                                     (iii) Sovate and add ions, (iv) minimize the system structure, \
-                                     (v) first equilibration with heavy atoms position restraints, (vi) second equilibration with \
-                                     alpha carbon position restraints and (vii) finaly equilibration with weak alpha carbon \
-                                     position restraints")
+    parser = argparse.ArgumentParser(
+        description="(i) Create topologie for a protein, (ii) minimize the "
+        "protein structure in 2 steps, (iii) Sovate and add ions, (iv) "
+        "minimize the system structure, (v) first equilibration with heavy "
+        "atoms position restraints, (vi) second equilibration with alpha "
+        "carbon position restraints and (vii) finaly equilibration with "
+        "weak alpha carbon position restraints")
     # Input
     parser.add_argument('-f', action="store", dest="f",
                         help='Input PDB file', required=True)
@@ -29,42 +32,55 @@ def parser_input():
                         help='Output file name', type=str, required=True)
 
     # Options
-    parser.add_argument('-no_vsite', action="store_true", dest="novsite_flag",
+    parser.add_argument('-no_vsite', action="store_true",
+                        dest="novsite_flag",
                         help='Use virtual site for hydrogens')
     parser.add_argument('-C', action="store", dest="Conc",
                         help='Ion concentration (mM), default = 0.15 (150mM)',
                         type=float, default=0.15)
 
     parser.add_argument('-m_steps', action="store", dest="min_steps",
-                        help='Minimisation nsteps, default=10000', type=int, default=10000)
+                        help='Minimisation nsteps, default=10000', type=int,
+                        default=10000)
     parser.add_argument('-HA_time', action="store", dest="HA_time",
-                        help='Equilibration with HA constraint time(ns), default = 2.5 ns',
+                        help="Equilibration with HA constraint time(ns), "
+                        "default = 2.5 ns",
                         type=float, default=2.5)
     parser.add_argument('-CA_time', action="store", dest="CA_time",
-                        help='Equilibration with HA constraint time(ns), default = 5 ns',
+                        help="Equilibration with HA constraint time(ns), "
+                        "default = 5 ns",
                         type=float, default=5)
     parser.add_argument('-CA_LOW_time', action="store", dest="CA_LOW_time",
-                        help='Equilibration with HA constraint time(ns), default = 10 ns',
+                        help="Equilibration with HA constraint time(ns), "
+                        "default = 10 ns",
                         type=float, default=10)
 
     parser.add_argument('-dt_HA', action="store", dest="dt_HA",
-                        help='Equi HA dt, default=0.002 (2 fs)', type=float, default=0.002)
+                        help='Equi HA dt, default=0.002 (2 fs)', type=float,
+                        default=0.002)
     parser.add_argument('-dt', action="store", dest="dt",
-                        help='Equi CA, CA_LOW, dt, default=0.005 (5 fs)', type=float,
+                        help='Equi CA, CA_LOW, dt, default=0.005 (5 fs)',
+                        type=float,
                         default=0.005)
 
     parser.add_argument('-maxwarn', action="store", dest="maxwarn",
-                        help='Total number of warnings allowed for the equilibration, default=0', type=int,
+                        help="Total number of warnings allowed for the "
+                        "equilibration, default=0",
+                        type=int,
                         default=0)
 
     parser.add_argument('-nt', action="store", dest="nt",
-                        help='Total number of threads to start, default=0', type=float,
+                        help='Total number of threads to start, default=0',
+                        type=float,
                         default=0)
     parser.add_argument('-ntmpi', action="store", dest="ntmpi",
-                        help='Number of thread-MPI threads to start, default=0', type=float,
+                        help="Number of thread-MPI threads to start, "
+                        "default=0",
+                        type=float,
                         default=0)
     parser.add_argument('-gpu_id', action="store", dest="gpuid",
-                        help='List of GPU device id-s to use, default=\"\" ', default="None")
+                        help='List of GPU device id-s to use, default=\"\" ',
+                        default="None")
 
     return parser
 
@@ -113,12 +129,19 @@ if __name__ == "__main__":
 
     prot_sys.convert_trj(traj=False)
 
-    prot_sys.solvate_add_ions(out_folder=sys_top_folder, name=sys_name, ion_C=args.Conc)
+    prot_sys.solvate_add_ions(out_folder=sys_top_folder, name=sys_name,
+                              ion_C=args.Conc)
 
-    prot_sys.em_equi_three_step_iter_error(out_folder=sys_em_equi_folder, name=sys_name, nsteps_HA=HA_step, nsteps_CA=CA_step, nsteps_CA_LOW=CA_LOW_step, maxwarn=maxwarn)
+    prot_sys.em_equi_three_step_iter_error(out_folder=sys_em_equi_folder,
+                                           name=sys_name,
+                                           nsteps_HA=HA_step,
+                                           nsteps_CA=CA_step,
+                                           nsteps_CA_LOW=CA_LOW_step,
+                                           maxwarn=maxwarn)
 
     prot_sys.convert_trj(traj=False)
 
-    print("\n\nSystem preparation was sucessfull \n\tOutput directory :\t" + args.o)
+    print("\n\nSystem preparation was sucessfull \n\tOutput directory :\t"
+          + args.o)
 
     prot_sys.display()

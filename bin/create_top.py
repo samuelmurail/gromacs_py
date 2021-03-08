@@ -39,6 +39,7 @@ if __name__ == "__main__":
     md_sys.prepare_top(out_folder=args.o, vsite=vsite)
     md_sys.create_box(dist=1.0, box_type="dodecahedron", check_file_out=True)
 
-    print("\n\nTopologie creation was sucessfull \n\tTopologie directorie :\t" + args.o)
+    print("\n\nTopologie creation was sucessfull \n\tTopologie directorie :\t"
+          + args.o)
 
     md_sys.display()
