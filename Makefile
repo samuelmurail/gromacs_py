@@ -48,7 +48,7 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 lint: ## check style with flake8
-	flake8 gromacs_py
+	flake8 --per-file-ignores="gromacs_py/gmx/__init__.py:F401" gromacs_py
 
 test: ## run tests quickly with the default Python
 	pytest
