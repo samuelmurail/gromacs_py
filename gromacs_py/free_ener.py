@@ -910,22 +910,23 @@ class FreeEner:
         ref_coor distance and angles.
 
         Give three atoms for each receptor and ligand index list:
-        R0, R1 R2 and L0 L1 L2
+        :math:`R_0`, :math:`R_1`, :math:`R_2` and :math:`L_0`, :math:`L_1`,
+        :math:`L_2`
         Will define:
 
         * 1 bond:
 
-            * R0-L0
+            * :math:`R_0 - L_0`
 
         * 2 angles:
 
-            * R0-L0-L1
-            * R1-R0-L0
+            * :math:`R_0 - L_0 - L_1`
+            * :math:`R_1 - R_0 - L_0`
 
         * 2 dihedral angles:
 
-            * R0-L0-L1-L2
-            * R2-R1-R0-L0
+            * :math:`R_0 - L_0 - L_1 - L_2`
+            * :math:`R_2 - R_1 - R_0 - L_0`
 
         :param rec_index_list: List of the receptor atom index
         :type rec_index_list: list
@@ -937,7 +938,7 @@ class FreeEner:
         :type ref_coor: str
 
         :param k: intermolecular force constant,
-            (default=41.84 kcal mol-1 nm-2)
+            (default= :math:`41.84 \; kcal \, mol^{-1} \, nm^{-2}`)
         :type k: float
 
         :param temp: Temperature defalult=300 K
