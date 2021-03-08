@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   gromacs_py.gmx
    gromacs_py.test
    gromacs_py.tools
 
@@ -20,15 +21,6 @@ gromacs\_py.free\_ener module
    :members:
    :undoc-members:
    :show-inheritance:
-
-gromacs\_py.gmx module
-----------------------
-
-.. automodule:: gromacs_py.gmx
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 Module contents
 ---------------
