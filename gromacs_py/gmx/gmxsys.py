@@ -1156,18 +1156,21 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
 
         os.chdir(start_dir)
 
-    def create_itp_atomtype_ion_octa_dummy(self, atomtypes, ion_name=['MN', 'ZN']):
-        """
+    def create_itp_atomtype_ion_octa_dummy(self, atomtypes,
+                                           ion_name=['MN', 'ZN']):
+        r"""
         Forcefield A and B values taken from :
         Duarte et al. 2014 J. Phys. Chem. B
 
         https://en.wikipedia.org/wiki/Lennard-Jones_potential
 
-        $$ A = 4 \epsilon \sigma^12$$
-        $$ B = 4 \epsilon \sigma^6$$
+        :math:`A = 4 \epsilon \sigma^{12}`
 
-        $$ \sigma = \sqrt[6]{\frac{A}{B}} $$
-        $$ \epsilon = \frac{B^2}{4A} $$
+        :math:`B = 4 \epsilon \sigma^6`
+
+        :math:`\sigma = \sqrt[6]{\frac{A}{B}}`
+
+        :math:`\epsilon = \frac{B^2}{4A}`
 
         ion_name=['NI', 'CO', 'ZN', 'MN', 'FE', 'MG', 'CA']
 
@@ -1204,10 +1207,10 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
             C6, C12 = atom['A']**2, atom['B']**2
             # A in kcal.mol-1.Å(-12)
             # Convert to kJ.mol-1.nm(-12)
-            C6 *= 4.184 * 10**-12 
+            C6 *= 4.184 * 10**-12
             # B in kcal.mol.Å(-3)
             # Convert to kJ.mol-1.nm(-6)
-            C12 *= 4.184 * 10**-6 
+            C12 *= 4.184 * 10**-6
             if C12 != 0.0:
                 sigma = (C6 / C12)**(1 / 6)
                 eps = C12**2 / (4 * C6)
@@ -1272,7 +1275,6 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
         #    index_list = []
         bond_type['DD']['list'] = index_list
 
-
         # Unit: angle in (degreee), k in kcal.mol-1.rad-2
         angle_type = {'DiMDi': {'theta': 180.0, 'k': 250},
                       'DiMDj': {'theta': 90.0, 'k': 250},
@@ -1292,7 +1294,6 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
                       [4, 1, 6], [4, 1, 7], [5, 1, 6],
                       [5, 1, 7], [3, 1, 6], [3, 1, 7]]
         angle_type['DiMDj']['list'] = index_list
-
 
         index_list = [[1, 2, 3], [1, 2, 5], [1, 2, 6],
                       [1, 2, 7], [1, 4, 3], [1, 4, 5],
@@ -1394,14 +1395,16 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
             index = coor.get_index_selection({'res_name': [name]})
             print(name, len(index))
             coor.change_index_pdb_field(index,
-                                        {'res_name' : name + 'D'})
+                                        {'res_name': name + 'D'})
         coor.correct_ion_octa(ion_name)
 
-        coor.write_pdb(self.coor_file[:-4] + '_newion.pdb', check_file_out=False)
+        coor.write_pdb(self.coor_file[:-4] + '_newion.pdb',
+                       check_file_out=False)
         self.coor_file = self.coor_file[:-4] + '_newion.pdb'
 
         # Correct topologie
-        ion_atom_type = self.create_itp_atomtype_ion_octa_dummy(atomtypes, ion_name)
+        ion_atom_type = self.create_itp_atomtype_ion_octa_dummy(
+            atomtypes, ion_name)
         ion_itp = self.create_itp_ion_octa_dummy(atomtypes, ion_name)
 
         # Create and add to topologie the atomtype itp:
@@ -1415,12 +1418,12 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
         for ion, num in ion_num.items():
             if num > 0:
                 print(ion, sys_top.mol_num(ion))
-                #sys_top.remove_mol(mol_name=ion)
+                # sys_top.remove_mol(mol_name=ion)
                 sys_top.add_mol(mol_name=ion+'D',
                                 mol_itp_file=ion_itp.path,
                                 mol_num=num)
 
-        #sys_top.itp_list += [ion_itp]
+        # sys_top.itp_list += [ion_itp]
         sys_top.write_file(self.top_file[:-4] + '_newion.top')
         self.top_file = self.top_file[:-4] + '_newion.top'
 

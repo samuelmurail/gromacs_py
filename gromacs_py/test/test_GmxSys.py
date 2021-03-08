@@ -42,7 +42,8 @@ def test_zinc_finger(tmp_path):
     top_coor = pdb_manip.Coor(prot.coor_file)
     assert top_coor.num == 3304
 
-    prot.solvate_add_ions(out_folder=os.path.join(tmp_path, 'top_sys'), maxwarn=3)
+    prot.solvate_add_ions(out_folder=os.path.join(tmp_path, 'top_sys'),
+                          maxwarn=3)
 
     prot.em(out_folder=os.path.join(tmp_path, 'em_DIAP1'),
             nsteps=10,
@@ -288,4 +289,3 @@ def test_insert_peptide_vsite(tmp_path):
     assert 15300 < prot_lig_coor.num < 15518
 
     prot.display_history()
-

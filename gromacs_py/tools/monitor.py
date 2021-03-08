@@ -96,7 +96,8 @@ def read_xvg(xvg_file):
                 y_label_list.append("+/-")
             if line.startswith("@ s") and legend:
                 y_label_list.append(line.split("\"")[1])
-            if line.startswith("@ s") and not legend and not line.startswith("@ subtitle"):
+            if line.startswith("@ s") and not legend and not (
+                    line.startswith("@ subtitle")):
                 legend = True
                 y_label_list = [line.split("\"")[1]]
             if not line.startswith(("#", "@")):

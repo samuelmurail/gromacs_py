@@ -123,30 +123,30 @@ class TopMol:
                                 tot_charge))
         # Print bonds field
         if self.bond_list:
-            filout.write("\n[ bonds ]\n;  ai    aj funct            c0           "
-                         " c1            c2            c3\n")
+            filout.write("\n[ bonds ]\n;  ai    aj funct            c0        "
+                         "    c1            c2            c3\n")
             for param in self.bond_list:
                 filout.write("{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
                     param['ai'], param['aj'], param['funct'],
                     param['r'], param['k']))
         # Print constraints field
         if self.cons_list:
-            filout.write("\n[ constraints ]\n;  ai    aj funct            c0    "
-                         "        c1\n")
+            filout.write("\n[ constraints ]\n;  ai    aj funct            c0  "
+                         "          c1\n")
             for param in self.cons_list:
                 filout.write("{:>6}{:>6}{:>6}\n".format(
                     param['ai'], param['aj'], param['funct']))
         # Print pairs field
         if self.pair_list:
-            filout.write("\n[ pairs ]\n;  ai    aj funct            c0          "
-                         "  c1            c2            c3\n")
+            filout.write("\n[ pairs ]\n;  ai    aj funct            c0        "
+                         "    c1            c2            c3\n")
             for param in self.pair_list:
                 filout.write("{:>6}{:>6}{:>6}\n".format(
                     param['ai'], param['aj'], param['funct']))
         # Print angles field
         if self.angl_list:
-            filout.write("\n[ angles ]\n;  ai    aj    ak funct            c0   "
-                         "         c1            c2            c3\n")
+            filout.write("\n[ angles ]\n;  ai    aj    ak funct            c0 "
+                         "           c1            c2            c3\n")
             for param in self.angl_list:
                 filout.write("{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
                     param['ai'], param['aj'],
@@ -154,9 +154,9 @@ class TopMol:
                     param['theta'], param['cth']))
         # Print dihedrals field
         if self.dihe_list:
-            filout.write("\n[ dihedrals ]\n;  ai    aj    ak    al funct        "
-                         "    c0            c1            c2            c3      "
-                         "      c4            c5\n")
+            filout.write("\n[ dihedrals ]\n;  ai    aj    ak    al funct      "
+                         "      c0            c1            c2            c3  "
+                         "          c4            c5\n")
             for param in self.dihe_list:
                 filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}"
                              "{:>6}\n".format(param['ai'], param['aj'],
@@ -173,8 +173,8 @@ class TopMol:
                     param['am'], param['funct']))
         # Print virtual_sites3 field
         if self.vs3_list:
-            filout.write("\n[ virtual_sites3 ]\n;  ai    aj    ak    al funct    "
-                         "        c0            c1\n")
+            filout.write("\n[ virtual_sites3 ]\n;  ai    aj    ak    al funct"
+                         "            c0            c1\n")
             for param in self.vs3_list:
                 filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
                     param['ai'], param['aj'],
@@ -191,8 +191,8 @@ class TopMol:
                     param['am'], param['funct']))
         # Print position restraints
         if self.pos_restr:
-            filout.write("\n[ position_restraints ]\n;  ai    funct         kx "
-                         "         ky          kz\n")
+            filout.write("\n[ position_restraints ]\n;  ai    funct         "
+                         "kx          ky          kz\n")
             for param in self.pos_restr:
                 filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}\n".format(
                     param['ai'], param['funct'],

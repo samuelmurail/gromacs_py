@@ -427,7 +427,8 @@ class TopSys:
         for itp in self.itp_list:
             for mol in itp.top_mol_list:
                 for atom in mol.atom_dict.values():
-                    if atom['atom_name'] in ion_name_list and len(itp.top_mol_list) ==1:
+                    if atom['atom_name'] in ion_name_list and (
+                            len(itp.top_mol_list) == 1):
                         # print(itp.name, 'YOYOYO')
                         itp_remove_list.append(itp)
                         mol_remove_list.append(mol.name)
