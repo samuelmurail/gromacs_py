@@ -154,13 +154,17 @@ def set_chain_res_list(pdb_file, chain_res_list):
 
         if atom['res_num'] == chain_res_list[i][1]:
             atom['chain'] = chain_res_list[i][0]
-        elif atom['res_num'] == chain_res_list[i+1][1]:
+        elif (i + 1 >= len(chain_res_list)):
+            print('Mismatch probably, ligand is included:',
+                  chain_res_list[i], atom)
+            break
+        elif atom['res_num'] == chain_res_list[i + 1][1]:
             i += 1
             atom['chain'] = chain_res_list[i][0]
         else:
             print('Mismatch :', chain_res_list[i],
-                  chain_res_list[i+1], atom)
-            print('\n'*10+'WRONG'+'\n'*10)
+                  chain_res_list[i + 1], atom)
+            print('\n' * 10 + 'WRONG' + '\n' * 10)
             break
 
     ref_coor.write_pdb(pdb_file, check_file_out=False)
@@ -172,8 +176,8 @@ if __name__ == "__main__":
     args = my_parser.parse_args()
 
     if args.add_termini:
-        add_ter(args.f, args.f[:-4]+'_good_ter.pdb')
-        input_pdb = args.f[:-4]+'_good_ter.pdb'
+        add_ter(args.f, args.f[:-4] + '_good_ter.pdb')
+        input_pdb = args.f[:-4] + '_good_ter.pdb'
     else:
         input_pdb = args.f
 
