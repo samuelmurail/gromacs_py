@@ -7,12 +7,12 @@ dependencies:
   - gromacs=2019.1
   - ambertools=20.9
   - rdkit=2020.09.5
+  - acpype=2020.10
   - jupyter
   - nglview
   - pip
   - pip:
     - gromacs_py
-    - git+https://github.com/alanwilter/acpype.git
     - simpletraj
     - tqdm
     - seaborn

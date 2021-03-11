@@ -6,7 +6,8 @@ dependencies:
   - python=3.7
   - gromacs=2019.1
   - ambertools=20.9
-  - rdkit=2020.09.5
+  - rdkit=2020.09
+  - acpype=2020.10
   - pip
   - pip:
     - gromacs_py
