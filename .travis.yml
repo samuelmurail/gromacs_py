@@ -45,7 +45,7 @@ install:
   #Create conda env:
   - sed "s/python=3.7/python=$TRAVIS_PYTHON_VERSION/" .conda.yml > .tmp_conda.yml
   - sed -i "s/gromacs=2019.1/gromacs=$GROMACS_VERSION/" .tmp_conda.yml
-  - sed -i "/gromacs_py/d" .tmp_conda.yml
+  - sed -i "/- gromacs_py/d" .tmp_conda.yml
   - conda env create -f .tmp_conda.yml
   - source activate gromacs_py
   # Install gromacs_py
