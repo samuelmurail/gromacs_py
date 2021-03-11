@@ -45,10 +45,10 @@ install:
   #Create conda env:
   - sed "s/python=3.7/python=$TRAVIS_PYTHON_VERSION/" .conda.yml > .tmp_conda.yml
   # Cannot use -i option with osx
-  - sed "s/gromacs=2019.1/gromacs=$GROMACS_VERSION/" .tmp_conda.yml > .tmp_conda.yml
+  - sed "s/gromacs=2019.1/gromacs=$GROMACS_VERSION/" .tmp_conda.yml > .tmp_conda_2.yml
   # Remove gromacs_py from pip dependencies
-  - sed "/- gromacs_py/d" .tmp_conda.yml > .tmp_conda.yml
-  - conda env create -f .tmp_conda.yml
+  - sed "/- gromacs_py/d" .tmp_conda_2.yml > .tmp_conda_3.yml
+  - conda env create -f .tmp_conda_3.yml
   - source activate gromacs_py
   # Install gromacs_py
   - pip install -r requirements_dev.txt
