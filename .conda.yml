@@ -11,4 +11,3 @@ dependencies:
   - pip
   - pip:
     - gromacs_py
-    - git+https://github.com/alanwilter/acpype.git
