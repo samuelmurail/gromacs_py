@@ -41,9 +41,17 @@ if on_rtd:
     REDUCE_BIN = ""
     ANTECHAMBER_BIN = ""
 else:
-    REDUCE_BIN = os_command.which('reduce')
-    ANTECHAMBER_BIN = os_command.which('antechamber')
-    ACPYPE_BIN = os_command.which('acpype', 'acpype.py')
+    # As the mabertools module is not a hard dependency
+    # gromacs_py should be loaded even if ambertools 
+    # is note installes
+    try:
+        REDUCE_BIN = os_command.which('reduce')
+        ANTECHAMBER_BIN = os_command.which('antechamber')
+        ACPYPE_BIN = os_command.which('acpype', 'acpype.py')
+    except IOError:
+        logger.warning('Reduce or antechamber or acpype binary cannot be'
+                       ' found. Install it using conda \n conda install '
+                       'acpype')
 
 
 def show_log():
@@ -185,6 +193,10 @@ pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
 #doctest: +ELLIPSIS
     Succeed to read file .../phenol_h.pdb ,  13 atoms found
 
+    .. warning:
+
+        
+
     """
 
     try:
@@ -197,6 +209,14 @@ pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
 
     lig_pdb = Chem.MolFromPDBFile(pdb_in, removeHs=True)
     lig_smile = Chem.MolFromSmiles(smile)
+
+    pdb_atom_num = lig_pdb.GetNumAtoms()
+    smile_atom_num = lig_smile.GetNumAtoms()
+
+    if pdb_atom_num != smile_atom_num:
+        mol_num = pdb_atom_num/smile_atom_num
+        smile_list = [smile] * int(mol_num)
+        lig_smile = Chem.MolFromSmiles('.'.join(smile_list))
 
     # Assign bond order on pdb using smile informations
     newMol = Chem.AssignBondOrdersFromTemplate(lig_smile, lig_pdb)
