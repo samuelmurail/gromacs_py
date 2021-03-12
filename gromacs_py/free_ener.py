@@ -906,7 +906,7 @@ class FreeEner:
 
     def add_intermol_restr_index(self, rec_index_list, lig_index_list,
                                  ref_coor, k=41.84, temp=300):
-        """Compute and add the intermolecular restraints based on the
+        r"""Compute and add the intermolecular restraints based on the
         ref_coor distance and angles.
 
         Give three atoms for each receptor and ligand index list:
