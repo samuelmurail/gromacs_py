@@ -19,12 +19,14 @@ env:
   global:
     - TRAVIS_PYTHON_VERSION="3.8"
     - GROMACS_VERSION="2018.5"
-    - TRAVIS_OS_NAME="linux"
-  job:
-    - GROMACS_VERSION="2020"
-    - TRAVIS_PYTHON_VERSION="3.6"
-    - TRAVIS_OS_NAME="osx"
 
+jobs:
+  include:
+    - os: linux
+      env: GROMACS_VERSION="2020"
+    - os: linux
+      env: TRAVIS_PYTHON_VERSION="3.6"
+    - os: osx
 
 before_install:
   # Conda install
