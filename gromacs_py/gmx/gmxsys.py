@@ -5111,7 +5111,7 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
 
     def get_rmsd(self, selection_list=['C-alpha', 'Protein'],
                  output_xvg='tmp_rmsd.xvg',
-                 fit="rot+trans", pbc="no",
+                 fit="rot+trans", pbc="no", ref_sys=None,
                  keep_ener_file=False):
         """Get RMSD of a system using ``gmx rms``.
 
@@ -5131,18 +5131,24 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
         :param keep_ener_file: flag to keep or not output `.xvg` file.
         :type keep_ener_file: bool, default=False
 
+        :param ref_sys: reference system for RMSD calculation
+        :type ref_sys: GmxSys, default=None
+
         :return: RMSD table
         :rtype: pd.DataFrame
         """
 
         logger.info("- Extract RMSD")
 
+        if ref_sys is None:
+            ref_sys = self
+
         # Convert selection name to index:
         sele_index_list = self.convert_selection_to_index(selection_list)
         group_num = len(sele_index_list) - 1
 
         cmd_list = [GMX_BIN, "rms",
-                    "-s", self.tpr,
+                    "-s", ref_sys.tpr,
                     "-f", self.xtc,
                     "-n", self.ndx,
                     "-o", output_xvg,
