@@ -183,7 +183,95 @@ def add_hydrogen_rdkit(pdb_in, smile, pdb_out):
     >>> pdb_manip.show_log()
     >>> TEST_OUT = getfixture('tmpdir')
     >>> # print(TEST_OUT)
-    >>> add_hydrogen_rdkit(pdb_in=os.path.join(TEST_PATH,'phenol.pdb'),\
+    >>> add_hydrogen_rdkit(pdb_in=os.path.join(TEST_PATH,'four_phenol.pdb'),\
+smile="C1=CC=C(C=C1)O",\
+pdb_out=os.path.join(TEST_OUT,'four_phenol_h.pdb')) #doctest: +ELLIPSIS
+    Succeed to read file ...four_phenol.pdb ,  28 atoms found
+    Succeed to save file ...four_phenol_0.pdb
+    Succeed to read file ...four_phenol_0.pdb ,  7 atoms found
+    Succeed to read file ...four_phenol_0_h.pdb ,  13 atoms found
+    Succeed to save file ...four_phenol_0_h.pdb
+    Succeed to read file ...four_phenol_0_h.pdb ,  13 atoms found
+    Succeed to save file ...four_phenol_0_h.pdb
+    Succeed to save file ...four_phenol_1.pdb
+    Succeed to read file ...four_phenol_1.pdb ,  7 atoms found
+    Succeed to read file ...four_phenol_1_h.pdb ,  13 atoms found
+    Succeed to save file ...four_phenol_1_h.pdb
+    Succeed to read file ...four_phenol_1_h.pdb ,  13 atoms found
+    Succeed to save file ...four_phenol_1_h.pdb
+    Succeed to save file ...four_phenol_2.pdb
+    Succeed to read file ...four_phenol_2.pdb ,  7 atoms found
+    Succeed to read file ...four_phenol_2_h.pdb ,  13 atoms found
+    Succeed to save file ...four_phenol_2_h.pdb
+    Succeed to read file ...four_phenol_2_h.pdb ,  13 atoms found
+    Succeed to save file ...four_phenol_2_h.pdb
+    Succeed to save file ...four_phenol_3.pdb
+    Succeed to read file ...four_phenol_3.pdb ,  7 atoms found
+    Succeed to read file ...four_phenol_3_h.pdb ,  13 atoms found
+    Succeed to save file ...four_phenol_3_h.pdb
+    Succeed to read file ...four_phenol_3_h.pdb ,  13 atoms found
+    Succeed to save file ...four_phenol_3_h.pdb
+    Succeed to save concat file:  ...four_phenol_h.pdb
+    0
+    >>> phenol_coor = pdb_manip.Coor(os.path.join(TEST_OUT,'four_phenol_h.pdb'))\
+#doctest: +ELLIPSIS
+    Succeed to read file ...four_phenol_h.pdb ,  52 atoms found
+
+    """
+
+    full_coor = pdb_manip.Coor(pdb_in)
+
+    # Change first residue to 1, as it is the res from rdkit output
+    res_list = full_coor.get_attribute_selection(attribute='res_num')
+    pdb_list = []
+    pdb_del_list = []
+
+    for i, res in enumerate(res_list):
+        # Extract residue
+        one_res = full_coor.select_part_dict(
+            selec_dict={'res_num': [res]})
+        out_pdb = '{}_{}.pdb'.format(pdb_in[:-4], i)
+        one_res.write_pdb(out_pdb)
+        pdb_del_list.append(out_pdb)
+
+        # Add hydrogens
+        out_h_pdb = '{}_{}_h.pdb'.format(pdb_in[:-4], i)
+        charge = add_hydrogen_rdkit_one_mol(out_pdb, smile, out_h_pdb)
+        pdb_list.append(out_h_pdb)
+        pdb_del_list.append(out_h_pdb)
+
+        # Update residue number:
+        one_res_h = pdb_manip.Coor(out_h_pdb)
+        one_res_h.change_pdb_field(
+            change_dict={"res_num": i + 1})
+        one_res_h.write_pdb(out_h_pdb, check_file_out=False)
+
+
+    pdb_manip.Coor.concat_pdb(*pdb_list,
+                              pdb_out = pdb_out)
+
+    # Delete intermediate files
+    for pdb in pdb_del_list:
+        os_command.delete_file(pdb)
+
+    return charge
+
+def add_hydrogen_rdkit_one_mol(pdb_in, smile, pdb_out):
+    """Add hydrogen to a pdb file using the ``rdkit`` library:
+
+    :param pdb_in: pdb input
+    :type pdb_in: str
+
+    :param pdb_out: pdb output
+    :type pdb_out: str
+
+    :Example:
+
+    >>> from pdb_manip_py import pdb_manip
+    >>> pdb_manip.show_log()
+    >>> TEST_OUT = getfixture('tmpdir')
+    >>> # print(TEST_OUT)
+    >>> add_hydrogen_rdkit_one_mol(pdb_in=os.path.join(TEST_PATH,'phenol.pdb'),\
 smile="C1=CC=C(C=C1)O",\
 pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
     Succeed to read file ...phenol_h.pdb ,  13 atoms found
@@ -210,9 +298,12 @@ pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
     lig_pdb = Chem.MolFromPDBFile(pdb_in, removeHs=True)
     lig_smile = Chem.MolFromSmiles(smile)
 
+    # Need to count the number of molecule
     pdb_atom_num = lig_pdb.GetNumAtoms()
     smile_atom_num = lig_smile.GetNumAtoms()
 
+    # If more than one molecule, add them
+    # in the smile string
     if pdb_atom_num != smile_atom_num:
         mol_num = pdb_atom_num/smile_atom_num
         smile_list = [smile] * int(mol_num)
@@ -509,9 +600,18 @@ def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
 
     # Change first residue to 1, as it is the res from rdkit output
     res_list = mol_coor.get_attribute_selection(attribute='res_num')
-    index_list = mol_coor.get_index_selection(
-        selec_dict={'res_num': [res_list[0]]})
-    mol_coor.change_index_pdb_field(index_list, change_dict={'res_num': 1})
+    index_all_list = []
+    for res in res_list:
+        index_list = mol_coor.get_index_selection(
+            selec_dict={'res_num': [res]})
+        index_all_list.append(index_list)
+
+    for i, index_list in enumerate(index_all_list):
+        mol_coor.change_index_pdb_field(index_list, change_dict={'res_num': i+1})
+
+    #index_list = mol_coor.get_index_selection(
+    #    selec_dict={'res_num': [res_list[0]]})
+    #mol_coor.change_index_pdb_field(index_list, change_dict={'res_num': 1})
 
     # Remove hydrogens:
     if remove_h:
