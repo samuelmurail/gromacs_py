@@ -9,7 +9,7 @@ import logging
 
 from .itp import Itp
 from .topsys import TopSys
-from .gmxsys import GmxSys, GROMACS_MOD_DIRNAME
+from .gmxsys import GmxSys, GROMACS_MOD_DIRNAME, GMX_BIN, gmx_version
 
 # Autorship information
 __author__ = "Samuel Murail"
