@@ -134,6 +134,11 @@ PROT_RES = ['GLY', 'HIS', 'HSP', 'HSE', 'HSD', 'HIP', 'HIE', 'HID',
             'SER', 'THR', 'ASN', 'GLN', 'CYS', 'SEC', 'PRO', 'ALA',
             'ILE', 'PHE', 'TYR', 'TRP', 'VAL', 'LEU', 'MET']
 
+DNARNA_RES = ['DA5', 'DA3', 'DAN', 'DA', 'DT5', 'DT3', 'DTN', 'DT', 'DC5',
+              'DC3', 'DCN', 'DC', 'DG5', 'DG3', 'DGN', 'DG', 'RA5', 'RA3',
+              'RAN', 'RA', 'RU5', 'RU3', 'RUN', 'RU', 'RC5', 'RC3', 'RCN',
+              'RC', 'RG5', 'RG3', 'RGN', 'RG']
+
 ################################
 # ## Gromacs System Object #####
 ################################
@@ -940,8 +945,11 @@ topologie in a separate file: 1y0m_pdb2gmx.itp
         :param ff: forcefield
         :type ff: str, optional, default="charmm36-jul2017"
 
-        :param pH: pH to assign AA protonation (using pdb2pqr)
-        :type pH: float, optional, default=7.0
+        :param ph: pH to assign AA protonation (using pdb2pqr)
+        :type ph: float, optional, default=7.0
+
+        :param res_prot_dict: option to define manually protonation
+        :type res_prot_dict: dict, optional, default=None
 
         :param include_mol: list of ligand's residue name to include
         :type include_mol: list, optional, default=[]
@@ -972,8 +980,13 @@ ff='amber99sb-ildn', include_mol={'DAP':\
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to save file DAP.pdb
         Succeed to read file DAP.pdb ,  21 atoms found
-        Succeed to read file DAP_h.pdb ,  36 atoms found
-        Succeed to save file DAP_h.pdb
+        Succeed to save file DAP_0.pdb
+        Succeed to read file DAP_0.pdb ,  21 atoms found
+        Succeed to read file DAP_0_h.pdb ,  36 atoms found
+        Succeed to save file DAP_0_h.pdb
+        Succeed to read file DAP_0_h.pdb ,  36 atoms found
+        Succeed to save file DAP_0_h.pdb
+        Succeed to save concat file:  DAP_h.pdb
         Succeed to read file DAP_h.pdb ,  36 atoms found
         Succeed to save file DAP_h_unique.pdb
         acpype... -i DAP_h_unique.pdb -b DAP -c bcc -a gaff -o gmx -n 0
@@ -3844,7 +3857,8 @@ out_equi_vacuum_SAM.mdp -o equi_vacuum_SAM.tpr -maxwarn 1
                     index += 1
         return(index_dict)
 
-    def center_mol_box(self, sele_dict={'res_name': PROT_RES, 'name': HA_NAME},
+    def center_mol_box(self, sele_dict={'res_name': PROT_RES + DNARNA_RES,
+                                        'name': HA_NAME},
                        traj=False, ref_coor=None, **cmd_args):
         """ Center a sytem on a selection of residue
 
