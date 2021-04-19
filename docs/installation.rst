@@ -21,11 +21,11 @@ Or download the `tarball`_:
 
     $ curl -OJL https://github.com/samuelmurail/gromacs_py/tarball/master
 
-Once you have a copy of the source, switch to the ``gromacs_py`` directorie.
+Once you have a copy of the source, switch to the ``gromacs_py`` directory.
 
 .. code-block:: console
 
-    cd gromacs_py
+    $ cd gromacs_py
 
 
 .. _GithubRepo: https://github.com/samuelmurail/gromacs_py
