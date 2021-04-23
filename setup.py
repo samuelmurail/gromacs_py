@@ -64,7 +64,7 @@ setup(
              'docs/*py',
              'docs/notebook/00_basic_example.ipynb'],
         'gromacs_py': ['gmx/template/*mdp',
-                       'gromacs_py/gmx/template/octanol/*',
+                       'gmx/template/octanol/*',
                        'gmx/template/charmm36-jul2017.ff/*',
                        'test_files/*pdb',
                        'test_files/*xvg'],
