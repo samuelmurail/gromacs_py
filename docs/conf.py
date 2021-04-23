@@ -26,9 +26,9 @@ copyright = u'2018, Samuel Murail'
 author = u'Samuel Murail'
 
 # The short X.Y version
-version = "2.0.0"
+version = "2.0.1"
 # The full version, including alpha/beta/rc tags
-release = "2.0.0-rc"
+release = "2.0.1-rc"
 
 # -- General configuration ---------------------------------------------------
 
