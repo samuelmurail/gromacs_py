@@ -29,3 +29,10 @@ def show_log(pdb_manip_log=True):
 
     from . import gmxsys
     gmxsys.show_log()
+
+
+def show_debug(pdb_manip_log=True):
+
+    from . import gmxsys
+    gmxsys.show_debug()
+
