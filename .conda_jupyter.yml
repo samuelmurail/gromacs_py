@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - python=3.7
+  - python=3.8
   - gromacs=2019.1
   - rdkit=2020.09.5
   - acpype=2020.10
@@ -11,7 +11,6 @@ dependencies:
   - nglview
   - pip
   - pip:
-    - gromacs_py
     - simpletraj
     - tqdm
     - seaborn

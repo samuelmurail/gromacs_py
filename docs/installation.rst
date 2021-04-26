@@ -1,10 +1,117 @@
-Installation
-=======================================
+.. highlight:: shell
 
-Conda installation
+============
+Installation
+============
+
+1. Get sources from the `GithubRepo`_
+--------------------------------------
+
+The sources for Gromacs_py can be downloaded from the `GithubRepo`_.
+
+You can either clone the public repository:
+
+.. code-block:: console
+
+    $ git clone git://github.com/samuelmurail/gromacs_py
+
+Or download the `tarball`_:
+
+.. code-block:: console
+
+    $ curl -OJL https://github.com/samuelmurail/gromacs_py/tarball/master
+
+Once you have a copy of the source, switch to the ``gromacs_py`` directory.
+
+.. code-block:: console
+
+    $ cd gromacs_py
+
+
+.. _GithubRepo: https://github.com/samuelmurail/gromacs_py
+.. _tarball: https://github.com/samuelmurail/gromacs_py/tarball/master
+
+
+2. Create Conda Environment
+---------------------------
+
+You need to create a conda environment to be able to use:  
+
+* `Gromacs`_
+* `Rdkit`_ Used for ligand parametrization, convert SMILE to pdb.
+* `Antechamber`_ Amber tools for ligand parametrization.
+* `Acpype`_ a python tool to use antechamber.
+* `Apbs Pdb2pqr`_ Protein protonation calculation.
+
+.. _Gromacs: http://www.gromacs.org/
+.. _Rdkit: https://www.rdkit.org/
+.. _Antechamber: http://ambermd.org/antechamber/
+.. _Acpype: https://github.com/alanwilter/acpype
+.. _Apbs Pdb2pqr: https://www.poissonboltzmann.org/
+
+
+Use `conda en create` to create it using the ``.conda.yml`` file. You can overide the environmnent name using the option ``--name YOUR_NAME``.
+
+.. code-block:: console
+
+    $ conda env create -f .conda.yml
+
+If you plan to use ``gromacs_py`` in jupyter notebook, you should try the ``jupyter`` version:
+
+.. code-block:: console
+
+    $ conda env create -f .conda_jupyter.yml
+
+
+This will create an environmnet called ``gromacs_py`` (or the name you defined). You will then, need to activate the environmnent:
+
+.. code-block:: console
+
+    $ conda activate gromacs_py
+
+
+3. Install gromacs_py
+---------------------
+
+Once you have a copy of the source and have create a conda encironment,
+you can install it with:
+
+.. code-block:: console
+
+    $ python setup.py install
+
+
+
+4. Test Installation
+--------------------
+
+To test the installation, simply use ``pytest``:
+
+.. code-block:: bash
+
+	$ pytest
+	=========================== test session starts ========================
+	platform linux -- Python 3.8.2, pytest-5.4.2, py-1.9.0, pluggy-0.13.1
+	rootdir: /home/murail/Documents/Code/gromacs_py, inifile: pytest.ini
+	plugins: cov-2.10.1
+	collected 30 items
+
+	gromacs_py/gmx.py .............                                   [ 43%]
+	gromacs_py/test/test_FreeEner.py ......                           [ 63%]
+	gromacs_py/test/test_GmxSys.py ..                                 [ 70%]
+	gromacs_py/tools/ambertools.py ....                               [ 83%]
+	gromacs_py/tools/monitor.py .....                                 [100%]
+
+	======================= 30 passed in 236.83s (0:03:56) =================
+
+
+PIP/Conda installation (Deprecated)
 ---------------------------------------
 
-Quick Start
+Should be fixed in the up comming months.
+
+
+Quick Start (Deprecated)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If gromacs (version >= 5.1) is already install, then install you need to install the `gromacs_py` library, and add the gromacs `gmx` command in the environmnent variable `$PATH`:
@@ -17,7 +124,7 @@ If gromacs (version >= 5.1) is already install, then install you need to install
 	export PATH='*path_to_gromacs*/bin/':$PATH
 
 
-Without Conda
+Without Conda 
 ---------------------------------------
 
 Get the gromacs_py library from `github`_.
@@ -139,43 +246,3 @@ Launch test with `doctest`_, will check that module’s docstrings are up-to-dat
 
 .. _doctest: https://docs.python.org/3/library/doctest.html
 
-
-Conda In a new environment (Deprecated)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-First create a conda environment named `gromacs_py_env` (choose yout env name). `gromacs_py` support python version 3.5 to 3.7.
-
-.. code-block:: bash
-
-	conda create --yes -n gromacs_py_env python=3.7
-
-Then add several conda channels for dependencies:
-	- gromacs 2019 from `bioconda`
-	- gromacs_py from my channel (`samuel.murail`)
-	- htmd-pdb2pqr from `conda-forge`
-
-
-.. code-block:: bash
-
-	conda config --add channels conda-forge
-	conda config --add channels bioconda
-	conda config --add channels samuel.murail
-
-Finally install `gromacs_py` in your `gromacs_py_env` environment:
-
-.. code-block:: bash
-
-	conda install --yes -n gromacs_py_env gromacs_py
-
-You need to activate the environment to be able to use `gromacs_y`, it has to be done in every shell in which you need `gromacs_py` :
-
-.. code-block:: bash
-
-	source activate gromacs_py_env
-
-Finally test the installation using `pytest`:
-
-.. code-block:: bash
-
-	(gromacs_py_env) $ pip install pytest
-	(gromacs_py_env) $ pytest --pyargs gromacs_py.gromacs --doctest-modules

@@ -17,7 +17,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gromacs_py',
-    version='1.2.1',
+    version='2.0.2',
     author='Samuel Murail',
     author_email='samuel.murail@u-paris.fr',
     packages=find_packages(),
@@ -64,6 +64,7 @@ setup(
              'docs/*py',
              'docs/notebook/00_basic_example.ipynb'],
         'gromacs_py': ['gmx/template/*mdp',
+                       'gmx/template/octanol/*',
                        'gmx/template/charmm36-jul2017.ff/*',
                        'test_files/*pdb',
                        'test_files/*xvg'],

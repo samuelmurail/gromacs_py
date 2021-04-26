@@ -8,5 +8,3 @@ dependencies:
   - rdkit=2020.09
   - acpype=2020.10
   - pip
-  - pip:
-    - gromacs_py
