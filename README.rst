@@ -37,18 +37,6 @@ Quick install
 
 The latest release can be installed via `pip` or `conda`.
 
-Pip
-***************************************
-
-If Gromacs (version >= 5.1) is already install, then you need to install the **Gromacs_py** library using `pypi <https://pypi.org/project/gromacs-py/>`_, and add the Gromacs ``gmx`` command in the environmnent variable ``$PATH``:
-
-.. code-block:: bash
-
-   pip install gromacs_py
-
-   # Add gromacs 'gmx' path:
-   export PATH='*path_to_gromacs*/bin/':$PATH
-
 Conda
 ***************************************
 
@@ -57,6 +45,29 @@ If you don't need a GPU compiled version of Gromacs you can use directly the **G
 .. code-block:: bash
 
    conda install -c bioconda gromacs_py
+
+Pip (Deprecated)
+***************************************
+
+If the folowing softwares/modules are installed then you need to install the **Gromacs_py** library using `pypi <https://pypi.org/project/gromacs-py/>`_ :
+
+.. code-block:: bash
+
+   pip install gromacs_py
+
+- Gromacs (version >= 5.1)
+- Ambertools
+- Rdkit
+- Acpype
+
+and add the software path Gromacs in the environmnent variable ``$PATH``, *eg.* for gromacs:
+
+.. code-block:: bash
+
+   # Add gromacs 'gmx' path:
+   export PATH='*path_to_gromacs*/bin/':$PATH
+
+
 
 Authors
 ---------------------------------------

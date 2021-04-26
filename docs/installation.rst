@@ -105,13 +105,17 @@ To test the installation, simply use ``pytest``:
 	======================= 30 passed in 236.83s (0:03:56) =================
 
 
-PIP/Conda installation (Deprecated)
+Conda installation
 ---------------------------------------
 
-Should be fixed in the up comming months.
+If you don't need a GPU compiled version of Gromacs you can use directly the **Gromacs_py** `conda package <https://anaconda.org/bioconda/gromacs_py>`_ to install both Gromacs software and **Gromacs_py** library:
+
+.. code-block:: bash
+
+   conda install -c bioconda gromacs_py
 
 
-Quick Start (Deprecated)
+Pypi (Deprecated)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If gromacs (version >= 5.1) is already install, then install you need to install the `gromacs_py` library, and add the gromacs `gmx` command in the environmnent variable `$PATH`:
@@ -187,62 +191,4 @@ In my case I add to change few options to ``cmake``:
 .. _Gromacs: http://www.gromacs.org/
 __ http://manual.gromacs.org/documentation/
 __ http://manual.gromacs.org/documentation/2019/install-guide/index.html
-
-Installing from source
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Need to add path of gmx and pdb2pqr to the environment variable ``$PATH``.
-Add in your ~/.bashrc :
-
-.. code-block:: bash
-
-	# Add gromacs 'gmx' path:
-	export PATH='*path_to_gromacs*/bin/':$PATH
-
-
-Make the documentation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Need `sphinx`_ installed with the argparse sphinx module:
-
-.. code-block:: bash
-
-	pip3 install Sphinx --user
-	pip3 install sphinx-argparse --user
-
-You can then build the documentation either in html format or pdf.
-
-.. code-block:: bash
-
-	cd gromacs_py/doc
-	# For html documentation:
-	sphinx-build -b html . _build
-	# For pdf documentation:
-	sphinx-build -M latexpdf . _build/
-
-.. _sphinx: http://www.sphinx-doc.org
-
-Test installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Launch test with `doctest`_, will check that module’s docstrings are up-to-date by verifying that all interactive examples still work as documented.
-
-.. code-block:: bash
-
-	$ pytest
-	=========================== test session starts ========================
-	platform linux -- Python 3.8.2, pytest-5.4.2, py-1.9.0, pluggy-0.13.1
-	rootdir: /home/murail/Documents/Code/gromacs_py, inifile: pytest.ini
-	plugins: cov-2.10.1
-	collected 30 items
-
-	gromacs_py/gmx.py .............                                   [ 43%]
-	gromacs_py/test/test_FreeEner.py ......                           [ 63%]
-	gromacs_py/test/test_GmxSys.py ..                                 [ 70%]
-	gromacs_py/tools/ambertools.py ....                               [ 83%]
-	gromacs_py/tools/monitor.py .....                                 [100%]
-
-	======================= 30 passed in 236.83s (0:03:56) =================
-
-.. _doctest: https://docs.python.org/3/library/doctest.html
 
