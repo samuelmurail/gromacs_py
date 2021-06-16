@@ -26,7 +26,8 @@ jobs:
       env: GROMACS_VERSION="2020"
     - os: linux
       env: TRAVIS_PYTHON_VERSION="3.6"
-    - os: osx
+    # - os: osx
+    # Remove because of the new travis plan (pay for osx)
 
 before_install:
   # Conda install
