@@ -63,6 +63,7 @@ class TopMol:
         self.bond_list = []
         self.cons_list = []
         self.pair_list = []
+        self.pair_nb_list = []
         self.angl_list = []
         self.dihe_list = []
         self.cmap_list = []
@@ -108,10 +109,10 @@ class TopMol:
                      "cgnr     charge       mass  typeB    chargeB      "
                      "massB\n")
         tot_charge = 0
-        for atom in self.atom_dict.values():
+        for index, atom in sorted(self.atom_dict.items()):
             tot_charge += atom['charge']
             # print('ATOM:',atom)
-            filout.write("{:>6}{:>11}{:>7}{:>7}{:>7}{:>7}{:>11.5f}{:>11} "
+            filout.write("{:>6}{:>11}{:>7}{:>7}{:>7}{:>7} {:>10.5f} {:>10.5f} "
                          "  ; qtot {:<6.2f} \n".
                          format(atom['num'],
                                 atom['atom_type'],
@@ -126,7 +127,7 @@ class TopMol:
             filout.write("\n[ bonds ]\n;  ai    aj funct            c0        "
                          "    c1            c2            c3\n")
             for param in self.bond_list:
-                filout.write("{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
+                filout.write("{:>6}{:>6}{:>6} {:>12} {:>12}\n".format(
                     param['ai'], param['aj'], param['funct'],
                     param['r'], param['k']))
         # Print constraints field
@@ -134,8 +135,9 @@ class TopMol:
             filout.write("\n[ constraints ]\n;  ai    aj funct            c0  "
                          "          c1\n")
             for param in self.cons_list:
-                filout.write("{:>6}{:>6}{:>6}\n".format(
-                    param['ai'], param['aj'], param['funct']))
+                filout.write("{:>6}{:>6}{:>6} {:>12}\n".format(
+                    param['ai'], param['aj'], param['funct'],
+                    param['r']))
         # Print pairs field
         if self.pair_list:
             filout.write("\n[ pairs ]\n;  ai    aj funct            c0        "
@@ -148,7 +150,7 @@ class TopMol:
             filout.write("\n[ angles ]\n;  ai    aj    ak funct            c0 "
                          "           c1            c2            c3\n")
             for param in self.angl_list:
-                filout.write("{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}\n".format(
+                filout.write("{:>6}{:>6}{:>6}{:>6} {:>12} {:>12}\n".format(
                     param['ai'], param['aj'],
                     param['ak'], param['funct'],
                     param['theta'], param['cth']))
@@ -158,7 +160,7 @@ class TopMol:
                          "      c0            c1            c2            c3  "
                          "          c4            c5\n")
             for param in self.dihe_list:
-                filout.write("{:>6}{:>6}{:>6}{:>6}{:>6}{:>13}{:>13}"
+                filout.write("{:>6}{:>6}{:>6}{:>6}{:>6} {:>12} {:>12}"
                              "{:>6}\n".format(param['ai'], param['aj'],
                                               param['ak'], param['al'],
                                               param['funct'], param['phase'],
@@ -198,6 +200,18 @@ class TopMol:
                     param['ai'], param['funct'],
                     param['kx'], param['ky'],
                     param['kz']))
+
+        # Non bonded pairs
+        if self.pair_nb_list:
+            filout.write("\n[ pairs_nb ]\n;  ai    aj    funct         "
+                         "i_charge       j_charge      sigma      espilon\n")
+            for param in self.pair_nb_list:
+                filout.write(
+                    '{:>6}{:>6}{:>6} {:.4f} {:.4f} {:.8f} {:.5f}\n'.format(
+                        param['ai'], param['aj'], param['funct'],
+                        param['charge_i'], param['charge_j'],
+                        param['sig'], param['eps']))
+
         if len(self.if_pos_restr) > 0:
             def_str = ''
             def_end_flag = False
@@ -226,7 +240,7 @@ class TopMol:
 
         # Create the dict to have all atom num consecutive staring from 1
         dict_atom_index = {}
-        for i, atom in sorted(enumerate(self.atom_dict.items())):
+        for i, atom in enumerate(sorted(self.atom_dict.items())):
             # print(i, atom)
             dict_atom_index[atom[0]] = i + 1
 
@@ -337,6 +351,132 @@ class TopMol:
                               'am': dict_atom_index[param['am']]})
                 new_vs4_list.append(param)
         self.vs4_list = new_vs4_list
+
+        new_nb_pair_list = []
+        for i, param in enumerate(self.pair_nb_list):
+            if not ((param['ai'] in index_list) or
+                    (param['aj'] in index_list)):
+                param.update({'ai': dict_atom_index[param['ai']],
+                              'aj': dict_atom_index[param['aj']]})
+                new_nb_pair_list.append(param)
+        self.pair_nb_list = new_nb_pair_list
+
+    def add_atoms(self, index, atom_list):
+        """ Add a list of atoms in atom_dict at an index position.
+        Correct all indexes in bond, pairs, ...
+
+        :param index: index for insertion
+        :type index: int
+
+        :param atom_list: list of atoms to add
+        :type atom_list: list
+
+        """
+
+        logger.info("Add atom at pos:", index, " atom list:", atom_list)
+
+        # Create the dict to have all atom num consecutive staring from 1
+        dict_atom_index = {}
+        gap = 0
+        for i, (key, atom) in enumerate(sorted(self.atom_dict.items())):
+            if atom['num'] == (index + 1):
+                gap = len(atom_list)
+            dict_atom_index[key] = i + 1 + gap
+
+        # Modify all atom to have correct index
+        new_atom_dict = {}
+        for i, atom in self.atom_dict.items():
+            # print("Change index:", atom['num'], "to",\
+            # dict_atom_index[atom['num']], atom['atom_name'])
+            local_atom = atom
+            new_index = dict_atom_index[local_atom['num']]
+            local_atom['num'] = new_index
+            local_atom['charge_num'] = new_index
+            new_atom_dict[new_index] = local_atom
+
+        for i, atom in enumerate(atom_list):
+            new_atom_dict[index + 1 + i] = atom
+            # print("Add new atom", index + 1 + i,\
+            # new_atom_dict[index + 2 + i])
+
+        self.atom_dict = new_atom_dict
+        # print(new_atom_dict)
+        # print(dict_atom_index)
+
+        #  Modify all bond, cons, pair ... to have correct index:
+        new_bond_list = []
+        for i, param in enumerate(self.bond_list):
+            param.update({'ai': dict_atom_index[param['ai']],
+                          'aj': dict_atom_index[param['aj']]})
+            new_bond_list.append(param)
+        self.bond_list = new_bond_list
+
+        new_cons_list = []
+        for i, param in enumerate(self.cons_list):
+            param.update({'ai': dict_atom_index[param['ai']],
+                          'aj': dict_atom_index[param['aj']]})
+            new_cons_list.append(param)
+        self.cons_list = new_cons_list
+
+        new_pair_list = []
+        for i, param in enumerate(self.pair_list):
+            param.update({'ai': dict_atom_index[param['ai']],
+                          'aj': dict_atom_index[param['aj']]})
+            new_pair_list.append(param)
+        self.pair_list = new_pair_list
+
+        new_angl_list = []
+        for i, param in enumerate(self.angl_list):
+            param.update({'ai': dict_atom_index[param['ai']],
+                          'aj': dict_atom_index[param['aj']],
+                          'ak': dict_atom_index[param['ak']]})
+            new_angl_list.append(param)
+        self.angl_list = new_angl_list
+
+        new_dihe_list = []
+        for i, param in enumerate(self.dihe_list):
+            param.update({'ai': dict_atom_index[param['ai']],
+                          'aj': dict_atom_index[param['aj']],
+                          'ak': dict_atom_index[param['ak']],
+                          'al': dict_atom_index[param['al']]})
+            new_dihe_list.append(param)
+        self.dihe_list = new_dihe_list
+
+        new_vs3_list = []
+        for i, param in enumerate(self.vs3_list):
+            param.update({'ai': dict_atom_index[param['ai']],
+                          'aj': dict_atom_index[param['aj']],
+                          'ak': dict_atom_index[param['ak']],
+                          'al': dict_atom_index[param['al']]})
+            new_vs3_list.append(param)
+        self.vs3_list = new_vs3_list
+
+        new_cmap_list = []
+        for i, param in enumerate(self.cmap_list):
+            param.update({'ai': dict_atom_index[param['ai']],
+                          'aj': dict_atom_index[param['aj']],
+                          'ak': dict_atom_index[param['ak']],
+                          'al': dict_atom_index[param['al']],
+                          'am': dict_atom_index[param['am']]})
+            new_cmap_list.append(param)
+        self.cmap_list = new_cmap_list
+
+        new_vs4_list = []
+        for i, param in enumerate(self.vs4_list):
+            param.update({'ai': dict_atom_index[param['ai']],
+                          'aj': dict_atom_index[param['aj']],
+                          'ak': dict_atom_index[param['ak']],
+                          'al': dict_atom_index[param['al']],
+                          'am': dict_atom_index[param['am']]})
+            new_vs4_list.append(param)
+        self.vs4_list = new_vs4_list
+
+        new_nb_pair_list = []
+        for i, param in enumerate(self.pair_nb_list):
+            param.update({'ai': dict_atom_index[param['ai']],
+                          'aj': dict_atom_index[param['aj']]})
+            new_nb_pair_list.append(param)
+        self.pair_nb_list = new_nb_pair_list
 
     def correct_charge_type(self, forcefield, index_list=None):
         """ Correct the charge and atom type of an itp object,
