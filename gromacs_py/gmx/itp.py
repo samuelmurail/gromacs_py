@@ -167,13 +167,28 @@ class Itp:
                                                     'funct': funct, 'r': r,
                                                     'k': k})
                     elif field == 'constraints':
+                        if len(line_list) < 4:
+                            r = ''
+                        else:
+                            r = line_list[3]
                         ai, aj, funct = [int(col) for col in line_list[:3]]
                         local_top.cons_list.append({'ai': ai, 'aj': aj,
-                                                    'funct': funct})
+                                                    'funct': funct, 'r': r})
                     elif field == 'pairs':
                         ai, aj, funct = [int(col) for col in line_list[:3]]
                         local_top.pair_list.append({'ai': ai, 'aj': aj,
                                                     'funct': funct})
+                    elif field == 'pairs_nb':
+                        ai, aj, funct = [
+                            int(col) for col in line_list[:3]]
+                        c_i, c_j, sig, eps = [
+                            float(col) for col in line_list[3:7]]
+                        local_top.pair_nb_list.append({'ai': ai, 'aj': aj,
+                                                       'funct': funct,
+                                                       'charge_i': c_i,
+                                                       'charge_j': c_j,
+                                                       'sig': sig,
+                                                       'eps': eps})
                     elif field == 'angles':
                         ai, aj, ak, funct = [int(col) for col in line_list[:4]]
                         if len(line_list) < 6:
