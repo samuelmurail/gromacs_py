@@ -42,7 +42,7 @@ if on_rtd:
     ANTECHAMBER_BIN = ""
 else:
     # As the mabertools module is not a hard dependency
-    # gromacs_py should be loaded even if ambertools 
+    # gromacs_py should be loaded even if ambertools
     # is note installes
     try:
         REDUCE_BIN = os_command.which('reduce')
@@ -213,8 +213,8 @@ pdb_out=os.path.join(TEST_OUT,'four_phenol_h.pdb')) #doctest: +ELLIPSIS
     Succeed to save file ...four_phenol_3_h.pdb
     Succeed to save concat file:  ...four_phenol_h.pdb
     0
-    >>> phenol_coor = pdb_manip.Coor(os.path.join(TEST_OUT,'four_phenol_h.pdb'))\
-#doctest: +ELLIPSIS
+    >>> phenol_coor = pdb_manip.Coor(os.path.join(TEST_OUT,\
+'four_phenol_h.pdb')) #doctest: +ELLIPSIS
     Succeed to read file ...four_phenol_h.pdb ,  52 atoms found
 
     """
@@ -246,15 +246,15 @@ pdb_out=os.path.join(TEST_OUT,'four_phenol_h.pdb')) #doctest: +ELLIPSIS
             change_dict={"res_num": i + 1})
         one_res_h.write_pdb(out_h_pdb, check_file_out=False)
 
-
     pdb_manip.Coor.concat_pdb(*pdb_list,
-                              pdb_out = pdb_out)
+                              pdb_out=pdb_out)
 
     # Delete intermediate files
     for pdb in pdb_del_list:
         os_command.delete_file(pdb)
 
     return charge
+
 
 def add_hydrogen_rdkit_one_mol(pdb_in, smile, pdb_out):
     """Add hydrogen to a pdb file using the ``rdkit`` library:
@@ -271,8 +271,8 @@ def add_hydrogen_rdkit_one_mol(pdb_in, smile, pdb_out):
     >>> pdb_manip.show_log()
     >>> TEST_OUT = getfixture('tmpdir')
     >>> # print(TEST_OUT)
-    >>> add_hydrogen_rdkit_one_mol(pdb_in=os.path.join(TEST_PATH,'phenol.pdb'),\
-smile="C1=CC=C(C=C1)O",\
+    >>> add_hydrogen_rdkit_one_mol(pdb_in=os.path.join(TEST_PATH,'phenol.pdb')\
+,smile="C1=CC=C(C=C1)O",\
 pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
     Succeed to read file ...phenol_h.pdb ,  13 atoms found
     Succeed to save file ...phenol_h.pdb
@@ -282,8 +282,6 @@ pdb_out=os.path.join(TEST_OUT,'phenol_h.pdb')) #doctest: +ELLIPSIS
     Succeed to read file .../phenol_h.pdb ,  13 atoms found
 
     .. warning:
-
-        
 
     """
 
@@ -607,11 +605,12 @@ def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
         index_all_list.append(index_list)
 
     for i, index_list in enumerate(index_all_list):
-        mol_coor.change_index_pdb_field(index_list, change_dict={'res_num': i+1})
+        mol_coor.change_index_pdb_field(
+            index_list, change_dict={'res_num': i+1})
 
-    #index_list = mol_coor.get_index_selection(
-    #    selec_dict={'res_num': [res_list[0]]})
-    #mol_coor.change_index_pdb_field(index_list, change_dict={'res_num': 1})
+    # index_list = mol_coor.get_index_selection(
+    #     selec_dict={'res_num': [res_list[0]]})
+    # mol_coor.change_index_pdb_field(index_list, change_dict={'res_num': 1})
 
     # Remove hydrogens:
     if remove_h:
