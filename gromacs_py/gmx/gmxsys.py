@@ -1691,117 +1691,6 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
 
         :Example:
 
-        >>> TEST_OUT = getfixture('tmpdir')
-        >>> cyclic_pep = GmxSys(name='5vav', coor_file=TEST_PATH+'/5vav.pdb')
-        >>>
-        >>> #Basic usage :
-        >>> cyclic_pep.cyclic_peptide_top(out_folder=os.path.join(str(\
-TEST_OUT),'cyclic/top')) #doctest: +ELLIPSIS
-        - Create topologie
-        gmx pdb2gmx -f ...test_files/5vav.pdb -o no_cyclic_5vav_pdb2gmx.pdb \
--p no_cyclic_5vav_pdb2gmx.top -i no_cyclic_5vav_posre.itp -water tip3p -ff \
-charmm36-jul2017 -ignh -ter -vsite none
-        Molecule topologie present in no_cyclic_5vav_pdb2gmx.top , \
-extract the topologie in a separate file: no_cyclic_5vav_pdb2gmx.itp
-        Protein_chain_A
-        - ITP file: no_cyclic_5vav_pdb2gmx.itp
-        - molecules defined in the itp file:
-        * Protein_chain_A
-        Rewrite topologie: no_cyclic_5vav_pdb2gmx.top
-        Read rtp file : ...charmm36-jul2017.ff/merged.rtp
-        Correct residue GLY  atom N    atom type NH3  to NH1...
-        Correct residue GLY  atom HN   atom type HC   to H  ...
-        Correct residue ASP  atom C    atom type CC   to C  ...
-        Correct residue ASP  atom O    atom type OC   to O  ...
-        Protein_chain_A
-        Succeed to read file ...cyclic/top/no_cyclic_5vav_pdb2gmx.pdb ,  \
-212 atoms found
-        Succeed to save file ...cyclic/top/5vav_pdb2gmx.pdb
-        >>> cyclic_top = TopSys(cyclic_pep.top_file)
-        >>> print(cyclic_top.charge())
-        0.0
-        >>> cyclic_top.prot_res_num()
-        Protein_chain_A : 1
-        Get Res num of Protein_chain_A : 14
-        Total number of residue: 14
-        14
-        >>> cyclic_top.display() #doctest: +ELLIPSIS
-        Forcefield include :
-         charmm36-jul2017
-        - ITP file: 5vav_pdb2gmx
-        - molecules defined in the itp file:
-        * Protein_chain_A
-        - ITP file: tip3p
-        - molecules defined in the itp file:
-        * SOL
-        - ITP file: ions
-        - molecules defined in the itp file:
-        * OH
-        * LI
-        * NA
-        * K
-        * CS
-        * CL
-        * CA
-        * MG
-        * ZN
-        Mol List:
-           * 1 Protein_chain_A
-        Mol Name:
-         CYC-MC12
-        >>> cyclic_pep.em(out_folder=TEST_OUT+'/cyclic/em/', nsteps=10, \
-create_box_flag=True) #doctest: +ELLIPSIS
-        - Create pbc box
-        gmx editconf -f .../cyclic/top/5vav_pdb2gmx.pdb -o \
-.../cyclic/top/5vav_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        - Create the tpr file 5vav.tpr
-        gmx grompp -f 5vav.mdp -c ../top/5vav_pdb2gmx_box.pdb -r \
-../top/5vav_pdb2gmx_box.pdb -p ../top/5vav_pdb2gmx.top -po out_5vav.mdp \
--o 5vav.tpr -maxwarn 1
-        - Launch the simulation 5vav.tpr
-        gmx mdrun -s 5vav.tpr -deffnm 5vav -nt 0 -ntmpi 0 -nsteps -2 \
--nocopyright
-        >>> cyclic_amber_pep = GmxSys(name='5vav_amber', \
-coor_file=TEST_PATH+'/5vav.pdb')
-        >>> cyclic_amber_pep.cyclic_peptide_top(out_folder=\
-os.path.join(str(TEST_OUT),'cyclic/top'),ff='amber99sb-ildn')\
-        #doctest: +ELLIPSIS
-        - Create topologie
-        gmx pdb2gmx -f .../test_files/5vav.pdb -o \
-no_cyclic_5vav_amber_pdb2gmx.pdb -p no_cyclic_5vav_amber_pdb2gmx.top \
--i no_cyclic_5vav_amber_posre.itp -water tip3p -ff amber99sb-ildn -ignh \
--ter -vsite none
-        Molecule topologie present in no_cyclic_5vav_amber_pdb2gmx.top , \
-extract the topologie in a separate file: no_cyclic_5vav_amber_pdb2gmx.itp
-        Protein_chain_A
-        - ITP file: no_cyclic_5vav_amber_pdb2gmx.itp
-        - molecules defined in the itp file:
-        * Protein_chain_A
-        Rewrite topologie: no_cyclic_5vav_amber_pdb2gmx.top
-        Read rtp file : ...amber99sb-ildn.ff/aminoacids.rtp
-        Correct residue GLY  atom N    atom type N3   to N ...
-        Correct residue GLY  atom HA1  atom type HP   to H1...
-        Correct residue GLY  atom HA2  atom type HP   to H1...
-        Correct residue ASP  atom O    atom type O2   to O ...
-        Protein_chain_A
-        Succeed to read file ...cyclic/top/no_cyclic_5vav_amber_pdb2gmx.pdb \
-,  212 atoms found
-        Succeed to save file ...cyclic/top/5vav_amber_pdb2gmx.pdb
-        >>> cyclic_amber_top = TopSys(cyclic_amber_pep.top_file)
-        >>> print(cyclic_amber_top.charge())
-        0.0
-        >>> cyclic_amber_pep.em(out_folder=TEST_OUT+'/cyclic/em/', \
-nsteps=10, create_box_flag=True) #doctest: +ELLIPSIS
-        - Create pbc box
-        gmx editconf -f ...cyclic/top/5vav_amber_pdb2gmx.pdb -o \
-...cyclic/top/5vav_amber_pdb2gmx_box.pdb -bt dodecahedron -d 1.0
-        - Create the tpr file 5vav_amber.tpr
-        gmx grompp -f 5vav_amber.mdp -c ../top/5vav_amber_pdb2gmx_box.pdb \
--r ../top/5vav_amber_pdb2gmx_box.pdb -p ../top/5vav_amber_pdb2gmx.top -po \
-out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
-        - Launch the simulation 5vav_amber.tpr
-        gmx mdrun -s 5vav_amber.tpr -deffnm 5vav_amber -nt 0 -ntmpi 0 \
--nsteps -2 -nocopyright
 
         .. note::
             No options are allowed (water model, termini capping) except
@@ -1842,246 +1731,252 @@ out_5vav_amber.mdp -o 5vav_amber.tpr -maxwarn 1
         mol_top = top_pep.itp_list[0].top_mol_list[0]
         res_num = mol_top.get_res_num()
 
-        # Define termini atoms:
-        # C-ter NH3
+        # With version of gmx > 2021, the following lines are useless
+        if int(gmx_version.split('.')[0]) < 2021:
 
-        if ff.startswith('amber'):
-            # N_type = 'N'
-            # HN_type = 'H'
-            HN_name = 'H'
-            # GLY_HA_type = 'H1'
-            angle_func = 1
-            dihe_func = 9
-            dihe_impr_func = 4
-        elif ff.startswith('charmm'):
-            # For charmm
-            # N_type = 'NH1'
-            # HN_type = 'H'
-            HN_name = 'HN'
-            angle_func = 5
-            dihe_func = 9
-            dihe_impr_func = 2
 
-        # Delete useless ter atoms (HN1 and HN2 are for PRO):
-        to_del_name_n_ter = ['H2', 'H3', 'HN2', 'HN1']
-        del_index = mol_top.get_selection_index(
-            selec_dict={'atom_name': to_del_name_n_ter, 'res_num': [1]}) +\
-            mol_top.get_selection_index(
-                selec_dict={'atom_name': ['OT2', 'OC2'], 'res_num': [res_num]})
+            # Define termini atoms:
+            # C-ter NH3
 
-        mol_top.delete_atom(index_list=del_index)
+            if ff.startswith('amber'):
+                # N_type = 'N'
+                # HN_type = 'H'
+                HN_name = 'H'
+                # GLY_HA_type = 'H1'
+                angle_func = 1
+                dihe_func = 9
+                dihe_impr_func = 4
+            elif ff.startswith('charmm'):
+                # For charmm
+                # N_type = 'NH1'
+                # HN_type = 'H'
+                HN_name = 'HN'
+                angle_func = 5
+                dihe_func = 9
+                dihe_impr_func = 2
 
-        # Change atom name:
-        #
-        # chg_index = mol_top.get_selection_index(
-        #   selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
-        # mol_top.atom_dict[chg_index]['atom_type'] = N_type
-        # mol_top.atom_dict[chg_index]['charge'] = -0.470
+            # Delete useless ter atoms (HN1 and HN2 are for PRO):
+            to_del_name_n_ter = ['H2', 'H3', 'HN2', 'HN1']
+            del_index = mol_top.get_selection_index(
+                selec_dict={'atom_name': to_del_name_n_ter, 'res_num': [1]}) +\
+                mol_top.get_selection_index(
+                    selec_dict={'atom_name': ['OT2', 'OC2'], 'res_num': [res_num]})
 
-        if mol_top.atom_dict[1]['res_name'] != 'PRO':
+            mol_top.delete_atom(index_list=del_index)
+
+            # Change atom name:
+            #
+            # chg_index = mol_top.get_selection_index(
+            #   selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
+            # mol_top.atom_dict[chg_index]['atom_type'] = N_type
+            # mol_top.atom_dict[chg_index]['charge'] = -0.470
+
+            print(mol_top.atom_dict)
+
+            if mol_top.atom_dict[1]['res_name'] != 'PRO':
+                chg_index = mol_top.get_selection_index(
+                    selec_dict={'atom_name': ['H1', 'HN1'], 'res_num': [1]})[0]
+                mol_top.atom_dict[chg_index]['atom_name'] = HN_name
+
+            # mol_top.atom_dict[chg_index]['atom_type'] = HN_type
+            # mol_top.atom_dict[chg_index]['charge'] = 0.310
+            # chg_index = mol_top.get_selection_index(
+            #   selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
+            # mol_top.atom_dict[chg_index]['charge'] = \
+            #   mol_top.atom_dict[chg_index]['charge'] - 0.12
             chg_index = mol_top.get_selection_index(
-                selec_dict={'atom_name': ['H1', 'HN1'], 'res_num': [1]})[0]
-            mol_top.atom_dict[chg_index]['atom_name'] = HN_name
+                selec_dict={'atom_name': ['OT1', 'OC1'], 'res_num': [res_num]})[0]
+            # mol_top.atom_dict[chg_index]['atom_type'] = 'O'
+            mol_top.atom_dict[chg_index]['atom_name'] = 'O'
+            # mol_top.atom_dict[chg_index]['charge'] = -0.51
 
-        # mol_top.atom_dict[chg_index]['atom_type'] = HN_type
-        # mol_top.atom_dict[chg_index]['charge'] = 0.310
-        # chg_index = mol_top.get_selection_index(
-        #   selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
-        # mol_top.atom_dict[chg_index]['charge'] = \
-        #   mol_top.atom_dict[chg_index]['charge'] - 0.12
-        chg_index = mol_top.get_selection_index(
-            selec_dict={'atom_name': ['OT1', 'OC1'], 'res_num': [res_num]})[0]
-        # mol_top.atom_dict[chg_index]['atom_type'] = 'O'
-        mol_top.atom_dict[chg_index]['atom_name'] = 'O'
-        # mol_top.atom_dict[chg_index]['charge'] = -0.51
+            # if (mol_top.atom_dict[1]['res_name'] == 'GLY' and
+            #       ff.startswith('amber')):
+            #    chg_index = mol_top.get_selection_index(
+            #       selec_dict={'atom_name': ['HA1'], 'res_num': [1]})[0]
+            #    mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
+            #    chg_index = mol_top.get_selection_index(
+            #       selec_dict={'atom_name': ['HA2'], 'res_num': [1]})[0]
+            #    mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
 
-        # if (mol_top.atom_dict[1]['res_name'] == 'GLY' and
-        #       ff.startswith('amber')):
-        #    chg_index = mol_top.get_selection_index(
-        #       selec_dict={'atom_name': ['HA1'], 'res_num': [1]})[0]
-        #    mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
-        #    chg_index = mol_top.get_selection_index(
-        #       selec_dict={'atom_name': ['HA2'], 'res_num': [1]})[0]
-        #    mol_top.atom_dict[chg_index]['atom_type'] = GLY_HA_type
+            # chg_index = mol_top.get_selection_index(
+            #   selec_dict={'atom_name': ['C'], 'res_num': [res_num]})[0]
+            # mol_top.atom_dict[chg_index]['atom_type'] = 'C'
+            # mol_top.atom_dict[chg_index]['charge'] = 0.51
 
-        # chg_index = mol_top.get_selection_index(
-        #   selec_dict={'atom_name': ['C'], 'res_num': [res_num]})[0]
-        # mol_top.atom_dict[chg_index]['atom_type'] = 'C'
-        # mol_top.atom_dict[chg_index]['charge'] = 0.51
+            last_res_index = chg_index
 
-        last_res_index = chg_index
+            # Get index for residue i-2
+            prev_2_C_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['C'], 'res_num': [res_num - 1]})[0]
+            # Get index for residue i-1
+            prev_C_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['C'], 'res_num': [res_num]})[0]
+            prev_O_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['O'], 'res_num': [res_num]})[0]
+            prev_CA_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['CA'], 'res_num': [res_num]})[0]
+            prev_N_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['N'], 'res_num': [res_num]})[0]
 
-        # Get index for residue i-2
-        prev_2_C_index = mol_top.get_selection_index(selec_dict={
-            'atom_name': ['C'], 'res_num': [res_num - 1]})[0]
-        # Get index for residue i-1
-        prev_C_index = mol_top.get_selection_index(selec_dict={
-            'atom_name': ['C'], 'res_num': [res_num]})[0]
-        prev_O_index = mol_top.get_selection_index(selec_dict={
-            'atom_name': ['O'], 'res_num': [res_num]})[0]
-        prev_CA_index = mol_top.get_selection_index(selec_dict={
-            'atom_name': ['CA'], 'res_num': [res_num]})[0]
-        prev_N_index = mol_top.get_selection_index(selec_dict={
-            'atom_name': ['N'], 'res_num': [res_num]})[0]
+            # check if res is GLY:
+            if mol_top.atom_dict[last_res_index]['res_name'] != 'GLY':
+                prev_HA_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': ['HA'], 'res_num': [res_num]})[0]
+                prev_CB_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': ['CB'], 'res_num': [res_num]})[0]
+            else:
+                prev_HA_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': ['HA1'], 'res_num': [res_num]})[0]
+                prev_CB_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': ['HA2'], 'res_num': [res_num]})[0]
 
-        # check if res is GLY:
-        if mol_top.atom_dict[last_res_index]['res_name'] != 'GLY':
-            prev_HA_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['HA'], 'res_num': [res_num]})[0]
-            prev_CB_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['CB'], 'res_num': [res_num]})[0]
-        else:
-            prev_HA_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['HA1'], 'res_num': [res_num]})[0]
-            prev_CB_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['HA2'], 'res_num': [res_num]})[0]
+            # Get index for residue i
+            C_index = mol_top.get_selection_index(
+                selec_dict={'atom_name': ['C'], 'res_num': [1]})[0]
+            # O_index = mol_top.get_selection_index(
+            #   selec_dict={'atom_name': ['O'], 'res_num': [1]})[0]
+            CA_index = mol_top.get_selection_index(
+                selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
+            N_index = mol_top.get_selection_index(
+                selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
+            # check if res is PRO:
+            if mol_top.atom_dict[1]['res_name'] != 'PRO':
+                HN_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': [HN_name], 'res_num': [1]})[0]
+            else:
+                HN_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': ['CD'], 'res_num': [1]})[0]
 
-        # Get index for residue i
-        C_index = mol_top.get_selection_index(
-            selec_dict={'atom_name': ['C'], 'res_num': [1]})[0]
-        # O_index = mol_top.get_selection_index(
-        #   selec_dict={'atom_name': ['O'], 'res_num': [1]})[0]
-        CA_index = mol_top.get_selection_index(
-            selec_dict={'atom_name': ['CA'], 'res_num': [1]})[0]
-        N_index = mol_top.get_selection_index(
-            selec_dict={'atom_name': ['N'], 'res_num': [1]})[0]
-        # check if res is PRO:
-        if mol_top.atom_dict[1]['res_name'] != 'PRO':
-            HN_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': [HN_name], 'res_num': [1]})[0]
-        else:
-            HN_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['CD'], 'res_num': [1]})[0]
+            # check if res is GLY:
+            if mol_top.atom_dict[1]['res_name'] != 'GLY':
+                HA_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': ['HA'], 'res_num': [1]})[0]
+                CB_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': ['CB'], 'res_num': [1]})[0]
+            else:
+                HA_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': ['HA1'], 'res_num': [1]})[0]
+                CB_index = mol_top.get_selection_index(selec_dict={
+                    'atom_name': ['HA2'], 'res_num': [1]})[0]
+            # Get index for residue i+1
+            next_N_index = mol_top.get_selection_index(selec_dict={
+                'atom_name': ['N'], 'res_num': [2]})[0]
 
-        # check if res is GLY:
-        if mol_top.atom_dict[1]['res_name'] != 'GLY':
-            HA_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['HA'], 'res_num': [1]})[0]
-            CB_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['CB'], 'res_num': [1]})[0]
-        else:
-            HA_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['HA1'], 'res_num': [1]})[0]
-            CB_index = mol_top.get_selection_index(selec_dict={
-                'atom_name': ['HA2'], 'res_num': [1]})[0]
-        # Get index for residue i+1
-        next_N_index = mol_top.get_selection_index(selec_dict={
-            'atom_name': ['N'], 'res_num': [2]})[0]
+            # Add backbone bonds, angle, dihedral parameters:
+            # Bond:
+            # N-C
+            mol_top.bond_list.append({'ai': N_index, 'aj': prev_C_index,
+                                      'funct': 1, 'r': '', 'k': ''})
 
-        # Add backbone bonds, angle, dihedral parameters:
-        # Bond:
-        # N-C
-        mol_top.bond_list.append({'ai': N_index, 'aj': prev_C_index,
-                                  'funct': 1, 'r': '', 'k': ''})
+            # Pairs
+            pair_list = [[N_index, prev_HA_index],
+                         [N_index, prev_N_index],
+                         [N_index, prev_CB_index],
+                         [HN_index, prev_O_index],
+                         [HN_index, prev_CA_index],
+                         [CA_index, prev_O_index],
+                         [CA_index, prev_CA_index],
+                         [HA_index, prev_C_index],
+                         [CB_index, prev_C_index]]
 
-        # Pairs
-        pair_list = [[N_index, prev_HA_index],
-                     [N_index, prev_N_index],
-                     [N_index, prev_CB_index],
-                     [HN_index, prev_O_index],
-                     [HN_index, prev_CA_index],
-                     [CA_index, prev_O_index],
-                     [CA_index, prev_CA_index],
-                     [HA_index, prev_C_index],
-                     [CB_index, prev_C_index]]
+            for ai, aj in pair_list:
+                mol_top.pair_list.append({'ai': ai, 'aj': aj, 'funct': 1})
 
-        for ai, aj in pair_list:
-            mol_top.pair_list.append({'ai': ai, 'aj': aj, 'funct': 1})
+            # Angle:
 
-        # Angle:
+            angle_list = [[N_index, prev_C_index, prev_O_index],
+                          [N_index, prev_C_index, prev_CA_index],
+                          [HN_index, N_index, prev_C_index],
+                          [CA_index, N_index, prev_C_index]]
 
-        angle_list = [[N_index, prev_C_index, prev_O_index],
-                      [N_index, prev_C_index, prev_CA_index],
-                      [HN_index, N_index, prev_C_index],
-                      [CA_index, N_index, prev_C_index]]
+            for ai, aj, ak in angle_list:
+                mol_top.angl_list.append({'ai': ai, 'aj': aj, 'ak': ak,
+                                          'funct': angle_func,
+                                          'theta': '', 'cth': ''})
 
-        for ai, aj, ak in angle_list:
-            mol_top.angl_list.append({'ai': ai, 'aj': aj, 'ak': ak,
-                                      'funct': angle_func,
-                                      'theta': '', 'cth': ''})
+            # Dihed: type 9
+            dihed_list = [[N_index, prev_C_index, prev_CA_index, prev_HA_index],
+                          [N_index, prev_C_index, prev_CA_index, prev_CB_index],
+                          [N_index, prev_C_index, prev_CA_index, prev_N_index],
+                          [HN_index, N_index, prev_C_index, prev_O_index],
+                          [HN_index, N_index, prev_C_index, prev_CA_index],
+                          [CA_index, N_index, prev_C_index, prev_O_index],
+                          [CA_index, N_index, prev_C_index, prev_CA_index],
+                          [HA_index, CA_index, N_index, prev_C_index],
+                          [CB_index, CA_index, N_index, prev_C_index],
+                          [C_index, CA_index, N_index, prev_C_index]]
 
-        # Dihed: type 9
-        dihed_list = [[N_index, prev_C_index, prev_CA_index, prev_HA_index],
-                      [N_index, prev_C_index, prev_CA_index, prev_CB_index],
-                      [N_index, prev_C_index, prev_CA_index, prev_N_index],
-                      [HN_index, N_index, prev_C_index, prev_O_index],
-                      [HN_index, N_index, prev_C_index, prev_CA_index],
-                      [CA_index, N_index, prev_C_index, prev_O_index],
-                      [CA_index, N_index, prev_C_index, prev_CA_index],
-                      [HA_index, CA_index, N_index, prev_C_index],
-                      [CB_index, CA_index, N_index, prev_C_index],
-                      [C_index, CA_index, N_index, prev_C_index]]
+            for ai, aj, ak, al in dihed_list:
+                mol_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak,
+                                          'al': al, 'funct': dihe_func,
+                                          'phase': '', 'kd': '', 'pn': ''})
 
-        for ai, aj, ak, al in dihed_list:
-            mol_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak,
-                                      'al': al, 'funct': dihe_func,
-                                      'phase': '', 'kd': '', 'pn': ''})
+            # Dihed: type 2
+            if ff.startswith('charmm'):
+                dihed_list_impr = [[prev_C_index, prev_CA_index, N_index,
+                                    prev_O_index],
+                                   [N_index, prev_C_index, CA_index, HN_index]]
+            elif ff.startswith('amber'):
+                dihed_list_impr = [[prev_CA_index, N_index, prev_C_index,
+                                    prev_O_index],
+                                   [prev_C_index, CA_index, N_index, HN_index]]
 
-        # Dihed: type 2
-        if ff.startswith('charmm'):
-            dihed_list_impr = [[prev_C_index, prev_CA_index, N_index,
-                                prev_O_index],
-                               [N_index, prev_C_index, CA_index, HN_index]]
-        elif ff.startswith('amber'):
-            dihed_list_impr = [[prev_CA_index, N_index, prev_C_index,
-                                prev_O_index],
-                               [prev_C_index, CA_index, N_index, HN_index]]
+            for ai, aj, ak, al in dihed_list_impr:
+                mol_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak,
+                                          'al': al, 'funct': dihe_impr_func,
+                                          'phase': '', 'kd': '', 'pn': ''})
 
-        for ai, aj, ak, al in dihed_list_impr:
-            mol_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak,
-                                      'al': al, 'funct': dihe_impr_func,
-                                      'phase': '', 'kd': '', 'pn': ''})
+            # Cmap
+            if ff.startswith('charmm'):
+                cmap_list = [[prev_2_C_index, prev_N_index, prev_CA_index,
+                              prev_C_index, N_index],
+                             [prev_C_index, N_index, CA_index, C_index,
+                              next_N_index]]
 
-        # Cmap
-        if ff.startswith('charmm'):
-            cmap_list = [[prev_2_C_index, prev_N_index, prev_CA_index,
-                          prev_C_index, N_index],
-                         [prev_C_index, N_index, CA_index, C_index,
-                          next_N_index]]
+                for ai, aj, ak, al, am in cmap_list:
+                    mol_top.cmap_list.append(
+                        {'ai': ai, 'aj': aj, 'ak': ak,
+                         'al': al, 'am': am, 'funct': 1})
 
-            for ai, aj, ak, al, am in cmap_list:
-                mol_top.cmap_list.append(
-                    {'ai': ai, 'aj': aj, 'ak': ak,
-                     'al': al, 'am': am, 'funct': 1})
+            # Correct charge and atom type base on ff .rtp file
+            mol_top.correct_charge_type(forcefield=top_pep.forcefield)
 
-        # Correct charge and atom type base on ff .rtp file
-        mol_top.correct_charge_type(forcefield=top_pep.forcefield)
+            # Save itp:
 
-        # Save itp:
+            top_pep.itp_list[0].write_file(os.path.join(
+                out_folder, name + "_pdb2gmx.itp"))
+            top_pep.itp_list[0].name = name + "_pdb2gmx.itp"
+            top_pep.itp_list[0].fullname = name + "_pdb2gmx.itp"
+            top_pep.itp_list[0].path = os.path.abspath(
+                os.path.join(out_folder, name + "_pdb2gmx.itp"))
+            # Save top:
+            top_pep.write_file(os.path.join(out_folder, name + "_pdb2gmx.top"))
+            self.top_file = os.path.join(out_folder, name + "_pdb2gmx.top")
 
-        top_pep.itp_list[0].write_file(os.path.join(
-            out_folder, name + "_pdb2gmx.itp"))
-        top_pep.itp_list[0].name = name + "_pdb2gmx.itp"
-        top_pep.itp_list[0].fullname = name + "_pdb2gmx.itp"
-        top_pep.itp_list[0].path = os.path.abspath(
-            os.path.join(out_folder, name + "_pdb2gmx.itp"))
-        # Save top:
-        top_pep.write_file(os.path.join(out_folder, name + "_pdb2gmx.top"))
-        self.top_file = os.path.join(out_folder, name + "_pdb2gmx.top")
+            # Correct pdb file:
+            coor_pep = pdb_manip.Coor(self.coor_file)
+            to_del_index = coor_pep.get_index_selection(
+                selec_dict={'name': to_del_name_n_ter, 'res_num': [1]})\
+                + coor_pep.get_index_selection(
+                    selec_dict={'name': ['OT2', 'OC2'], 'res_num': [res_num]})
 
-        # Correct pdb file:
-        coor_pep = pdb_manip.Coor(self.coor_file)
-        to_del_index = coor_pep.get_index_selection(
-            selec_dict={'name': to_del_name_n_ter, 'res_num': [1]})\
-            + coor_pep.get_index_selection(
-                selec_dict={'name': ['OT2', 'OC2'], 'res_num': [res_num]})
+            coor_pep.del_atom_index(to_del_index)
 
-        coor_pep.del_atom_index(to_del_index)
+            # Change atom name :
 
-        # Change atom name :
+            chg_index = coor_pep.get_index_selection(
+                selec_dict={'name': ['H1'], 'res_num': [1]})
+            coor_pep.change_index_pdb_field(chg_index, {'name': HN_name})
 
-        chg_index = coor_pep.get_index_selection(
-            selec_dict={'name': ['H1'], 'res_num': [1]})
-        coor_pep.change_index_pdb_field(chg_index, {'name': HN_name})
+            chg_index = coor_pep.get_index_selection(
+                selec_dict={'name': ['OT1', 'OC1'], 'res_num': [res_num]})
+            coor_pep.change_index_pdb_field(chg_index, {'name': 'O'})
 
-        chg_index = coor_pep.get_index_selection(
-            selec_dict={'name': ['OT1', 'OC1'], 'res_num': [res_num]})
-        coor_pep.change_index_pdb_field(chg_index, {'name': 'O'})
-
-        # save pdb:
-        coor_pep.write_pdb(pdb_out=os.path.join(out_folder,
-                                                name + "_pdb2gmx.pdb"))
-        self.coor_file = os.path.join(out_folder, name + "_pdb2gmx.pdb")
+            # save pdb:
+            coor_pep.write_pdb(pdb_out=os.path.join(out_folder,
+                                                    name + "_pdb2gmx.pdb"))
+            self.coor_file = os.path.join(out_folder, name + "_pdb2gmx.pdb")
 
         # First read and save to fix the molecule top include in .top:
         # top = TopSys(self.top_file)
