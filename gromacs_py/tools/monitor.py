@@ -275,7 +275,7 @@ def extract_log_dict(func_input_dict, tail_line_num=20):
             ener_read = True
         elif ener_read and len(line) == 0:
             ener_done = True
-        elif ener_read:
+        elif ener_read and i < (len(split_text) - 5):
             next_line = split_text[i + 1]
             for j in range(5):
                 field = line[field_len * j:field_len * (j + 1)].\
