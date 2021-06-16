@@ -9,6 +9,7 @@ import logging
 
 from .itp import Itp
 from .topsys import TopSys
+from .topmol import TopMol
 from .gmxsys import GmxSys, GROMACS_MOD_DIRNAME, GMX_BIN, gmx_version
 
 # Autorship information
@@ -35,4 +36,3 @@ def show_debug(pdb_manip_log=True):
 
     from . import gmxsys
     gmxsys.show_debug()
-
