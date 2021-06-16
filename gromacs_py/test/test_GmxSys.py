@@ -251,7 +251,7 @@ def test_insert_peptide_vsite(tmp_path):
     prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_SH3'),
                      vsite='hydrogens')
     top_coor = pdb_manip.Coor(prot.coor_file)
-    assert top_coor.coor_list[0].num == 1064
+    assert top_coor.num == 1064
 
     prot.solvate_add_ions(out_folder=os.path.join(tmp_path, 'top_sys'))
 
