@@ -8,6 +8,7 @@ Tests for FreeEner class
 import pytest
 import numpy as np
 
+from gromacs_py import gmx
 from gromacs_py.free_ener import FreeEner
 from pdb_manip_py import pdb_manip
 
@@ -23,6 +24,8 @@ __email__ = "samuel.murail@u-paris.fr"
 __status__ = "Production"
 
 
+@pytest.mark.skipif(float(gmx.gmxsys.gmx_version) >= 2021,
+                    reason="Gromacs verions >= 2021 have issues with Free energy")
 def test_free_bind(tmp_path):
     dna_free = FreeEner('DAP', f'{tmp_path}/1D30_solv')
     dna_free.prepare_complex_pdb(
@@ -69,7 +72,7 @@ def test_free_bind(tmp_path):
     ("c1ccccc1O", -0.413),
     ("c1cc(O)ccc1O", -0.826),
 ])
-def test_is_palindrome(smile, dg):
+def test_symetry_corr(smile, dg):
     assert FreeEner.symmetry_correction(smile) == pytest.approx(dg, rel=1e-3)
 
 
