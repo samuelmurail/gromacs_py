@@ -80,6 +80,8 @@ class Itp:
         self.path = path
         self.top_mol_list = []
         self.posres_file = []
+        self.atomtypes_dict = {}
+        self.nonbond_param = []
         self.read_file()
 
     def read_file(self):
@@ -244,8 +246,32 @@ class Itp:
                                 {'ai': int(ai), 'funct': int(funct), 'kx': kx,
                                  'ky': ky, 'kz': kz})
 
-                    # else:
-                    #   raise ValueError('Unknown field : '+field)
+                    # General bonded and nonbonded parameters 
+                    elif field == 'atomtypes':
+                        name, at_num, mass, charge, ptype, sigma, \
+                            epsilon = [col for col in line_list[:7]]
+                        self.atomtypes_dict[name] = {
+                            'at_num': at_num, # Remove int() conv. Issue aith acpype
+                            'mass': float(mass),
+                            'charge': float(charge),
+                            'ptype': ptype,
+                            'sigma': float(sigma),
+                            'epsilon': float(epsilon)}
+
+                    elif field == 'nonbond_params':
+                        ai, aj, funct, sigma, \
+                            epsilon = [col for col in line_list[:5]]
+                        self.nonbond_param.append({
+                            'ai': ai,
+                            'aj': aj,
+                            'funct': int(funct),
+                            'sigma': float(sigma),
+                            'epsilon': float(epsilon)})
+
+                    else:
+                        logger.debug(f'In itp file {self.fullname} an Unknown'
+                                       f' field has been founded: {field}')
+                        # raise ValueError('Unknown field : '+field)
 
         # Needed for empty topologies like aditional ff parameters:
         if local_top_flag:
@@ -254,6 +280,37 @@ class Itp:
     def write_file(self, itp_file):
         filout = open(itp_file, 'w')
         filout.write("; Itp file created by " + __name__ + "\n")
+
+        if self.atomtypes_dict:
+            filout.write('[ atomtypes ]\n')
+            filout.write(';name   at.num         mass     charge   '
+                         'ptype   sigma         epsilon       Amb\n')
+            for name, atom_dict in self.atomtypes_dict.items():
+                filout.write(' {:3}      {:3}         {:8.5f}  {:.5f}'
+                             '   {}     {:.5e}   {:.5e}\n'.format(
+                    name,
+                    atom_dict['at_num'],
+                    atom_dict['mass'],
+                    atom_dict['charge'],
+                    atom_dict['ptype'],
+                    atom_dict['sigma'],
+                    atom_dict['epsilon']))
+
+            filout.write('\n')
+
+        if self.nonbond_param:
+            filout.write('[ nonbond_params ]\n')
+            filout.write('; i    j func     sigma(nm)       epsilon\n')
+            for param in self.nonbond_param:
+                filout.write(' {:3} {:3}   {:3}  {:12.5e}'\
+                             '  {:12.5e}  \n'.format(
+                    param['ai'],
+                    param['aj'],
+                    param['funct'],
+                    param['sigma'],
+                    param['epsilon']))
+
+            filout.write('\n')
 
         for top_mol in self.top_mol_list:
             logger.info(top_mol.name)
