@@ -650,27 +650,40 @@ def make_amber_top_mol_rdkit(pdb_in, res_name, smile, charge_model="bcc",
 def extract_itp_atomtypes(itp_in, itp_atomtypes_out):
 
     field = None
-    atom_types_list = "[ atomtypes ]\n"
+    atom_types_list = ""
+    non_atom_types_list = ""
 
     with open(itp_in) as itpfile:
         for line in itpfile:
 
+            # Extract atomtypes field:
             if line.startswith("["):
                 # Remove space and [ ]
                 field = line.strip()[1:-1].strip()
                 # print(field)
-                continue
+
             if field == 'atomtypes':
                 atom_types_list += line
+            else:
+                non_atom_types_list += line
+
+            # Extract itp part without atomtypes
 
     filout = open(itp_atomtypes_out, "w")
     filout.write(atom_types_list)
     filout.close()
 
-    # Read and write itp to remove the [ atomtypes ] part
-    fullname = (itp_in.split("/")[-1])
-    include = fullname.split(".")[0]
-    path = os_command.full_path_and_check(itp_in)
+    filout = open(itp_in, "w")
+    filout.write(non_atom_types_list)
+    filout.close()
 
-    top_mol = gmx.Itp(name=include, fullname=fullname, path=path)
-    top_mol.write_file(path)
+
+
+
+    # # Read and write itp to remove the [ atomtypes ] part
+    # fullname = (itp_in.split("/")[-1])
+    # include = fullname.split(".")[0]
+    # path = os_command.full_path_and_check(itp_in)
+
+    # top_mol = gmx.Itp(name=include, fullname=fullname, path=path)
+    # top_mol.write_file(path)
