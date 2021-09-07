@@ -990,7 +990,6 @@ ff='amber99sb-ildn', include_mol={'DAP':\
         Succeed to read file DAP_h.pdb ,  36 atoms found
         Succeed to save file DAP_h_unique.pdb
         acpype... -i DAP_h_unique.pdb -b DAP -c bcc -a gaff -o gmx -n 0
-        DAP
         Succeed to save file 01_1D30_good_his.pdb
         - Create topologie
         gmx pdb2gmx -f 01_1D30_good_his.pdb -o 1D30_pdb2gmx.pdb -p \
