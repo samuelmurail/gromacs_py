@@ -122,6 +122,7 @@ class TopSys:
 
         self.path = os_command.full_path_and_check(top_in)
         self.forcefield = None
+        self.atomtypes = []
         self.itp_list = []
         self.mol_comp = []
         self.name = ""
@@ -188,6 +189,15 @@ class TopSys:
                         self.forcefield = {'name': file_name.split('.')[0],
                                            'fullname': file_name,
                                            'path': path}
+                    elif file_name.endswith('atomtypes.itp'):
+                        # logger.info('Atomtypes Founded', )
+                        if len(self.atomtypes) >= 1:
+                            logger.error('Warning there is two atomtypes itp files'
+                                           'There should be only one')
+                            # raise ValueError('Two atomtypes itp files present.')
+
+                        self.add_mol_itp(path)
+                        self.atomtypes.append(len(self.itp_list))
                     else:
                         self.add_mol_itp(path)
                 # Check field
@@ -443,6 +453,25 @@ class TopSys:
 
         self.mol_comp = mol_comp
 
+    def add_atomtypes_2(self, atomtypes_dict):
+        """ Add atomtypes in a topologie.
+
+        :param atomtypes_dict: atom types dict
+        :type atomtypes_dict: str
+
+        """
+
+        if self.atomtypes:
+
+            for atom, atomtype in atomtypes_dict.items():
+                if atom in self.itp_list[self.atomtypes[0]].atomtypes_dict:
+                    logger.warning(f'{atom} already defined,'
+                                   'will be overwritting bt new param')
+                self.itp_list[self.atomtypes[0]].atomtypes_dict[atom] = atomtype
+
+        logger.info(f'Overwrite {self.itp_list[self.atomtypes[0]].path}')
+        self.itp_list[self.atomtypes[0]].write_file(self.itp_list[self.atomtypes[0]].path)
+
     def add_atomtypes(self, new_atomtypes):
         """ Add atomtypes in a topologie.
 
@@ -469,6 +498,7 @@ class TopSys:
             atomtype_itp = Itp(name=include, fullname=fullname, path=path)
 
             self.itp_list = [atomtype_itp] + self.itp_list
+
         # If it does exist add the new atomtypes in the first one:
         else:
             # First extract old atom types:
