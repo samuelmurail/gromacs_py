@@ -55,8 +55,7 @@ setup(
         "pandas",
         "matplotlib",
         "os_command_py==1.1.0",
-        "pdb2pqr_htmd_propka30==0.0.4",
-        "pdb_manip_py==1.3.9",
+        "pdb_manip_py==1.4.1",
         "tqdm",
     ],
     package_data={

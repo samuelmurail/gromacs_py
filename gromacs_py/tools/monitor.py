@@ -144,8 +144,8 @@ def simulation_plot(proc, func_input_dict, refresh_time=1.0):
     >>> ###################################
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
 vsite='hydrogens') #doctest: +ELLIPSIS
-    pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
---with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
+    pdb2pqr30... --ff CHARMM --ffout CHARMM --keep-chain \
+--titration-state-method=propka --with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh \
 -vsite hydrogens
@@ -325,8 +325,8 @@ def print_log_file(proc, func_input_dict, tail_line_num=20):
     >>> ###################################
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
 vsite='hydrogens') #doctest: +ELLIPSIS
-    pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
---with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
+    pdb2pqr30... --ff CHARMM --ffout CHARMM --keep-chain \
+--titration-state-method=propka --with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh \
 -vsite hydrogens
@@ -413,8 +413,8 @@ def progress_bar(proc, func_input_dict, tail_line_num=20):
     >>> ###################################
     >>> prot.prepare_top(out_folder=os.path.join(TEST_OUT, 'top_SH3'), \
 vsite='hydrogens') #doctest: +ELLIPSIS
-    pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
---with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
+    pdb2pqr30... --ff CHARMM --ffout CHARMM --keep-chain \
+--titration-state-method=propka --with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
     gmx pdb2gmx -f 01_1y0m_good_his.pdb -o 1y0m_pdb2gmx.pdb -p \
 1y0m_pdb2gmx.top -i 1y0m_posre.itp -water tip3p -ff charmm36-jul2017 -ignh \
 -vsite hydrogens

@@ -219,8 +219,8 @@ class GmxSys:
         Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
         Succeed to read file .../test_files/1y0m.pdb ,  648 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
-        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method=propka \
-    --with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
+        pdb2pqr30... --ff CHARMM --ffout CHARMM --keep-chain \
+--titration-state-method=propka --with-ph=7.00 tmp_pdb2pqr.pdb 00_1y0m.pqr
         Succeed to read file 00_1y0m.pqr ,  996 atoms found
         Chain: A  Residue: 0 to 60
         Succeed to save file 01_1y0m_good_his.pdb
@@ -973,10 +973,9 @@ ff='amber99sb-ildn', include_mol={'DAP':\
 'NC(=N)c1ccc(cc1)c2[nH]c3cc(ccc3c2)C(N)=N'}) #doctest: +ELLIPSIS
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
-        Succeed to save file tmp_pdb2pqr.pdb
-        pdb2pqr... --ff AMBER --ffout AMBER --chain --ph-calc-method=propka \
---with-ph=7.00 tmp_pdb2pqr.pdb 00_1D30.pqr
-        Succeed to read file 00_1D30.pqr ,  758 atoms found
+        Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
+        Succeed to save file 00_1D30.pqr
+        Succeed to read file 00_1D30.pqr ,  486 atoms found
         Succeed to read file .../test_files/1D30.pdb ,  532 atoms found
         Succeed to save file DAP.pdb
         Succeed to read file DAP.pdb ,  21 atoms found
@@ -2079,8 +2078,9 @@ TEST_OUT),'1dn3/top')) #doctest: +ELLIPSIS
         Succeed to read file .../1dn3_cys.pdb ,  144 atoms found
         Succeed to read file .../1dn3_cys.pdb ,  144 atoms found
         Succeed to save file tmp_pdb2pqr.pdb
-        pdb2pqr... --ff CHARMM --ffout CHARMM --chain --ph-calc-method\
-=propka --with-ph=7.00 tmp_pdb2pqr.pdb 00_1dn3_cys.pqr
+        pdb2pqr30... --ff CHARMM --ffout CHARMM --keep-chain \
+--titration-state-method=propka --with-ph=7.00 \
+tmp_pdb2pqr.pdb 00_1dn3_cys.pqr
         Succeed to read file 00_1dn3_cys.pqr ,  231 atoms found
         Chain: A  Residue: 0 to 14
         Succeed to save file 01_1dn3_cys_good_his.pdb

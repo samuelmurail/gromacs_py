@@ -111,10 +111,10 @@ def test_protonate_ph4_7_12_charmm(tmp_path):
     prot = gmx.GmxSys(name='1RXZ_ph4', coor_file=PDB_1RXZ)
     prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph4'), ph=4.0)
     top_coor = pdb_manip.Coor(prot.coor_file)
-    assert top_coor.num == 4108
+    assert top_coor.num == 4107
 
     top_1RXZ = gmx.TopSys(prot.top_file)
-    assert top_1RXZ.charge() == 23
+    assert top_1RXZ.charge() == 22
 
     ##########################################
     # ##   Create the topologie at PH 7.0  ###
@@ -152,10 +152,10 @@ def test_protonate_ph4_7_amber(tmp_path):
     prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph4'),
                      ph=4.0, ff="amber99sb-ildn")
     top_coor = pdb_manip.Coor(prot.coor_file)
-    assert top_coor.num == 4108
+    assert top_coor.num == 4107
 
     top_1RXZ = gmx.TopSys(prot.top_file)
-    assert top_1RXZ.charge() == 23
+    assert top_1RXZ.charge() == 22
 
     ##########################################
     # ##   Create the topologie at PH 7.0  ###
