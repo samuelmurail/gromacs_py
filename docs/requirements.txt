@@ -8,3 +8,4 @@ matplotlib
 os_command_py==1.1.0
 pdb2pqr
 pdb_manip_py==1.4.1
+ipython
