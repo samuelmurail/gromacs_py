@@ -5,8 +5,8 @@
    :target: https://gromacs-py.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://travis-ci.org/samuelmurail/gromacs_py.svg?branch=master
-   :target: https://travis-ci.org/samuelmurail/gromacs_py
+.. image:: https://app.travis-ci.com/samuelmurail/gromacs_py.svg?branch=master
+    :target: https://app.travis-ci.com/samuelmurail/gromacs_py
 
 .. image:: https://codecov.io/gh/samuelmurail/gromacs_py/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/samuelmurail/gromacs_py
@@ -16,6 +16,9 @@
 
 .. image:: https://badge.fury.io/py/gromacs-py.svg
    :target: https://badge.fury.io/py/gromacs-py
+
+.. image:: https://static.pepy.tech/personalized-badge/gromacs-py?period=month&units=international_system&left_color=black&right_color=orange&left_text=Downloads
+   :target: https://pepy.tech/project/gromacs-py
 
 Gromacs_py
 =======================================
