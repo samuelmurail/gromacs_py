@@ -17,7 +17,7 @@
 .. image:: https://badge.fury.io/py/gromacs-py.svg
    :target: https://badge.fury.io/py/gromacs-py
 
-.. image:: https://static.pepy.tech/personalized-badge/gromacs-py?period=month&units=international_system&left_color=black&right_color=orange&left_text=Downloads
+.. image:: https://static.pepy.tech/personalized-badge/gromacs-py?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads
    :target: https://pepy.tech/project/gromacs-py
 
 Gromacs_py
