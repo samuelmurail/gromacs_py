@@ -69,6 +69,13 @@ This will create an environmnet called ``gromacs_py`` (or the name you defined).
 
     $ conda activate gromacs_py
 
+.. note::
+	If you want to install yourself Gromacs to be able to use the GPU acceleration, you can use the ``.conda_no_gromacs.yml``:
+
+	.. code-block:: console
+
+	    $ conda env create -f .conda_no_gromacs.yml
+	    $ conda activate gromacs_py
 
 3. Install gromacs_py
 ---------------------
@@ -168,27 +175,33 @@ Get source code from `gromacs website`__ and follow the following command for a 
 
 In my case I add to change few options to ``cmake``:
 
-	* ``-DCMAKE_C_COMPILER=gcc-6``, as gcc versions later than 6 are not supported.
+	* ``-DCMAKE_C_COMPILER=gcc-8``, as gcc versions later than 6 are not supported.
 	* ``-DGMX_GPU=on`` to use GPU acceleration
 	* ``-DCMAKE_INSTALL_PREFIX=../../local-gromacs-2019.2/`` to install gromacs in a non-standard location
 
 .. code-block:: bash
 
-	tar -xfz gromacs-2019.2.tar.gz
-	cd gromacs-2019.2
+	# Specify the version:
+	version="2021.5"
+	# To modify:
+	dir_install="/home/murail/Documents/Software/local-gromacs-${version}"
+
+	wget https://ftp.gromacs.org/gromacs/gromacs-${version}.tar.gz
+	tar -xvf gromacs-${version}.tar.gz
+	cd gromacs-${version}
 	mkdir build
 	cd build
-	cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON -DCMAKE_C_COMPILER=gcc-6 -DGMX_GPU=on -DCMAKE_INSTALL_PREFIX=../../local-gromacs-2019.2/ 
-
-	# the option -j 4 allow using 4 processor for compilation
-	make -j 4
-	make check -j 4
-	make install -j 4
-	
-	source ../../local-gromacs-2019.2/bin/GMXRC
+	# In my case I needed to define ggc-8 because gromacs doesn't accept superior versions
+	cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON -DGMX_GPU=CUDA -DCMAKE_INSTALL_PREFIX=${dir_install} -DCMAKE_C_COMPILER=gcc-8
+	make
+	make check
+	make install
+	source ${dir_install}/bin/GMXRC
+	echo "export PATH=${dir_install}/bin/:\$PATH" >> ~/.bashrc
 
 
 .. _Gromacs: http://www.gromacs.org/
 __ http://manual.gromacs.org/documentation/
 __ http://manual.gromacs.org/documentation/2019/install-guide/index.html
 
+3. `Ambertools`_

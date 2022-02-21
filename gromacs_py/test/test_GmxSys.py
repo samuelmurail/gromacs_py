@@ -8,6 +8,9 @@ Tests for GmxSys class
 import pytest
 import os
 
+import pdb2pqr
+from packaging import version
+
 from gromacs_py import gmx
 import gromacs_py.tools.ambertools as ambertools
 
@@ -111,10 +114,15 @@ def test_protonate_ph4_7_12_charmm(tmp_path):
     prot = gmx.GmxSys(name='1RXZ_ph4', coor_file=PDB_1RXZ)
     prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph4'), ph=4.0)
     top_coor = pdb_manip.Coor(prot.coor_file)
-    assert top_coor.num == 4107
-
     top_1RXZ = gmx.TopSys(prot.top_file)
-    assert top_1RXZ.charge() == 22
+    if (version.parse(pdb2pqr.__version__) < version.parse("3.5")):
+        assert top_coor.num == 4107
+        assert top_1RXZ.charge() == 22
+    else:
+        assert top_coor.num == 4106
+        assert top_1RXZ.charge() == 21
+
+
 
     ##########################################
     # ##   Create the topologie at PH 7.0  ###
@@ -152,10 +160,15 @@ def test_protonate_ph4_7_amber(tmp_path):
     prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_1RXZ_ph4'),
                      ph=4.0, ff="amber99sb-ildn")
     top_coor = pdb_manip.Coor(prot.coor_file)
-    assert top_coor.num == 4107
-
     top_1RXZ = gmx.TopSys(prot.top_file)
-    assert top_1RXZ.charge() == 22
+
+    if (version.parse(pdb2pqr.__version__) < version.parse("3.5")):
+        assert top_coor.num == 4107
+        assert top_1RXZ.charge() == 22
+    else:
+        assert top_coor.num == 4106
+        assert top_1RXZ.charge() == 21
+
 
     ##########################################
     # ##   Create the topologie at PH 7.0  ###
@@ -239,7 +252,8 @@ def test_insert_ethanol(tmp_path):
     prot.display_history()
 
 
-@pytest.mark.skipif(float(gmx.gmxsys.gmx_version) >= 2019,
+@pytest.mark.skipif(float(gmx.gmxsys.gmx_version) >= 2019 and 
+                    float(gmx.gmxsys.gmx_version) < 2021.5,
                     reason="Gromacs verions >= 19 have issues with ACE")
 def test_insert_peptide_vsite(tmp_path):
 

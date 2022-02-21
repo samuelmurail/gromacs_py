@@ -1,0 +1,9 @@
+name: gromacs_py
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.7
+  - rdkit=2020.09
+  - acpype=2020.10
+  - pip
