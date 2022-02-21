@@ -70,7 +70,7 @@ This will create an environmnet called ``gromacs_py`` (or the name you defined).
     $ conda activate gromacs_py
 
 .. note::
-	If you want to install yourself Gromacs to be able to use the GPU acceleration, you can use the ``.conda_no_gromacs.yml``:
+	If you want to install yourself Gromacs to be able to use the GPU acceleration, you can use the ``.conda_no_gromacs.yml`` or ``.conda_jupyter_no_gromacs.yml``:
 
 	.. code-block:: console
 
@@ -205,3 +205,7 @@ __ http://manual.gromacs.org/documentation/
 __ http://manual.gromacs.org/documentation/2019/install-guide/index.html
 
 3. `Ambertools`_
+
+The easiest way is to use the conda package. However is can also be installed from source.
+
+.. _Ambertools: https://ambermd.org/AmberTools.php

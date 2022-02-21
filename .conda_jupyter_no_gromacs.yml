@@ -1,0 +1,15 @@
+name: gromacs_py
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.8
+  - rdkit=2020.09.5
+  - acpype=2020.10
+  - jupyter
+  - nglview
+  - pip
+  - pip:
+    - simpletraj
+    - tqdm
+    - seaborn
