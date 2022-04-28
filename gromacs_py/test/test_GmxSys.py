@@ -16,7 +16,7 @@ import gromacs_py.tools.ambertools as ambertools
 
 from pdb_manip_py import pdb_manip
 
-from .datafiles import PDB_1Y0M, PDB_1RXZ, PDB_1JD4
+from .datafiles import PDB_1Y0M, PDB_1RXZ, PDB_1JD4, PDB_1DPX
 
 # Autorship information
 __author__ = "Samuel Murail"
@@ -57,6 +57,66 @@ def test_zinc_finger(tmp_path):
     ener_pd = prot.get_ener(['Potential'])
     assert ener_pd['Potential'].values[-1] < -155000
 
+def test_cys_bond_amber(tmp_path):
+
+    gmx.show_log()
+    ##################################
+    # ##   Create the topologie:   ###
+    ##################################
+    prot = gmx.GmxSys(name='1dpx', coor_file=PDB_1DPX)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_DISU'),
+                     vsite='hydrogens', ignore_ZN=False,
+                     ff="amber99sb-ildn")
+
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 2096
+
+    prot.solvate_add_ions(out_folder=os.path.join(tmp_path, 'top_sys'),
+                          maxwarn=3)
+
+    prot.em(out_folder=os.path.join(tmp_path, 'em_DISU'),
+            nsteps=10,
+            constraints='none')
+    em_coor = pdb_manip.Coor(prot.coor_file)
+    assert em_coor.num == 27086
+
+    cystein_s_index = em_coor.get_index_selection(
+        {'name': ['SG'], 'res_name' : ['CYS']})
+
+    distance = pdb_manip.Coor.atom_dist(
+        em_coor.atom_dict[cystein_s_index[0]],
+        em_coor.atom_dict[cystein_s_index[-1]])
+    assert distance < 2.1
+
+def test_cys_bond_charmm(tmp_path):
+
+    gmx.show_log()
+    ##################################
+    # ##   Create the topologie:   ###
+    ##################################
+    prot = gmx.GmxSys(name='1dpx', coor_file=PDB_1DPX)
+    prot.prepare_top(out_folder=os.path.join(tmp_path, 'top_DISU'),
+                     vsite='hydrogens', ignore_ZN=False)
+
+    top_coor = pdb_manip.Coor(prot.coor_file)
+    assert top_coor.num == 2096
+
+    prot.solvate_add_ions(out_folder=os.path.join(tmp_path, 'top_sys'),
+                          maxwarn=3)
+
+    prot.em(out_folder=os.path.join(tmp_path, 'em_DISU'),
+            nsteps=10,
+            constraints='none')
+    em_coor = pdb_manip.Coor(prot.coor_file)
+    assert em_coor.num == 27086
+
+    cystein_s_index = em_coor.get_index_selection(
+        {'name': ['SG'], 'res_name' : ['CYS']})
+
+    distance = pdb_manip.Coor.atom_dist(
+        em_coor.atom_dict[cystein_s_index[0]],
+        em_coor.atom_dict[cystein_s_index[-1]])
+    assert distance < 2.1
 
 def test_set_protonate_charmm(tmp_path):
 
