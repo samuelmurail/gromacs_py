@@ -246,12 +246,12 @@ class Itp:
                                 {'ai': int(ai), 'funct': int(funct), 'kx': kx,
                                  'ky': ky, 'kz': kz})
 
-                    # General bonded and nonbonded parameters 
+                    # General bonded and nonbonded parameters
                     elif field == 'atomtypes':
                         name, at_num, mass, charge, ptype, sigma, \
                             epsilon = [col for col in line_list[:7]]
                         self.atomtypes_dict[name] = {
-                            'at_num': at_num, # Remove int() conv. Issue aith acpype
+                            'at_num': at_num,  # Remove int() conv.Acpype issue
                             'mass': float(mass),
                             'charge': float(charge),
                             'ptype': ptype,
@@ -270,7 +270,7 @@ class Itp:
 
                     else:
                         logger.debug(f'In itp file {self.fullname} an Unknown'
-                                       f' field has been founded: {field}')
+                                     f' field has been founded: {field}')
                         # raise ValueError('Unknown field : '+field)
 
         # Needed for empty topologies like aditional ff parameters:
@@ -286,15 +286,16 @@ class Itp:
             filout.write(';name   at.num         mass     charge   '
                          'ptype   sigma         epsilon       Amb\n')
             for name, atom_dict in self.atomtypes_dict.items():
-                filout.write(' {:3}      {:3}         {:8.5f}  {:.5f}'
-                             '   {}     {:.5e}   {:.5e}\n'.format(
-                    name,
-                    atom_dict['at_num'],
-                    atom_dict['mass'],
-                    atom_dict['charge'],
-                    atom_dict['ptype'],
-                    atom_dict['sigma'],
-                    atom_dict['epsilon']))
+                filout.write(
+                    ' {:3}      {:3}         {:8.5f}  {:.5f}'
+                    '   {}     {:.5e}   {:.5e}\n'.format(
+                        name,
+                        atom_dict['at_num'],
+                        atom_dict['mass'],
+                        atom_dict['charge'],
+                        atom_dict['ptype'],
+                        atom_dict['sigma'],
+                        atom_dict['epsilon']))
 
             filout.write('\n')
 
@@ -302,13 +303,14 @@ class Itp:
             filout.write('[ nonbond_params ]\n')
             filout.write('; i    j func     sigma(nm)       epsilon\n')
             for param in self.nonbond_param:
-                filout.write(' {:3} {:3}   {:3}  {:12.5e}'\
-                             '  {:12.5e}  \n'.format(
-                    param['ai'],
-                    param['aj'],
-                    param['funct'],
-                    param['sigma'],
-                    param['epsilon']))
+                filout.write(
+                    ' {:3} {:3}   {:3}  {:12.5e}'
+                    '  {:12.5e}  \n'.format(
+                        param['ai'],
+                        param['aj'],
+                        param['funct'],
+                        param['sigma'],
+                        param['epsilon']))
 
             filout.write('\n')
 

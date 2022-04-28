@@ -5,11 +5,9 @@
 Tests for GmxSys class
 """
 
-import pytest
 import os
 
 from gromacs_py import gmx
-import gromacs_py.tools.ambertools as ambertools
 
 from pdb_manip_py import pdb_manip
 
@@ -37,7 +35,8 @@ def test_insert_peptide_vsite(tmp_path):
     top_coor = pdb_manip.Multi_Coor(cyclic_pep.coor_file)
     assert top_coor.coor_list[0].num == 209
 
-    cyclic_pep.cyclic_peptide_top(out_folder=os.path.join(tmp_path, 'cyclic/top'))
+    cyclic_pep.cyclic_peptide_top(
+        out_folder=os.path.join(tmp_path, 'cyclic/top'))
 
     top_coor = pdb_manip.Coor(cyclic_pep.coor_file)
     assert top_coor.num == 209
@@ -49,7 +48,7 @@ def test_insert_peptide_vsite(tmp_path):
     cyclic_top.display()
 
     cyclic_pep.em(
-        out_folder=os.path.join(tmp_path,'cyclic/em/'),
+        out_folder=os.path.join(tmp_path, 'cyclic/em/'),
         nsteps=10,
         create_box_flag=True)
 
@@ -61,7 +60,7 @@ def test_insert_peptide_vsite(tmp_path):
     assert top_coor.num == 209
 
     cyclic_amber_pep.cyclic_peptide_top(
-        out_folder=os.path.join(tmp_path,'cyclic/top'),
+        out_folder=os.path.join(tmp_path, 'cyclic/top'),
         ff='amber99sb-ildn')
 
     top_coor = pdb_manip.Coor(cyclic_pep.coor_file)

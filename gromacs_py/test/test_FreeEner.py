@@ -25,7 +25,8 @@ __status__ = "Production"
 
 
 @pytest.mark.skipif(float(gmx.gmxsys.gmx_version) >= 2021,
-                    reason="Gromacs verions >= 2021 have issues with Free energy")
+                    reason="Gromacs verions >= 2021 have" +
+                    " issues with Free energy")
 def test_free_bind(tmp_path):
     dna_free = FreeEner('DAP', f'{tmp_path}/1D30_solv')
     dna_free.prepare_complex_pdb(

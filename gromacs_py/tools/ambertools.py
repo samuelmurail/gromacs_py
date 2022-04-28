@@ -677,9 +677,6 @@ def extract_itp_atomtypes(itp_in, itp_atomtypes_out):
     filout.write(non_atom_types_list)
     filout.close()
 
-
-
-
     # # Read and write itp to remove the [ atomtypes ] part
     # fullname = (itp_in.split("/")[-1])
     # include = fullname.split(".")[0]

@@ -57,6 +57,7 @@ def test_zinc_finger(tmp_path):
     ener_pd = prot.get_ener(['Potential'])
     assert ener_pd['Potential'].values[-1] < -155000
 
+
 def test_cys_bond_amber(tmp_path):
 
     gmx.show_log()
@@ -81,12 +82,13 @@ def test_cys_bond_amber(tmp_path):
     assert em_coor.num == 27086
 
     cystein_s_index = em_coor.get_index_selection(
-        {'name': ['SG'], 'res_name' : ['CYS']})
+        {'name': ['SG'], 'res_name': ['CYS']})
 
     distance = pdb_manip.Coor.atom_dist(
         em_coor.atom_dict[cystein_s_index[0]],
         em_coor.atom_dict[cystein_s_index[-1]])
     assert distance < 2.1
+
 
 def test_cys_bond_charmm(tmp_path):
 
@@ -111,12 +113,13 @@ def test_cys_bond_charmm(tmp_path):
     assert em_coor.num == 27086
 
     cystein_s_index = em_coor.get_index_selection(
-        {'name': ['SG'], 'res_name' : ['CYS']})
+        {'name': ['SG'], 'res_name': ['CYS']})
 
     distance = pdb_manip.Coor.atom_dist(
         em_coor.atom_dict[cystein_s_index[0]],
         em_coor.atom_dict[cystein_s_index[-1]])
     assert distance < 2.1
+
 
 def test_set_protonate_charmm(tmp_path):
 
@@ -182,8 +185,6 @@ def test_protonate_ph4_7_12_charmm(tmp_path):
         assert top_coor.num == 4106
         assert top_1RXZ.charge() == 21
 
-
-
     ##########################################
     # ##   Create the topologie at PH 7.0  ###
     ##########################################
@@ -228,7 +229,6 @@ def test_protonate_ph4_7_amber(tmp_path):
     else:
         assert top_coor.num == 4106
         assert top_1RXZ.charge() == 21
-
 
     ##########################################
     # ##   Create the topologie at PH 7.0  ###
@@ -312,7 +312,7 @@ def test_insert_ethanol(tmp_path):
     prot.display_history()
 
 
-@pytest.mark.skipif(float(gmx.gmxsys.gmx_version) >= 2019 and 
+@pytest.mark.skipif(float(gmx.gmxsys.gmx_version) >= 2019 and
                     float(gmx.gmxsys.gmx_version) < 2021.5,
                     reason="Gromacs verions >= 19 have issues with ACE")
 def test_insert_peptide_vsite(tmp_path):

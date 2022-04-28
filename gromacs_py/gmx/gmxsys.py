@@ -1732,7 +1732,6 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
         # With version of gmx > 2021, the following lines are useless
         if int(gmx_version.split('.')[0]) < 2021:
 
-
             # Define termini atoms:
             # C-ter NH3
 
@@ -1758,7 +1757,9 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
             del_index = mol_top.get_selection_index(
                 selec_dict={'atom_name': to_del_name_n_ter, 'res_num': [1]}) +\
                 mol_top.get_selection_index(
-                    selec_dict={'atom_name': ['OT2', 'OC2'], 'res_num': [res_num]})
+                    selec_dict={
+                        'atom_name': ['OT2', 'OC2'],
+                        'res_num': [res_num]})
 
             mol_top.delete_atom(index_list=del_index)
 
@@ -1783,7 +1784,9 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
             # mol_top.atom_dict[chg_index]['charge'] = \
             #   mol_top.atom_dict[chg_index]['charge'] - 0.12
             chg_index = mol_top.get_selection_index(
-                selec_dict={'atom_name': ['OT1', 'OC1'], 'res_num': [res_num]})[0]
+                selec_dict={
+                    'atom_name': ['OT1', 'OC1'],
+                    'res_num': [res_num]})[0]
             # mol_top.atom_dict[chg_index]['atom_type'] = 'O'
             mol_top.atom_dict[chg_index]['atom_name'] = 'O'
             # mol_top.atom_dict[chg_index]['charge'] = -0.51
@@ -1894,16 +1897,17 @@ nsteps=10, maxwarn=1) #doctest: +ELLIPSIS
                                           'theta': '', 'cth': ''})
 
             # Dihed: type 9
-            dihed_list = [[N_index, prev_C_index, prev_CA_index, prev_HA_index],
-                          [N_index, prev_C_index, prev_CA_index, prev_CB_index],
-                          [N_index, prev_C_index, prev_CA_index, prev_N_index],
-                          [HN_index, N_index, prev_C_index, prev_O_index],
-                          [HN_index, N_index, prev_C_index, prev_CA_index],
-                          [CA_index, N_index, prev_C_index, prev_O_index],
-                          [CA_index, N_index, prev_C_index, prev_CA_index],
-                          [HA_index, CA_index, N_index, prev_C_index],
-                          [CB_index, CA_index, N_index, prev_C_index],
-                          [C_index, CA_index, N_index, prev_C_index]]
+            dihed_list = [
+                [N_index, prev_C_index, prev_CA_index, prev_HA_index],
+                [N_index, prev_C_index, prev_CA_index, prev_CB_index],
+                [N_index, prev_C_index, prev_CA_index, prev_N_index],
+                [HN_index, N_index, prev_C_index, prev_O_index],
+                [HN_index, N_index, prev_C_index, prev_CA_index],
+                [CA_index, N_index, prev_C_index, prev_O_index],
+                [CA_index, N_index, prev_C_index, prev_CA_index],
+                [HA_index, CA_index, N_index, prev_C_index],
+                [CB_index, CA_index, N_index, prev_C_index],
+                [C_index, CA_index, N_index, prev_C_index]]
 
             for ai, aj, ak, al in dihed_list:
                 mol_top.dihe_list.append({'ai': ai, 'aj': aj, 'ak': ak,

@@ -192,9 +192,11 @@ class TopSys:
                     elif file_name.endswith('atomtypes.itp'):
                         # logger.info('Atomtypes Founded', )
                         if len(self.atomtypes) >= 1:
-                            logger.error('Warning there is two atomtypes itp files'
-                                           'There should be only one')
-                            # raise ValueError('Two atomtypes itp files present.')
+                            logger.error(
+                                'Warning there is two atomtypes itp files'
+                                'There should be only one')
+                            # raise ValueError('Two atomtypes itp
+                            # files present.')
 
                         self.add_mol_itp(path)
                         self.atomtypes.append(len(self.itp_list))
@@ -467,10 +469,12 @@ class TopSys:
                 if atom in self.itp_list[self.atomtypes[0]].atomtypes_dict:
                     logger.warning(f'{atom} already defined,'
                                    'will be overwritting bt new param')
-                self.itp_list[self.atomtypes[0]].atomtypes_dict[atom] = atomtype
+                self.itp_list[
+                    self.atomtypes[0]].atomtypes_dict[atom] = atomtype
 
         logger.info(f'Overwrite {self.itp_list[self.atomtypes[0]].path}')
-        self.itp_list[self.atomtypes[0]].write_file(self.itp_list[self.atomtypes[0]].path)
+        self.itp_list[self.atomtypes[0]].write_file(
+            self.itp_list[self.atomtypes[0]].path)
 
     def add_atomtypes(self, new_atomtypes):
         """ Add atomtypes in a topologie.
