@@ -86,6 +86,9 @@ if on_rtd:
 else:
     GMX_BIN = os_command.which('gmx')
     gmx_version = os_command.get_gmx_version()
+    if len(gmx_version.split('.')) > 2:
+        gmx_version = '.'.join(gmx_version.split('.')[:2])
+
     logger.info("Gromacs version is {}".format(gmx_version))
 
 # Get local gmx path
